@@ -1,1 +1,1 @@
-# Splashy: [Replacement for AutoHotkey's SplashImage](../../wiki)
+# Splashy: [A replacement for AutoHotkey's SplashImage](../../wiki)
