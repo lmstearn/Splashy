@@ -23,20 +23,20 @@ Class SplashImg
 	spr1 := 0
 	spr2 := 0
 
-	; HTML Colours (RGB)
-	Static HTML := {CYAN: "0x00FFFF", BLACK: "0x000000", BLUE: "0x0000FF", FUCHSIA: "0xFF00FF", GRAY: "0x808080", AUBURN: "0X2A2AA5"
-	 , LIME: "0X00FF00", MAROON: "0X800000", NAVY: "0X000080", OLIVE: "0X808000", PURPLE: "0X800080", RED: "0XFF0000", FELDGRAU: "0X3d5d5d"
-	 , SILVER: "0XC0C0C0", TEAL: "0X008080", WHITE: "0XFFFFFF", YELLOW: "0XFFFF00", ORANGE: "0XFFA500", BEIGE: "0XF5F5DC", CELADON: "0XACE1AF"
-	 , CHESTNUT: "0X954535", CHOCOLATE: "0X7B3F00", TAUPE: "0X483C32", SALMON: "0XFA8072", VIOLET: "0X7F00FF", GRAPE: "0X6F2DA8", STEINGRAU: "0X485555"
-	 , PEACH: "0XFFE5B4", VERMILION: "0XE34234", CERULEAN: "0X007B00A7", TURQUOISE: "0X40E0D0", VIRIDIAN: "0X40826D", DKSALMON: "0X7A96E9"
-	 , PLUM: "0X8E4585", MAGENTA: "0XF653A6", GOLD: "0XFFD700", GOLDENROD: "0XDAA520", GREEN: "0X008000", ONYX: "0X353839", KHAKIGRAU: "0X746643"}
+	; HTML Colours (RGB- no particular order)
+	STATIC HTML := {CYAN: "0X00FFFF", AQUAMARINE : "0X7FFFD4", BLACK: "0X000000", BLUE: "0X0000FF", FUCHSIA: "0XFF00FF", GRAY: "0X808080", AUBURN: "0X2A2AA5"
+	 , LIME: "0X00FF00", MAROON: "0X800000", NAVY: "0X000080", OLIVE: "0X808000", PURPLE: "0X800080", INDIGO: "0X4B0082", LAVENDER: "0XE6E6FA", DKSALMON: "0X7A96E9"
+	 , SILVER: "0XC0C0C0", TEAL: "0X008080", WHITE: "0XFFFFFF", YELLOW: "0XFFFF00", WHEAT: "0xF5DEB3", ORANGE: "0XFFA500", BEIGE: "0XF5F5DC", CELADON: "0XACE1AF"
+	 , CHESTNUT: "0X954535", TAN: "0xD2B48C", CHOCOLATE: "0X7B3F00", TAUPE: "0X483C32", SALMON: "0XFA8072", VIOLET: "0X7F00FF", GRAPE: "0X6F2DA8", STEINGRAU: "0X485555"
+	 , PEACH: "0XFFE5B4", CORAL: "0XFF7F50", CRIMSON: "0XDC143C", VERMILION: "0XE34234", CERULEAN: "0X007BA7", TURQUOISE: "0X40E0D0", VIRIDIAN: "0X40826D", RED: "0XFF0000"
+	 , PLUM: "0X8E4585", MAGENTA: "0XF653A6", GOLD: "0XFFD700", GOLDENROD: "0XDAA520", GREEN: "0X008000", ONYX: "0X353839", KHAKIGRAU: "0X746643", FELDGRAU: "0X3D5D5D"}
 
 	Static WM_PAINT := 0x000F
 	Static WM_NCHITTEST := 0x84
 	Static WM_ERASEBKGND := 0x0014
 	Static WM_CTLCOLORSTATIC := 0x0138
 
-	Static updateFlag := 0
+	Static updateFlag := -1
 	Static procEnd := 0
 	Static pToken := 0
 	Static hGDIPLUS := 0
@@ -121,7 +121,6 @@ Class SplashImg
 	SplashImag(argList*)
 	{
 
-	This.updateFlag := 1 ; default is update
 		For Key, Value in argList
 		{
 		; An alternative: https://www.autohotkey.com/boards/viewtopic.php?f=6&t=9656
@@ -157,7 +156,10 @@ Class SplashImg
 				This.vHide := Value
 			}
 			Case "noHWndActivate":
-			This.noHWndActivate := Value
+			{
+				if (Value)
+				This.noHWndActivate := "NoActivate "
+			}
 			Case "vMovable":
 			This.vMovable := Value
 			Case "vBorder":
@@ -253,7 +255,11 @@ Class SplashImg
 			This.subFontUnderline := Value
 
 			Case "initSplash":
-			This.updateFlag := 0
+			{
+				if (Value)
+				This.updateFlag := 0
+			}
+			
 			}
 		}
 
@@ -291,7 +297,7 @@ Class SplashImg
 
 	This.procEnd := 0
 
-		if (This.updateFlag)
+		if (This.updateFlag > 0)
 		This.updateFlag := 0
 		else
 		{
@@ -301,7 +307,7 @@ Class SplashImg
 			else
 			{
 				if (!This.imagePath)
-				This.imagePath := A_AhkPath
+				This.imagePath := A_AhkPath ; default icon. Ist of 5
 			}
 			if (imageUrlIn)
 			This.imageUrl := imageUrlIn
@@ -501,7 +507,9 @@ Class SplashImg
 
 		This.subFontUnderline := (subFontUnderlineIn)? " Underline": ""
 
+		This.updateFlag := 1 ; in case -1 at start
 		}
+
 
 
 	This.DisplayToggle()
@@ -993,7 +1001,7 @@ Class SplashImg
 		DllCall("Gdi32.dll\SetBkMode", "Ptr", textDC, "UInt", (This.transCol)? TRANSPARENT: OPAQUE)
 		if (DllCall("Gdi32.dll\SetTextColor", "Ptr", textDC, "UInt", 0X000000) == CLR_INVALID)
 		msgbox, 8208, SetTextColor, Cannot set colour for text!
-;msgbox % colour
+
 		if (DllCall("Gdi32.dll\SetBkColor", "Ptr", textDC, "UInt", 0X000000) == CLR_INVALID)
 		msgbox, 8208, SetBkColor, Cannot set background colour for text!
 		DllCall("SetDCBrushColor", "Ptr", textDC, "UInt", colour)
@@ -1297,7 +1305,11 @@ Class SplashImg
 ; Autoexec here:
 
 spr := SplashImg.SplashImag
-%spr%(SplashImg, {initSplash: 1, bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+%spr%(SplashImg, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+, vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
+%spr%(SplashImg, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+, vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
+%spr%(SplashImg, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
 Return
@@ -1322,16 +1334,16 @@ Process, Priority,, High
 Thread, Priority, 2000000000
 
 /*
-	This.SplashImagInit(This.imagePath, This.imageUrl
-	, This.bkgdColour, This.transCol, This.vHide, This.noHWndActivate
-	, This.vMovable, This.vBorder, This.vOnTop
-	, This.vMgnX, This.vMgnY, This.vImgW, This.vImgH
-	, This.mainText, This.mainBkgdColour
-	, This.mainFontName, This.mainFontSize, This.mainFontWeight, This.mainFontColour
-	, This.mainFontQuality, This.mainFontItalic, This.mainFontStrike, This.mainFontUnderline
-	, This.subText, This.subBkgdColour
-	, This.subFontName, This.subFontSize, This.subFontWeight, This.subFontColour
-	, This.subFontQuality, This.subFontItalic, This.subFontStrike, This.subFontUnderline)
+	SplashImagInit(imagePath, imageUrl
+	, bkgdColour, transCol, vHide, noHWndActivate
+	, vMovable, vBorder, vOnTop
+	, vMgnX, vMgnY, vImgW, vImgH
+	, mainText, mainBkgdColour
+	, mainFontName, mainFontSize, mainFontWeight, mainFontColour
+	, mainFontQuality, mainFontItalic, mainFontStrike, mainFontUnderline
+	, subText, subBkgdColour
+	, subFontName, subFontSize, subFontWeight, subFontColour
+	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
 
 */
 spr := SplashImg.SplashImag ; function reference
