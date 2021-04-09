@@ -16,7 +16,7 @@ SetWinDelay, 40
 ; ListVars for debugging
 SetBatchLines, 25ms ; too fast? A_BatchLines is 10ms
 
-Class SplashImg
+Class Splashy
 {
 
 	spr := 0
@@ -118,7 +118,7 @@ Class SplashImg
 		}
 	}
 
-	SplashImag(argList*)
+	SplashImg(argList*)
 	{
 
 		For Key, Value in argList
@@ -263,7 +263,7 @@ Class SplashImg
 			}
 		}
 
-	This.SplashImagInit(This.imagePath, This.imageUrl
+	This.SplashImgInit(This.imagePath, This.imageUrl
 	, This.bkgdColour, This.transCol, This.vHide, This.noHWndActivate
 	, This.vMovable, This.vBorder, This.vOnTop
 	, This.vMgnX, This.vMgnY, This.vImgW, This.vImgH
@@ -276,7 +276,7 @@ Class SplashImg
 	
 	}
 
-	SplashImagInit(imagePathIn := "", imageUrlIn := ""
+	SplashImgInit(imagePathIn := "", imageUrlIn := ""
 	, bkgdColourIn := -1, transColIn := "", vHideIn := -1, noHWndActivateIn := ""
 	, vMovableIn := 0, vBorderIn := "", vOnTopIn := 0
 	, vMgnX := -1, vMgnY := -1, vImgWIn := 0, vImgHIn := 0
@@ -527,12 +527,12 @@ Class SplashImg
 		DllCall("GdiPlus.dll\GdiplusStartup", "UPtr*", spr, "Ptr", &SI, "Ptr", 0)
 		This.pToken := spr		
 		;WS_DLGFRAME := 0x400000
-		Gui, SplashImage: New, % "+ToolWindow -Caption " . ((This.vBorder)? ((This.vBorder == "B")? "+Border ": "+0x400000 "): "")
+		Gui, Splashy: New, % "+ToolWindow -Caption " . ((This.vBorder)? ((This.vBorder == "B")? "+Border ": "+0x400000 "): "")
 		This.BindWndProc()
 		}
 
 
-	Gui, SplashImage: Color, % This.bkgdColour
+	Gui, Splashy: Color, % This.bkgdColour
 
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
 	vWinW := This.vImgW + 2 * This.vMgnX
@@ -542,14 +542,14 @@ Class SplashImg
 
 		if (This.mainText)
 		{
-		Gui, SplashImage: Font, % "norm" . " s" . This.mainFontSize . " w" . This.mainFontWeight . " c" . This.mainFontColour " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
+		Gui, Splashy: Font, % "norm" . " s" . This.mainFontSize . " w" . This.mainFontWeight . " c" . This.mainFontColour " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
 
 		if (This.mainTextHWnd)
 			{
-			GuiControl, SplashImage: Text, % This.mainTextHWnd, % This.mainText
-			GuiControl, SplashImage: Font, % This.mainTextHWnd
+			GuiControl, Splashy: Text, % This.mainTextHWnd, % This.mainText
+			GuiControl, Splashy: Font, % This.mainTextHWnd
 			This.mainTextSize := This.Text_height(This.mainText, This.mainTextHWnd)
-			GuiControl, SplashImage: Move, % This.mainTextHWnd, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . This.mainTextSize[2]
+			GuiControl, Splashy: Move, % This.mainTextHWnd, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . This.mainTextSize[2]
 			This.vImgY += This.mainTextSize[2]
 			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
 			; This sends more paint messages to parent
@@ -557,13 +557,13 @@ Class SplashImg
 			}
 			else
 			{
-			Gui, SplashImage: Add, Text, % "Center W" . This.vImgW . " Y" . This.vMgnY . " HWND" . "spr", % This.mainText
+			Gui, Splashy: Add, Text, % "Center W" . This.vImgW . " Y" . This.vMgnY . " HWND" . "spr", % This.mainText
 			This.mainTextHWnd := spr
 			; initial pos can be a bit off 
 			ControlGetPos, , , spr, , , % "ahk_id" . This.mainTextHWnd
 			spr := This.vImgX + This.vImgW/2 - spr/2
-			GuiControl, SplashImage: Move, % This.mainTextHWnd, x%spr%
-			GuiControl, SplashImage: Font, % This.mainTextHWnd
+			GuiControl, Splashy: Move, % This.mainTextHWnd, x%spr%
+			GuiControl, Splashy: Font, % This.mainTextHWnd
 			This.mainTextSize := This.Text_height(This.mainText, This.mainTextHWnd)
 			This.vImgY += This.mainTextSize[2]
 			}
@@ -578,34 +578,34 @@ Class SplashImg
 		else
 		{
 			if (This.mainTextHWnd)
-			GuiControl, SplashImage: Hide, % This.mainTextHWnd
+			GuiControl, Splashy: Hide, % This.mainTextHWnd
 		}
 
 
 		if (This.subText)
 		{
-		Gui, SplashImage: Font, % "norm" . " s" . This.subFontSize . " w" . This.subFontWeight . " c" . This.subFontColour . This.subFontItalic . This.subFontStrike . This.subFontUnderline, % This.subFontName
+		Gui, Splashy: Font, % "norm" . " s" . This.subFontSize . " w" . This.subFontWeight . " c" . This.subFontColour . This.subFontItalic . This.subFontStrike . This.subFontUnderline, % This.subFontName
 
 		spr := This.vImgH + This.vImgY + This.vMgnY
 
 
 			if (This.subTextHWnd)
 			{
-			GuiControl, SplashImage: Text, % This.subTextHWnd, % This.subText
+			GuiControl, Splashy: Text, % This.subTextHWnd, % This.subText
 			This.subTextSize := This.Text_height(This.subText, This.subTextHWnd)
 			vWinH += This.subTextSize[2]
-			GuiControl, SplashImage: Font, % This.subTextHWnd
-			GuiControl, SplashImage: Move, % This.subTextHWnd, % "X" . This.vMgnX . " Y" . spr . " W" . This.vImgW . " H" . This.subTextSize[2]
+			GuiControl, Splashy: Font, % This.subTextHWnd
+			GuiControl, Splashy: Move, % This.subTextHWnd, % "X" . This.vMgnX . " Y" . spr . " W" . This.vImgW . " H" . This.subTextSize[2]
 			}
 			else
 			{
-			Gui, SplashImage: Add, Text, % "xp Center W" . This.vImgW . " Y" . spr . " HWND" . "spr1", % This.subText
+			Gui, Splashy: Add, Text, % "xp Center W" . This.vImgW . " Y" . spr . " HWND" . "spr1", % This.subText
 			This.subTextHWnd := spr1
 			This.subTextSize := This.Text_height(This.subText, This.subTextHWnd)
 			ControlGetPos, , , spr1, , , % "ahk_id" . This.subTextHWnd
 			spr1 := This.vImgX + This.vImgW/2 - spr1/2
-			GuiControl, SplashImage: Move, % This.subTextHWnd, % "X" . spr1 . " H" . This.subTextSize[2]
-			GuiControl, SplashImage: Font, % This.subTextHWnd
+			GuiControl, Splashy: Move, % This.subTextHWnd, % "X" . spr1 . " H" . This.subTextSize[2]
+			GuiControl, Splashy: Font, % This.subTextHWnd
 			vWinH += This.subTextSize[2]
 			}
 
@@ -616,10 +616,10 @@ Class SplashImg
 		else
 		{
 			if (This.subTextHWnd)
-			GuiControl, SplashImage: Hide, % This.subTextHWnd
+			GuiControl, Splashy: Hide, % This.subTextHWnd
 		}
 
-	Gui, SplashImage: Font
+	Gui, Splashy: Font
 
 
 		if (This.vOnTop)
@@ -630,13 +630,13 @@ Class SplashImg
 
 		if (!This.vHide)
 		{
-		Gui, SplashImage: Show, % "Hide " . Format("W{} H{}", vWinW, vWinH)
+		Gui, Splashy: Show, % "Hide " . Format("W{} H{}", vWinW, vWinH)
 		VarSetCapacity(rect, 16, 0)
 		DllCall("GetWindowRect", "Ptr", This.hWnd(), "Ptr", &rect)
 		;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWnd() ; fail
 
 		; Supposed to prevent form visibility without picture while loading. Want another approach?
-		Gui, SplashImage: Show, % Format("X{} Y{}", -30000, -30000)
+		Gui, Splashy: Show, % Format("X{} Y{}", -30000, -30000)
 		sleep 20
 
 		spr := NumGet(rect, 0, "int")
@@ -645,7 +645,7 @@ Class SplashImg
 		;WinMove, % "ahk_id" . This.hWnd(),, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
 
 
-		Gui, SplashImage: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
+		Gui, Splashy: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
 						
 			if (This.transCol && !This.vBorder)
 			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWnd()
@@ -668,7 +668,7 @@ Class SplashImg
 		if (!This.hWndSaved)
 		{
 		DetectHiddenWindows, On
-		Gui, SplashImage: +HWNDspr
+		Gui, Splashy: +HWNDspr
 		This.hWndSaved := spr
 		DetectHiddenWindows, Off
 		}
@@ -689,8 +689,8 @@ Class SplashImg
 
 	Destroy()
 	{
-	Gui, SplashImage: Destroy
-	; AHK takes care of SplashImg.hBitmap deletion
+	Gui, Splashy: Destroy
+	; AHK takes care of Splashy.hBitmap deletion
 
 	DllCall("GdiPlus.dll\GdiplusShutdown", "Ptr", This.pToken)
 	DllCall("FreeLibrary", "Ptr", This.hGDIPLUS)
@@ -1303,13 +1303,35 @@ Class SplashImg
 
 ;=====================================================================================
 ; Autoexec here:
+SplashRef := Splashy.SplashImg ; function reference
 
-spr := SplashImg.SplashImag
-%spr%(SplashImg, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+
+%SplashRef%(Splashy, {initSplash: value, imagePath: pathString, imageUrl: urlString
+
+, bkgdColour: colourStringorVal, transCol: boolValue, vHide: boolValue, noHWndActivate: boolValue
+
+, vMovable: boolValue, vBorder: borderString, vOnTop: boolValue
+
+, vMgnX: value, vMgnY: value, vImgW: value, vImgH: value
+
+, mainText: string, mainBkgdColour: colourStringorVal
+
+, mainFontName: string, mainFontSize: value, mainFontWeight: value, mainFontColour: colourStringorVal
+
+, mainFontQuality: value, mainFontItalic: boolValue, mainFontStrike: boolValue, mainFontUnderline: boolValue
+
+, subText: string, subBkgdColour: colourStringorVal
+
+, subFontName: string, subFontSize: value, subFontWeight: value, subFontColour: colourStringorVal
+
+, subFontQuality: value, subFontItalic: boolValue, subFontStrike: boolValue, subFontUnderline: boolValue})
+return
+
+%SplashRef%(Splashy, {initSplash: 1, bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
-%spr%(SplashImg, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+%SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
-%spr%(SplashImg, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+%SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
 Return
@@ -1317,7 +1339,7 @@ Return
 
 
 q::
-	if (SplashImg.vHide)
+	if (Splashy.vHide)
 	DetectHiddenWindows, On
 	else
 	{
@@ -1334,37 +1356,45 @@ Process, Priority,, High
 Thread, Priority, 2000000000
 
 /*
-	SplashImagInit(imagePath, imageUrl
-	, bkgdColour, transCol, vHide, noHWndActivate
-	, vMovable, vBorder, vOnTop
-	, vMgnX, vMgnY, vImgW, vImgH
-	, mainText, mainBkgdColour
-	, mainFontName, mainFontSize, mainFontWeight, mainFontColour
-	, mainFontQuality, mainFontItalic, mainFontStrike, mainFontUnderline
-	, subText, subBkgdColour
-	, subFontName, subFontSize, subFontWeight, subFontColour
-	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
+%SplashRef%(Splashy, {initSplash: value, imagePath: pathString, imageUrl: urlString
+
+, bkgdColour: colourStringorVal, transCol: boolValue, vHide: boolValue, noHWndActivate: boolValue
+
+, vMovable: boolValue, vBorder: borderString, vOnTop: boolValue
+
+, vMgnX: value, vMgnY: value, vImgW: value, vImgH: value
+
+, mainText: string, mainBkgdColour: colourStringorVal
+
+, mainFontName: string, mainFontSize: value, mainFontWeight: value, mainFontColour: colourStringorVal
+
+, mainFontQuality: value, mainFontItalic: boolValue, mainFontStrike: boolValue, mainFontUnderline: boolValue
+
+, subText: string, subBkgdColour: colourStringorVal
+
+, subFontName: string, subFontSize: value, subFontWeight: value, subFontColour: colourStringorVal
+
+, subFontQuality: value, subFontItalic: boolValue, subFontStrike: boolValue, subFontUnderline: boolValue})
 
 */
-spr := SplashImg.SplashImag ; function reference
 
-;%spr%(SplashImg, {imagePath: "C:\Windows\Cursors\busy_l.cur", bkgdColour: "Blue", vMovable: "", vBorder: "", vOnTop: ""
+;%spr%(Splashy, {imagePath: "C:\Windows\Cursors\busy_l.cur", bkgdColour: "Blue", vMovable: "", vBorder: "", vOnTop: ""
 ;, vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
 
-%spr%(SplashImg, {bkgdColour: "Blue", transCol: "1", vMovable: "movable", vBorder: "", vOnTop: "onTop"
+%SplashRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "movable", vBorder: "", vOnTop: "onTop"
 , vMgnY: 6, mainText: "GREAT", subText: "Hi", subFontItalic: 1, subFontStrike: 1}*)
 
 
 ;Critical, Off
 Process, Priority,, Normal
 
-	if (SplashImg.vHide)
+	if (Splashy.vHide)
 	DetectHiddenWindows, Off
 
 return
 
 w::
-	if (SplashImg.vHide)
+	if (Splashy.vHide)
 	DetectHiddenWindows, On
 	if InStr(A_ThisHotkey, "w")
 	{
@@ -1374,14 +1404,14 @@ w::
 		return
 	}
 ;test code to redraw the image
-SplashImg.PaintProc()
-	if (SplashImg.vHide)
+Splashy.PaintProc()
+	if (Splashy.vHide)
 	DetectHiddenWindows, Off
 
-;DllCall("InvalidateRect", "Ptr", SplashImg.hWnd(), "Ptr", 0, "Uint", 1, "Int")
+;DllCall("InvalidateRect", "Ptr", Splashy.hWnd(), "Ptr", 0, "Uint", 1, "Int")
 return
 
 
 Esc::
-SplashImg.Destroy()
+Splashy.Destroy()
 ExitApp
