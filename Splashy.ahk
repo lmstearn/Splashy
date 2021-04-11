@@ -549,7 +549,6 @@ Class Splashy
 		This.BindWndProc()
 		}
 
-
 	Gui, Splashy: Color, % This.bkgdColour
 
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
@@ -587,7 +586,7 @@ Class Splashy
 			}
 
 			if (This.transCol)
-			This.mainBkgdColour := This.ReverseColour(This.bkgdColour)
+			This.mainBkgdColour := This.ValidateColour(This.bkgdColour, 1)
 		This.SubClassTextCtl(This.mainTextHWnd)
 
 		vWinH += This.vImgY
@@ -628,7 +627,7 @@ Class Splashy
 			}
 
 			if (This.transCol)
-			This.subBkgdColour := This.ReverseColour(This.bkgdColour)
+			This.subBkgdColour := This.ValidateColour(This.bkgdColour, 1)
 		This.SubClassTextCtl(This.subTextHWnd)
 		}
 		else
@@ -729,33 +728,57 @@ Class Splashy
 		}
 		return string
 	}
+
 	ValidateColour(keyOrVal, toBGR := 0)
 	{
 	spr := ""
+
 		if (This.HTML.HasKey(keyOrVal))
 		spr := This.ToBase(This.HTML[keyOrVal], 16)
 		else
 		{
-			if (RegExMatch(keyOrVal, "i)^[[:xdigit:]]{6}$")) ; "[0-9a-fA-F]{6}"
-			spr := keyOrVal
-			else ; assume decimal
-			spr := This.ToBase(keyOrVal, 16)
+			if keyOrVal is xdigit
+			{
+				if (StrLen(keyOrVal) > 8)
+				{
+					if keyOrVal is digit ;  assume decimal
+					spr := This.ToBase(keyOrVal, 16)
+					else
+					spr := SubStr(keyOrVal, 1, 8)
+				}
+				else
+				spr := keyOrVal
+			}
+			else
+			{
+				loop, % StrLen(keyOrVal)
+				{
+					if A_Loopfield is xdigit
+					{
+						if A_Loopfield != "X"
+						spr .= A_Loopfield
+					}
+				}
+
+				if (!spr)
+				spr := 0
+			}
 		}
 
 	spr1 := strLen(spr)
 		if (spr1 < 8)
 		{
-			if (spr1 == 6 && !InStr(spr, "0X"))
+			if (spr1 == 6 && !InStr(spr, "0X")) ; valid RGB
 			spr := "0X" . spr
 			else
 			{
 			spr2 := subStr(spr, 3)
 			spr := "0X"
 			;spr := Format("{:0x}", Number)
-			loop, % (8 - spr1)
-			{
-			spr := spr . 0
-			}
+				loop, % (8 - spr1)
+				{
+				spr := spr . 0
+				}
 
 			spr .= spr2
 			}
@@ -763,6 +786,11 @@ Class Splashy
 
 		if (toBGR) ; for the GDI functions (ColorRef)
 		spr := This.ReverseColour(spr)
+		else
+		{
+			if (InStr(spr, "0X"))
+			spr := SubStr(spr, 3) ; "0X" prefix not required for AHK gui functions
+		}
 	
 
 	return spr
@@ -777,11 +805,12 @@ Class Splashy
 	ToBase(n, b)
 	{
 
-	if (b != 16 && SubStr(n, 1, 2) == "0x")
-	{
-	n := SubStr(n, 3)
-	; In This case the mod function will fail for letters in any case
-	}
+		if (b != 16 && SubStr(n, 1, 2) == "0x")
+		{
+		n := SubStr(n, 3)
+		; In This case the mod function will fail for letters in any case
+		}
+
 		Loop
 		{
 		r := mod(n, b)
@@ -1398,7 +1427,7 @@ Thread, Priority, 2000000000
 ;, vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
 
 %SplashRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "movable", vBorder: "", vOnTop: "onTop"
-, vMgnY: 6, mainText: "", subText: "AHK RULES!", subFontColour: "Green", subFontSize: 24, subFontStrike: 0, subFontQuality: 3, subFontUnderline: 1}*)
+, vMgnY: 6, mainText: "", subText: "AHK RULES!", subFontColour: "Green", subFontSize: 24, subFontStrike: 0, subFontQuality: 5, subFontUnderline: 1}*)
 
 
 ;Critical, Off
