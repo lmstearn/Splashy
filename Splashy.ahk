@@ -123,39 +123,35 @@ Class Splashy
 
 		For Key, Value in argList
 		{
-
+		; arguments not in the current argList are set to zero.
 		; An alternative: https://www.autohotkey.com/boards/viewtopic.php?f=6&t=9656
 			Switch Key
 			{
 			Case "imagePath":
-			{
-				if (Value)
-				This.imagePath := This.ValidateText(Value)
-			}
+			This.imagePath := This.ValidateText(Value)
 			Case "imageUrl":
-			{
-				if (Value)
-				This.imageUrl := This.ValidateText(Value)
-			}
+			This.imageUrl := This.ValidateText(Value)
+
 			Case "bkgdColour":
 			This.bkgdColour := This.ValidateColour(Value)
 			Case "transCol":
 			{
-				if (This.transCol && !Value)
+				if (This.transCol)
 				{
-				WinSet, TransColor, Off, % "ahk_id" . This.hWndSaved
-					if (This.subTextHWnd)
-					WinSet, TransColor, Off, % "ahk_id" . This.subTextHWnd
-					if (This.mainTextHWnd)
-					WinSet, TransColor, Off, % "ahk_id" . This.mainTextHWnd
+					if (!Value)
+					{
+					WinSet, TransColor, Off, % "ahk_id" . This.hWndSaved
+						if (This.subTextHWnd)
+						WinSet, TransColor, Off, % "ahk_id" . This.subTextHWnd
+						if (This.mainTextHWnd)
+						WinSet, TransColor, Off, % "ahk_id" . This.mainTextHWnd
+					}
 				}
 			This.transCol := Value
 			}
 			Case "vHide":
-			{
-				if (Value >= 0)
-				This.vHide := Value
-			}
+			This.vHide := Value
+
 			Case "noHWndActivate":
 			{
 				if (Value)
@@ -174,7 +170,7 @@ Class Splashy
 			}
 			Case "vMgnY":
 			{
-				if (Value >= 0)
+					if (Value >= 0)
 				This.vMgnY := Value
 			}
 			Case "vImgW":
@@ -210,7 +206,7 @@ Class Splashy
 				This.mainFontWeight := Floor(Value)
 			}
 			Case "mainFontColour":
-			This.mainFontColour := This.ValidateColour(Value)
+			This.mainFontColour := This.ValidateColour(Value, 1)
 			Case "mainFontQuality":
 			{
 				if (Value >= 0 && Value <= 5)
@@ -252,7 +248,7 @@ Class Splashy
 				This.subFontWeight := Floor(Value)
 			}
 			Case "subFontColour":
-			This.subFontColour := This.ValidateColour(Value)
+			This.subFontColour := This.ValidateColour(Value, 1)
 			Case "subFontQuality":
 			{
 				if (Value >= 0 && Value <= 5)
@@ -320,6 +316,23 @@ Class Splashy
 		else
 		{
 		;Set defaults
+
+			if (!This.hWndSaved)
+			{
+			; default of -1 never set, unfortunately
+				if (bkgdColourIn == "")
+				bkgdColourIn := -1
+				if (mainBkgdColourIn == "")
+				mainBkgdColourIn := -1
+				if (subBkgdColourIn == "")
+				subBkgdColourIn := -1
+				if (mainFontColourIn == "")
+				mainFontColourIn := -1
+				if (subFontColourIn == "")
+				subFontColourIn := -1
+			}
+
+
 			if (imagePathIn)
 			This.imagePath := imagePathIn
 			else
@@ -361,11 +374,11 @@ Class Splashy
 			This.vMovable := vMovableIn
 			This.vBorder := vBorderIn
 
-
-			if (vMgnX >= 0)
+			if (vMgnX > 0)
 			This.vMgnX := vMgnX
 			else
 			{
+			; default of -1 never set, so redundant
 				if (!This.hWndSaved)
 				{
 				SM_CXEDGE := 45
@@ -407,10 +420,10 @@ Class Splashy
 
 
 			if (mainTextIn)
-			This.mainText := mainTextIn
+			This.mainText := This.ValidateText(mainTextIn)
 
 			if (mainBkgdColourIn >= 0)
-			This.mainBkgdColour := mainBkgdColourIn
+			This.mainBkgdColour := This.ValidateColour(mainBkgdColourIn, 1)
 			else
 			{
 				if (This.mainBkgdColour == "")
@@ -442,7 +455,7 @@ Class Splashy
 			}
 
 			if (mainFontColourIn >= 0)
-			This.mainFontColour := mainFontColourIn
+			This.mainFontColour := This.ValidateColour(mainFontColourIn, 1)
 			else
 			{
 				if (This.mainFontColour = "")
@@ -469,9 +482,9 @@ Class Splashy
 
 
 			if (subTextIn)
-			This.subText := subTextIn
+			This.subText :=  This.ValidateText(subTextIn)
 			if (subBkgdColourIn >= 0)
-			This.subBkgdColour := subBkgdColourIn
+			This.subBkgdColour := This.ValidateColour(subBkgdColourIn, 1)
 			else
 			{
 				if (This.subBkgdColour == "")
@@ -503,7 +516,7 @@ Class Splashy
 			}
 
 			if (subFontColourIn >= 0)
-			This.subFontColour := subFontColourIn
+			This.subFontColour := This.ValidateColour(subFontColourIn, 1)
 			else
 			{
 				if (This.subFontColour == "")
@@ -559,7 +572,7 @@ Class Splashy
 
 		if (This.mainText)
 		{
-		Gui, Splashy: Font, % "norm" . " s" . This.mainFontSize . " w" . This.mainFontWeight . " c" . This.mainFontColour " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
+		Gui, Splashy: Font, % "norm s" . This.mainFontSize . " w" . This.mainFontWeight . " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
 
 		if (This.mainTextHWnd)
 			{
@@ -598,10 +611,10 @@ Class Splashy
 			GuiControl, Splashy: Hide, % This.mainTextHWnd
 		}
 
-
 		if (This.subText)
 		{
-		Gui, Splashy: Font, % "norm" . " s" . This.subFontSize . " w" . This.subFontWeight . " c" . This.subFontColour . This.subFontItalic . This.subFontStrike . This.subFontUnderline, % This.subFontName
+		Gui, Splashy: Font, % "norm s" . This.subFontSize . " w" . This.subFontWeight . " q" . This.mainFontQuality . This.subFontItalic . This.subFontStrike . This.subFontUnderline, % This.subFontName
+
 
 		spr := This.vImgH + This.vImgY + This.vMgnY
 
@@ -609,10 +622,13 @@ Class Splashy
 			if (This.subTextHWnd)
 			{
 			GuiControl, Splashy: Text, % This.subTextHWnd, % This.subText
+			;Gui, Splashy: Font, c008000, % This.subFontName
 			This.subTextSize := This.Text_height(This.subText, This.subTextHWnd)
 			vWinH += This.subTextSize[2]
+			
 			GuiControl, Splashy: Font, % This.subTextHWnd
 			GuiControl, Splashy: Move, % This.subTextHWnd, % "X" . This.vMgnX . " Y" . spr . " W" . This.vImgW . " H" . This.subTextSize[2]
+			
 			}
 			else
 			{
@@ -663,11 +679,9 @@ Class Splashy
 
 
 		Gui, Splashy: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
-						
 			if (This.transCol && !This.vBorder)
 			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWnd()
 		This.PaintProc(This.hWndSaved)
-
 		}
 
 
@@ -717,12 +731,12 @@ Class Splashy
 
 	ValidateText(string)
 	{
-		if (StrLen(string))
+		if (string && StrLen(string))
 		{
 			if (StrLen(string) > 20000) ;length?
 			string := SubStr(string, 1, 20000)
 		}
-		else ; null, or some irregularity in string.
+		else ; "0", or some irregularity in string.
 		{
 		string =
 		}
@@ -791,7 +805,6 @@ Class Splashy
 			if (InStr(spr, "0X"))
 			spr := SubStr(spr, 3) ; "0X" prefix not required for AHK gui functions
 		}
-	
 
 	return spr
 	}
@@ -835,7 +848,7 @@ Class Splashy
 		;BGR +> RGB
 		spr := This.ReverseColour(spr)
 
-		return spr 
+		return spr
 	}
 	DownloadFile(URL, ByRef fname)
 	{
@@ -925,6 +938,8 @@ Class Splashy
 			DllCall("Gdi32.dll\SetBkMode", "Ptr", wParam, "UInt", OPAQUE)
 			if (DllCall("Gdi32.dll\SetBkColor", "Ptr", wParam, "UInt", This.subBkgdColour) == CLR_INVALID)
 			msgbox, 8208, SetBkColor, Cannot set background colour for sub text!
+			if (DllCall("Gdi32.dll\SetTextColor", "Ptr", wParam, "UInt", This.subFontColour) == CLR_INVALID)
+			msgbox, 8208, SetTextColor, Cannot set font colour for sub text!
 			DllCall("SetDCBrushColor", "Ptr", wParam, "UInt", This.subBkgdColour)
 		}
 		else
@@ -933,8 +948,9 @@ Class Splashy
 			{
 			DllCall("Gdi32.dll\SetBkMode", "Ptr", wParam, "UInt", OPAQUE)
 			if (DllCall("Gdi32.dll\SetBkColor", "Ptr", wParam, "UInt", This.mainBkgdColour) == CLR_INVALID)
-			msgbox, 8208, SetBkColor, Cannot set background colour for sub text!
-			DllCall("SetTextColor", "UInt", wParam, "UInt", This.mainFontColour)
+			msgbox, 8208, SetBkColor, Cannot set background colour for main text!
+			if (DllCall("Gdi32.dll\SetTextColor", "Ptr", wParam, "UInt", This.mainFontColour) == CLR_INVALID)
+			msgbox, 8208, SetTextColor, Cannot set font colour for main text!
 
 			DllCall("SetDCBrushColor", "Ptr", wParam, "UInt", This.mainBkgdColour)
 			}
@@ -1372,7 +1388,7 @@ SplashRef := Splashy.SplashImg ; function reference
 
 
 %SplashRef%(Splashy, {initSplash: 1, imagePath: "", bkgdColour: "FFFF00", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
-, vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
+, vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 return
 %SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
