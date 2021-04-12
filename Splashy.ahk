@@ -4,7 +4,7 @@
 ;#Warn, All, OutputDebug ; Enable warnings for a debugger to display to assist with detecting common errors.
 ;#Warn UseUnsetLocal, OutputDebug  ; Warn when a local variable is used before it's set; send to OutputDebug
 #MaxMem 256
-#MaxThreads 5
+#MaxThreads 3
 #Persistent
 #Include %A_ScriptDir%
 SetWorkingDir %A_ScriptDir%
@@ -166,22 +166,22 @@ Class Splashy
 			Case "vMgnX":
 			{
 				if (Value >= 0)
-				This.vMgnX := Value
+				This.vMgnX := (Value == "D")? Value: Floor(Value)
 			}
 			Case "vMgnY":
 			{
-					if (Value >= 0)
-				This.vMgnY := Value
+				if (Value >= 0)
+				This.vMgnY := (Value == "D")? Value: Floor(Value)
 			}
 			Case "vImgW":
 			{
 				if (Value >= 0)
-				This.vImgW := Value
+				This.vImgW := Floor(Value)
 			}
 			Case "vImgH":
 			{
 				if (Value >= 0)
-				This.vImgH := Value
+				This.vImgH := Floor(Value)
 			}
 
 
@@ -293,7 +293,7 @@ Class Splashy
 	SplashImgInit(imagePathIn := "", imageUrlIn := ""
 	, bkgdColourIn := -1, transColIn := "", vHideIn := -1, noHWndActivateIn := ""
 	, vMovableIn := 0, vBorderIn := "", vOnTopIn := 0
-	, vMgnX := -1, vMgnY := -1, vImgWIn := 0, vImgHIn := 0
+	, vMgnXIn := -1, vMgnYIn := -1, vImgWIn := 0, vImgHIn := 0
 	, mainTextIn := "", mainBkgdColourIn := -1
 	, mainFontNameIn := "", mainFontSizeIn := 0, mainFontWeightIn := 0, mainFontColourIn := -1
 	, mainFontQualityIn := -1, mainFontItalicIn := 0, mainFontStrikeIn := 0, mainFontUnderlineIn := 0
@@ -358,7 +358,7 @@ Class Splashy
 			}
 
 
-			This.transCol := transColIn
+		This.transCol := transColIn
 
 
 			if (vHideIn >= 0)
@@ -371,34 +371,29 @@ Class Splashy
 			else
 			This.noHWndActivate := ""
 
-			This.vMovable := vMovableIn
-			This.vBorder := vBorderIn
+		This.vMovable := vMovableIn
+		This.vBorder := vBorderIn
 
-			if (vMgnX > 0)
-			This.vMgnX := vMgnX
-			else
+			if (vMgnXIn == "D")
 			{
-			; default of -1 never set, so redundant
-				if (!This.hWndSaved)
-				{
-				SM_CXEDGE := 45
-				sysget, spr, %SM_CXEDGE%
-				This.vMgnX := spr
-				}
+			SM_CXEDGE := 45
+			sysget, spr, %SM_CXEDGE%
+			This.vMgnX := spr
 			}
-			if (vMgnY >= 0)
-			This.vMgnY := vMgnY
 			else
+			This.vMgnX := Floor(vMgnXIn)
+
+			if (vMgnYIn == "D")
 			{
-				if (!This.hWndSaved)
-				{
-				SM_CYEDGE := 46
-				sysget, spr, %SM_CYEDGE%
-				This.vMgnY := spr
-				}
+			SM_CYEDGE := 46
+			sysget, spr, %SM_CYEDGE%
+			This.vMgnY := spr
 			}
+			else
+			This.vMgnY := Floor(vMgnYIn)
+
 			if (vImgWIn)
-			This.vImgW := vImgWIn
+			This.vImgW := Floor(vImgWIn)
 			else
 			{
 				if (!This.hWndSaved) ; At startup only
@@ -406,7 +401,7 @@ Class Splashy
 			}
 
 			if (vImgHIn)
-			This.vImgH := vImgHIn
+			This.vImgH := Floor(vImgHIn)
 			else
 			{
 				if (!This.hWndSaved) ; At startup only
@@ -834,7 +829,7 @@ Class Splashy
 
 		m := r . m
 		n := d
-			If (n < 1)
+			if (n < 1)
 			Break
 		}
 	Return % (b == 16)? "0X" . m: m
@@ -1388,7 +1383,7 @@ SplashRef := Splashy.SplashImg ; function reference
 
 
 %SplashRef%(Splashy, {initSplash: 1, imagePath: "", bkgdColour: "FFFF00", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
-, vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
+, vMgnX: "D", mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 return
 %SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
