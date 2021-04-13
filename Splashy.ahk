@@ -46,6 +46,7 @@ Class Splashy
 	Static ImageName := ""
 	Static vImgType := 0
 	Static hWndSaved := 0
+	Static release := 0
 	Static hDCWin := 0
 	Static hBitmap := 0
 	Static hIcon := 0
@@ -127,6 +128,14 @@ Class Splashy
 		; An alternative: https://www.autohotkey.com/boards/viewtopic.php?f=6&t=9656
 			Switch Key
 			{
+			Case "release":
+			{
+				if (Value)
+				{
+				This.Destroy()
+				return
+				}
+			}
 			Case "imagePath":
 			This.imagePath := This.ValidateText(Value)
 			Case "imageUrl":
@@ -333,14 +342,14 @@ Class Splashy
 			}
 
 
-			if (imagePathIn)
+			if (StrLen(imagePathIn))
 			This.imagePath := imagePathIn
 			else
 			{
 				if (!This.imagePath)
 				This.imagePath := A_AhkPath ; default icon. Ist of 5
 			}
-			if (imageUrlIn)
+			if (StrLen(imageUrlIn))
 			This.imageUrl := imageUrlIn
 			else
 			{
@@ -414,7 +423,7 @@ Class Splashy
 
 
 
-			if (mainTextIn)
+			if (StrLen(mainTextIn))
 			This.mainText := This.ValidateText(mainTextIn)
 
 			if (mainBkgdColourIn >= 0)
@@ -425,7 +434,7 @@ Class Splashy
 				This.mainBkgdColour := This.GetDefaultGUIColour()
 			}
 
-			if (mainFontNameIn)
+			if (StrLen(mainFontNameIn))
 			This.mainFontName := mainFontNameIn
 			else
 			{
@@ -476,7 +485,7 @@ Class Splashy
 
 
 
-			if (subTextIn)
+			if (StrLen(subTextIn))
 			This.subText :=  This.ValidateText(subTextIn)
 			if (subBkgdColourIn >= 0)
 			This.subBkgdColour := This.ValidateColour(subBkgdColourIn, 1)
@@ -486,7 +495,7 @@ Class Splashy
 				This.subBkgdColour := This.GetDefaultGUIColour()
 			}
 
-			if (subFontNameIn)
+			if (StrLen(subFontNameIn))
 			This.subFontName := subFontNameIn
 			else
 			{
@@ -565,7 +574,7 @@ Class Splashy
 
 
 
-		if (This.mainText)
+		if (StrLen(This.mainText))
 		{
 		Gui, Splashy: Font, % "norm s" . This.mainFontSize . " w" . This.mainFontWeight . " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
 
@@ -606,7 +615,7 @@ Class Splashy
 			GuiControl, Splashy: Hide, % This.mainTextHWnd
 		}
 
-		if (This.subText)
+		if (StrLen(This.subText))
 		{
 		Gui, Splashy: Font, % "norm s" . This.subFontSize . " w" . This.subFontWeight . " q" . This.mainFontQuality . This.subFontItalic . This.subFontStrike . This.subFontUnderline, % This.subFontName
 
@@ -617,7 +626,7 @@ Class Splashy
 			if (This.subTextHWnd)
 			{
 			GuiControl, Splashy: Text, % This.subTextHWnd, % This.subText
-			;Gui, Splashy: Font, c008000, % This.subFontName
+
 			This.subTextSize := This.Text_height(This.subText, This.subTextHWnd)
 			vWinH += This.subTextSize[2]
 			
@@ -717,16 +726,18 @@ Class Splashy
 	{
 	Gui, Splashy: Destroy
 	; AHK takes care of Splashy.hBitmap deletion
-
+	Splashy.Delete("", chr(255))
+	This.SetCapacity(0)
+	This.base := ""
 	DllCall("GdiPlus.dll\GdiplusShutdown", "Ptr", This.pToken)
 	DllCall("FreeLibrary", "Ptr", This.hGDIPLUS)
-	if (FileExist(This.ImageName))
-	FileDelete, % This.ImageName
+		if (FileExist(This.ImageName))
+		FileDelete, % This.ImageName
 	}
 
 	ValidateText(string)
 	{
-		if (string && StrLen(string))
+		if (StrLen(string))
 		{
 			if (StrLen(string) > 20000) ;length?
 			string := SubStr(string, 1, 20000)
@@ -845,21 +856,23 @@ Class Splashy
 
 		return spr
 	}
-	DownloadFile(URL, ByRef fname)
+	DownloadFile(URL, fName)
 	{
 			try
 			{
-				UrlDownloadToFile, %URL%, %fname%
+				UrlDownloadToFile, %URL%, %fName%
 			}
 			catch spr
 			{
 			msgbox, 8208, FileDownload, Error with the bitmap download!`nSpecifically: %spr%
 			}		
-		FileGetSize, spr , % A_ScriptDir . "`\" . fname
-			if spr < 1000
+		FileGetSize, spr , % A_ScriptDir . "`\" . fName
+			if spr < 50 ; some very small image
 			msgbox, 8208, FileDownload, File size is incorrect!
 			sleep 300
-			fname := A_ScriptDir . "`\" . fname
+			fName := A_ScriptDir . "`\" . fName
+
+			return fName
 
 	}
 
@@ -868,7 +881,7 @@ Class Splashy
 	Static WndProcNew := 0
 	static SetWindowLong := A_PtrSize == 8 ? "SetWindowLongPtr" : "SetWindowLong"
 
-		if (!WndProcNew) ; called once only- extra security
+		if (!WndProcNew) ; called once only from the caller- this is extra security
 		{
 		This.clbk := new This.BoundFuncCallback( ObjBindMethod(This, "WndProc"), 4 )
 		WndProcNew := This.clbk.addr
@@ -1138,7 +1151,7 @@ Class Splashy
 				This.ImageName := spr
 				}
 
-				This.DownloadFile(This.imageUrl, This.ImageName)
+				This.ImageName := This.DownloadFile(This.imageUrl)
 
 				This.hBitmap := LoadPicture(This.ImageName, spr1)
 				
@@ -1412,7 +1425,7 @@ Process, Priority,, High
 Thread, Priority, 2000000000
 
 /*
-%SplashRef%(Splashy, {initSplash: value, imagePath: pathString, imageUrl: urlString
+%SplashRef%(Splashy, {initSplash: value, release: boolValue, imagePath: pathString, imageUrl: urlString
 
 , bkgdColour: colourStringorVal, transCol: boolValue, vHide: boolValue, noHWndActivate: boolValue
 
@@ -1437,6 +1450,9 @@ Thread, Priority, 2000000000
 ;%spr%(Splashy, {imagePath: "C:\Windows\Cursors\busy_l.cur", bkgdColour: "Blue", vMovable: "", vBorder: "", vOnTop: ""
 ;, vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
 
+%SplashRef%(Splashy, {mainText: "00", subText: "01"}*)
+
+return
 %SplashRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "movable", vBorder: "", vOnTop: "onTop"
 , vMgnY: 6, mainText: "", subText: "AHK RULES!", subFontColour: "Green", subFontSize: 24, subFontStrike: 0, subFontQuality: 5, subFontUnderline: 1}*)
 
