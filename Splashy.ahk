@@ -7,7 +7,7 @@
 #MaxThreads 3
 #Persistent
 #Include %A_ScriptDir%
-SetWorkingDir %A_ScriptDir%
+
 
 AutoTrim, Off ; traditional assignments off
 ListLines Off ;A_ListLines default is on: history of lines most recently executed 
@@ -44,6 +44,8 @@ Class Splashy
 
 
 	Static ImageName := ""
+	Static userWorkingDir := ""
+	Static downloadedPathNames := []
 	Static vImgType := 0
 	Static hWndSaved := 0
 	Static release := 0
@@ -184,13 +186,23 @@ Class Splashy
 			}
 			Case "vImgW":
 			{
-				if (Value >= 0)
+				if (Value > 1)
 				This.vImgW := Floor(Value)
+				else
+				{
+					if (Value > 0)
+					This.vImgW := A_ScreenWidth * Value
+				}
 			}
 			Case "vImgH":
 			{
-				if (Value >= 0)
+				if (Value >= 1)
 				This.vImgH := Floor(Value)
+				else
+				{
+					if (Value > 0)
+					This.vImgH := A_ScreenHeight * Value
+				}
 			}
 
 
@@ -317,6 +329,8 @@ Class Splashy
 	*/
 	{
 	vWinW := 0, vWinH := 0
+	This.userWorkingDir := A_WorkingDir
+	SetWorkingDir %A_ScriptDir% ; else use full path for 
 
 	This.procEnd := 0
 
@@ -548,14 +562,11 @@ Class Splashy
 
 
 	This.DisplayToggle()
+		if (!(This.vImgW && This.vImgH)) ; actual pic size
+		This.GetPicWH()
 
 	DetectHiddenWindows On
-		if (This.hWndSaved)
-		{
-			if (!(This.vImgW && This.vImgH)) ; actual pic size
-			This.GetPicWH()
-		}
-		else
+		if (!This.hWndSaved)
 		{
 		This.hGDIPLUS := DllCall("LoadLibrary", "Str", "GdiPlus.dll", "Ptr")
 		VarSetCapacity(SI, 24, 0), Numput(1, SI, 0, "Int")
@@ -691,6 +702,7 @@ Class Splashy
 
 	This.procEnd := 1
 
+	SetWorkingDir % This.userWorkingDir ; else use full path for 
 	DetectHiddenWindows Off
 
 	}
@@ -724,6 +736,12 @@ Class Splashy
 
 	Destroy()
 	{
+	SetWorkingDir %A_ScriptDir%
+		for key, value in % This.downloadedPathNames
+		{
+			if (FileExist(value))
+			FileDelete, % value
+		}
 	Gui, Splashy: Destroy
 	; AHK takes care of Splashy.hBitmap deletion
 	Splashy.Delete("", chr(255))
@@ -731,8 +749,6 @@ Class Splashy
 	This.base := ""
 	DllCall("GdiPlus.dll\GdiplusShutdown", "Ptr", This.pToken)
 	DllCall("FreeLibrary", "Ptr", This.hGDIPLUS)
-		if (FileExist(This.ImageName))
-		FileDelete, % This.ImageName
 	}
 
 	ValidateText(string)
@@ -939,37 +955,35 @@ Class Splashy
 
 	CtlColorStaticProc(wParam, lParam)
 	{
-	static DC_BRUSH := 0x12, NULL_BRUSH := 0x5, TRANSPARENT := 0X1, OPAQUE := 0X2, CLR_INVALID := 0xFFFFFFFF
+	static DC_BRUSH := 0x12
 
 		if (lparam == This.subTextHWnd) ; && This.hDCWin == wParam)
-		{
-			DllCall("Gdi32.dll\SetBkMode", "Ptr", wParam, "UInt", OPAQUE)
-			if (DllCall("Gdi32.dll\SetBkColor", "Ptr", wParam, "UInt", This.subBkgdColour) == CLR_INVALID)
-			msgbox, 8208, SetBkColor, Cannot set background colour for sub text!
-			if (DllCall("Gdi32.dll\SetTextColor", "Ptr", wParam, "UInt", This.subFontColour) == CLR_INVALID)
-			msgbox, 8208, SetTextColor, Cannot set font colour for sub text!
-			DllCall("SetDCBrushColor", "Ptr", wParam, "UInt", This.subBkgdColour)
-		}
+		This.SetColour(wParam, This.subBkgdColour, This.subFontColour)
 		else
 		{
 			if (lParam == This.mainTextHWnd)
-			{
-			DllCall("Gdi32.dll\SetBkMode", "Ptr", wParam, "UInt", OPAQUE)
-			if (DllCall("Gdi32.dll\SetBkColor", "Ptr", wParam, "UInt", This.mainBkgdColour) == CLR_INVALID)
-			msgbox, 8208, SetBkColor, Cannot set background colour for main text!
-			if (DllCall("Gdi32.dll\SetTextColor", "Ptr", wParam, "UInt", This.mainFontColour) == CLR_INVALID)
-			msgbox, 8208, SetTextColor, Cannot set font colour for main text!
-
-			DllCall("SetDCBrushColor", "Ptr", wParam, "UInt", This.mainBkgdColour)
-			}
+			This.SetColour(wParam, This.mainBkgdColour, This.mainFontColour)
 		}
 	return DllCall("Gdi32.dll\GetStockObject", "UInt", DC_BRUSH, "UPtr")
 	}
 
+	SetColour(textDC, bkgdColour, fontColour)
+	{
+		static NULL_BRUSH := 0x5, TRANSPARENT := 0X1, OPAQUE := 0X2, CLR_INVALID := 0xFFFFFFFF
+		DllCall("Gdi32.dll\SetBkMode", "Ptr", textDC, "UInt", (This.transCol)? TRANSPARENT: OPAQUE)
+		if (DllCall("Gdi32.dll\SetBkColor", "Ptr", textDC, "UInt", bkgdColour) == CLR_INVALID)
+		msgbox, 8208, SetBkColor, Cannot set background colour for text!
+		if (DllCall("Gdi32.dll\SetTextColor", "Ptr", textDC, "UInt", fontColour) == CLR_INVALID)
+		msgbox, 8208, SetTextColor, Cannot set colour for text!
+
+		DllCall("SetDCBrushColor", "Ptr", textDC, "UInt", bkgdColour)
+	}
+
+
 	PaintProc(hWnd := 0)
 	{
 	spr1 := 0	
-		if (spr := VarSetCapacity(PAINTSTRUCT, 60 + A_PtrSize, 0))
+		if (VarSetCapacity(PAINTSTRUCT, 60 + A_PtrSize, 0))
 		{
 				if (!hWnd)
 				{
@@ -977,21 +991,23 @@ Class Splashy
 					if (!This.procEnd)
 					spr1 := 1
 				}
-			spr := DllCall("User32.dll\BeginPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr")
 			; DC validated
-				if (!spr1)
+				if (DllCall("User32.dll\BeginPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr"))
 				{
-				static vDoDrawImg := 1 ;set This to 0 and the image won't be redrawn
-				static vDoDrawBgd := 1 ;set This to 0 and the background won't be redrawn
-				;return ;uncomment This line and the window will be blank
+					if (!spr1)
+					{
+					static vDoDrawImg := 1 ;set This to 0 and the image won't be redrawn
+					static vDoDrawBgd := 1 ;set This to 0 and the background won't be redrawn
+					;return ;uncomment This line and the window will be blank
 
-					if (vDoDrawImg)
-					This.PaintDC(spr)
-					else
-					Sleep, -1
+						if (vDoDrawImg)
+						This.PaintDC()
+						else
+						Sleep, -1
 
-					if (vDoDrawBgd)
-					This.DrawBackground()
+						if (vDoDrawBgd)
+						This.DrawBackground()
+					}
 				}
 			DllCall("User32.dll\EndPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr")
 		}
@@ -1083,21 +1099,9 @@ Class Splashy
 	}
 
 
-	SetColour(colour, textDC)
-	{
-		static NULL_BRUSH := 0x5, TRANSPARENT := 0X1, OPAQUE := 0X2, CLR_INVALID := 0xFFFFFFFF
-		DllCall("Gdi32.dll\SetBkMode", "Ptr", textDC, "UInt", (This.transCol)? TRANSPARENT: OPAQUE)
-		if (DllCall("Gdi32.dll\SetTextColor", "Ptr", textDC, "UInt", 0X000000) == CLR_INVALID)
-		msgbox, 8208, SetTextColor, Cannot set colour for text!
-
-		if (DllCall("Gdi32.dll\SetBkColor", "Ptr", textDC, "UInt", 0X000000) == CLR_INVALID)
-		msgbox, 8208, SetBkColor, Cannot set background colour for text!
-		DllCall("SetDCBrushColor", "Ptr", textDC, "UInt", colour)
-	}
-
 	DisplayToggle()
 	{
-	static vToggle := 1
+	static vToggle := 1, oldImageUrl := "", oldImageName := ""
 	This.ImageName := ""
 	vToggle := !vToggle
 
@@ -1108,71 +1112,75 @@ Class Splashy
 	; This function uses LoadPicture to populate hBitmap and hIcon
 	; and sets the image type for the painting routines accordingly
 
-		if (This.hWndSaved)
+		if (This.imagePath)
 		{
-			if (This.imagePath)
-			{
-			SplitPath % This.imagePath,,, spr
-			This.vImgType := ((spr)? ((spr == "exe" || spr == "ico")? 1: 2): 0)
+		SplitPath % This.imagePath,,, spr
 
-				if (fileExist(This.imagePath))
+		if (StrLen(spr))
+		{
+		This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
+
+			if (fileExist(This.imagePath))
+			{
+			spr := This.imagePath
+
+				if (This.vImgType)
 				{
-				spr := This.imagePath
-					if (This.vImgType)
+					if (This.imagePath == A_AhkPath)
 					{
-						if (This.imagePath == A_AhkPath)
-						{
-						This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2": "") . spr1, spr)
-						return
-						}
-						else
-						{
-							if (This.hIcon := LoadPicture(spr, spr1, spr)) ; must use 3rd parm or bitmap handle returned!
-							return
-						}
+					This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2": "") . spr1, spr)
+					return
 					}
 					else
 					{
-						if (This.hBitmap := LoadPicture(spr, spr1, spr))
+						if (This.hIcon := LoadPicture(spr, spr1, spr)) ; must use 3rd parm or bitmap handle returned!
 						return
 					}
 				}
-
-			SplitPath % This.imagePath, spr
-			This.ImageName := spr
+				else
+				{
+					if (This.hBitmap := LoadPicture(spr, spr1))
+					return
+				}
 			}
+
+		SplitPath % This.imagePath, spr
+		This.ImageName := spr
+		}
 
 			; Fail, so download
-			if (This.imageUrl)
+			; FIX if (oldImageUrl == This.imageUrl)
+			if (This.imageUrl && RegExMatch(This.imageUrl, "^(https?://|www\.)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?$"))
 			{
-				if (!This.ImageName)
-				{
-				SplitPath % This.imageUrl, spr
-				This.ImageName := spr
-				}
+					if (!This.ImageName)
+					{
+					SplitPath % This.imageUrl, spr
+					This.ImageName := spr
+					}
 
-				This.ImageName := This.DownloadFile(This.imageUrl)
+				if (!fileExist(This.ImageName))
+				This.ImageName := This.DownloadFile(This.imageUrl, This.ImageName)
 
 				This.hBitmap := LoadPicture(This.ImageName, spr1)
-				
+				if (This.hBitmap)
+				{
+				oldImageUrl := This.imageUrl
 				This.vImgType := 0
+				spr := This.ImageName
+
+				This.downloadedPathNames.Push(spr) 
+				return
+				}
 			}
 			else
-			{
-			This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": "") . spr1, spr)
-			This.vImgType := 1
-			}
-			
+			spr := 1		
 		}
-		else
-		{
+
 		; "Neverfail" default 
-		This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2": "") . spr1, spr)
+		This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": "") . spr1, spr)
 		This.vImgType := 1
-		}
 
-
-
+		
 	}
 
 	GetPicWH()
@@ -1252,31 +1260,29 @@ Class Splashy
 	}
 
 
-	PaintDC(hDCCompat := 0)
+	PaintDC()
 	{
 	;===============
 	static IMAGE_BITMAP := 0, SRCCOPY = 0x00CC0020
-	hDCCompat := 0, hBitmapOld := 0
+	static hBitmapOld := 0
 	;draw bitmap/icon onto GUI & call GetDC every paint
+
 	This.hDCWin := DllCall("user32\GetDC", "Ptr", This.hWndSaved, "Ptr")
 		Switch This.vImgType
 		{
 			case 0:
 			{
-			if (!hDCCompat)
 				if (!(hDCCompat := DllCall("gdi32\CreateCompatibleDC", "Ptr", This.hDCWin, "Ptr")))
 				msgbox, 8208, Compat DC, DC could not be created!
-			hBitmapCompat := DllCall("CreateCompatibleBitmap", "Ptr", hDCCompat, "Int", This.vImgW, "Int", This.vImgH, "Ptr")
-
-				if (hBitmapOld := This.selectObject(hDCCompat, hBitmapCompat))
+				if (hBitmapOld := This.selectObject(hDCCompat, This.hBitmap))
 				{
-				DllCall("gdi32\BitBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", This.vImgW, "Int", This.vImgH, "Ptr", hDCCompat, "Int", 0, "Int", 0, "UInt", SRCCOPY)
+					if (!DllCall("gdi32\BitBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", This.vImgW, "Int", This.vImgH, "Ptr", hDCCompat, "Int", 0, "Int", 0, "UInt", SRCCOPY))
+					msgbox, 8208, PaintDC, BitBlt Failed!
 				This.selectObject(hDCCompat, hBitmapOld)
+
 				}
 				if (!(DllCall("gdi32\DeleteDC", "Ptr", hDCCompat)))
 				msgbox, 8208, Compat DC, DC could not be deleted!
-
-				This.deleteObject(hBitmapCompat)
 
 			}
 			case 1, 2: ;IMAGE_ICON := 1, IMAGE_CURSOR := 1
@@ -1360,7 +1366,7 @@ Class Splashy
 
 		if (!hRet || hRet == HGDI_ERROR)
 		{
-		msgbox, 8208, GDI Object, % "Selection failed `nError code is: " . ((hRet == HGDI_ERROR)? "HGDI_ERROR: ": "") . "ErrorLevel " ErrorLevel ": " . A_LastError
+		msgbox, 8208, GDI Object, % "Selection failed `nError code is: " . ((hRet == HGDI_ERROR)? "HGDI_ERROR: ": "Unknown: ") . "The errorLevel is " ErrorLevel ": " . A_LastError
 		return 0
 		}
 		else
@@ -1395,11 +1401,12 @@ SplashRef := Splashy.SplashImg ; function reference
 
 
 
-%SplashRef%(Splashy, {initSplash: 1, imagePath: "", bkgdColour: "FFFF00", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
-, vMgnX: "D", mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
-return
-%SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+;%SplashRef%(Splashy, {initSplash: 1, imagePath: "", bkgdColour: "FFFF00", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+;, vMgnX: "D", mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
+
+%SplashRef%(Splashy, {imagePath: "1", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
+return
 %SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
@@ -1450,9 +1457,7 @@ Thread, Priority, 2000000000
 ;%spr%(Splashy, {imagePath: "C:\Windows\Cursors\busy_l.cur", bkgdColour: "Blue", vMovable: "", vBorder: "", vOnTop: ""
 ;, vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
 
-%SplashRef%(Splashy, {mainText: "00", subText: "01"}*)
 
-return
 %SplashRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "movable", vBorder: "", vOnTop: "onTop"
 , vMgnY: 6, mainText: "", subText: "AHK RULES!", subFontColour: "Green", subFontSize: 24, subFontStrike: 0, subFontQuality: 5, subFontUnderline: 1}*)
 
