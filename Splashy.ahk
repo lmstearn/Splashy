@@ -46,6 +46,7 @@ Class Splashy
 	Static ImageName := ""
 	Static userWorkingDir := ""
 	Static downloadedPathNames := []
+	Static downloadedUrlNames := []
 	Static vImgType := 0
 	Static hWndSaved := 0
 	Static release := 0
@@ -742,6 +743,8 @@ Class Splashy
 			if (FileExist(value))
 			FileDelete, % value
 		}
+	This.downloadedPathNames.SetCapacity(0)
+	This.downloadedUrlNames.SetCapacity(0)
 	Gui, Splashy: Destroy
 	; AHK takes care of Splashy.hBitmap deletion
 	Splashy.Delete("", chr(255))
@@ -884,9 +887,13 @@ Class Splashy
 			}		
 		FileGetSize, spr , % A_ScriptDir . "`\" . fName
 			if spr < 50 ; some very small image
+			{
 			msgbox, 8208, FileDownload, File size is incorrect!
-			sleep 300
-			fName := A_ScriptDir . "`\" . fName
+			return 0
+			}
+			sleep 100
+			return 1
+
 
 			return fName
 
@@ -1101,7 +1108,7 @@ Class Splashy
 
 	DisplayToggle()
 	{
-	static vToggle := 1, oldImageUrl := "", oldImageName := ""
+	static vToggle := 1, oldImageUrl := ""
 	This.ImageName := ""
 	vToggle := !vToggle
 
@@ -1149,28 +1156,53 @@ Class Splashy
 		}
 
 			; Fail, so download
-			; FIX if (oldImageUrl == This.imageUrl)
+
 			if (This.imageUrl && RegExMatch(This.imageUrl, "^(https?://|www\.)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?$"))
 			{
-					if (!This.ImageName)
+				if (!(This.ImageName))
+				{
+				SplitPath % This.imageUrl, spr
+				This.ImageName := spr
+				}
+				;  check if file D/L'd previously
+				for key, value in % This.downloadedUrlNames
+				{
+					if (This.imageUrl == value)
 					{
-					SplitPath % This.imageUrl, spr
-					This.ImageName := spr
+					if (fileExist(key))
+						Try
+						{
+							if (key != This.ImageName)
+							FileCopy, %key%, % This.ImageName
+						Break
+						}
+						Catch e
+						{
+						msgbox, 8208, FileCopy, % key . " could not be copied with error: " . e
+						}
 					}
+				}
+
 
 				if (!fileExist(This.ImageName))
-				This.ImageName := This.DownloadFile(This.imageUrl, This.ImageName)
+				{
+					if (!(This.DownloadFile(This.imageUrl, This.ImageName)))
+					return
+				}
 
-				This.hBitmap := LoadPicture(This.ImageName, spr1)
-				if (This.hBitmap)
+				if (This.hBitmap := LoadPicture(This.ImageName, spr1))
 				{
 				oldImageUrl := This.imageUrl
 				This.vImgType := 0
 				spr := This.ImageName
 
 				This.downloadedPathNames.Push(spr) 
+				This.downloadedUrlNames(spr) := oldImageUrl
 				return
 				}
+				else
+				msgbox, 8208, LoadPicture, Format not recognized!
+
 			}
 			else
 			spr := 1		
