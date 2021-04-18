@@ -150,7 +150,7 @@ Class Splashy
 			{
 				if (This.transCol)
 				{
-					if (!Value)
+					if (!Value && This.hWndSaved)
 					{
 					WinSet, TransColor, Off, % "ahk_id" . This.hWndSaved
 						if (This.subTextHWnd)
@@ -745,11 +745,17 @@ Class Splashy
 		}
 	This.downloadedPathNames.SetCapacity(0)
 	This.downloadedUrlNames.SetCapacity(0)
+	This.hWndSaved := 0
+	This.mainTextHWnd := 0
+	This.subTextHWnd := 0
+	This.updateFlag := 0
 	Gui, Splashy: Destroy
+	This.BindWndProc(1)
+	This.SubClassTextCtl(0, 1)
 	; AHK takes care of Splashy.hBitmap deletion
-	Splashy.Delete("", chr(255))
-	This.SetCapacity(0)
-	This.base := ""
+	;Splashy.Delete("", chr(255))
+	;This.SetCapacity(0)
+	;This.base := ""
 	DllCall("GdiPlus.dll\GdiplusShutdown", "Ptr", This.pToken)
 	DllCall("FreeLibrary", "Ptr", This.hGDIPLUS)
 	}
@@ -891,7 +897,7 @@ Class Splashy
 			msgbox, 8208, FileDownload, File size is incorrect!
 			return 0
 			}
-			sleep 100
+			sleep 50
 			return 1
 
 
@@ -899,22 +905,30 @@ Class Splashy
 
 	}
 
-	BindWndProc()
+	BindWndProc(release := 0)
 	{
 	Static WndProcNew := 0
 	static SetWindowLong := A_PtrSize == 8 ? "SetWindowLongPtr" : "SetWindowLong"
-
-		if (!WndProcNew) ; called once only from the caller- this is extra security
+		if (release)
 		{
-		This.clbk := new This.BoundFuncCallback( ObjBindMethod(This, "WndProc"), 4 )
-		WndProcNew := This.clbk.addr
-			if (WndProcNew)
+		;This.clbk.__Delete()
+		This.clbk := ""
+		WndProcNew := 0
+		}
+		else
+		{
+			if (!WndProcNew) ; called once only from the caller- this is extra security
 			{
-				if (!(This.WndProcOld := DllCall(SetWindowLong, "Ptr", This.hWnd(), "Int", GWL_WNDPROC := -4, "Ptr", WndProcNew, "Ptr")))
-				msgbox, 8208, WndProc, Bad return!		
+			This.clbk := new This.BoundFuncCallback( ObjBindMethod(This, "WndProc"), 4 )
+			WndProcNew := This.clbk.addr
+				if (WndProcNew)
+				{
+					if (!(This.WndProcOld := DllCall(SetWindowLong, "Ptr", This.hWnd(), "Int", GWL_WNDPROC := -4, "Ptr", WndProcNew, "Ptr")))
+					msgbox, 8208, WndProc, Bad return!		
+				}
+				else
+				msgbox, 8208, WndProc, No address!
 			}
-			else
-			msgbox, 8208, WndProc, No address!
 		}
 	}
 
@@ -1023,36 +1037,43 @@ Class Splashy
 
 	}
 
-	SubClassTextCtl(ctlHWnd)
+	SubClassTextCtl(ctlHWnd, release := 0)
 	{
 	Static SubProcFunc := 0
-
-		if (!ctlHWnd)
-		return
-		if (!SubProcFunc)
+		if (release)
 		{
-		This.subClbk := new This.BoundFuncCallback( ObjBindMethod(This, "SubClassTextProc"), 6 )
-		SubProcFunc := This.subClbk.addr
+		;This.subClbk.__Delete()
+		This.subClbk := ""
+		SubProcFunc := 0
 		}
+		else
+		{
+			if (!ctlHWnd)
+			return
+			if (!SubProcFunc)
+			{
+			This.subClbk := new This.BoundFuncCallback( ObjBindMethod(This, "SubClassTextProc"), 6 )
+			SubProcFunc := This.subClbk.addr
+			}
 
-		if !DllCall("Comctl32.dll\SetWindowSubclass", "Ptr", ctlHWnd, "Ptr", SubProcFunc, "Ptr", ctlHWnd, "Ptr", 0)
-		msgbox, 8208, Text Control, SubClassing failed!
+			if !DllCall("Comctl32.dll\SetWindowSubclass", "Ptr", ctlHWnd, "Ptr", SubProcFunc, "Ptr", ctlHWnd, "Ptr", 0)
+			msgbox, 8208, Text Control, SubClassing failed!
 
+		}
 	}
 	SubClassTextProc(hWnd, uMsg, wParam, lParam, IdSubclass, RefData)
-
 	{
-;THis subclass for marquee code
-; WM_PAINT is required to paint the scrolled text.
-; BeginPaint in WM_PAINT will erase the content already set in the DC of the control.
-;
-;To prevent, temporarily modify AHK's own hbrBackground in its WNDCLASSEX
-; hbrBackground := DllCall(GetStockObject(NULL_BRUSH))
-;
-;Which means we have to create our own class and window for the control anyway,
-; Then use Pens & Brushes & DrawTextEx et al.
+	;THis subclass for marquee code
+	; WM_PAINT is required to paint the scrolled text.
+	; BeginPaint in WM_PAINT will erase the content already set in the DC of the control.
+	;
+	;To prevent, temporarily modify AHK's own hbrBackground in its WNDCLASSEX
+	; hbrBackground := DllCall(GetStockObject(NULL_BRUSH))
+	;
+	;Which means we have to create our own class and window for the control anyway,
+	; Then use Pens & Brushes & DrawTextEx et al.
 
-/*
+	/*
 	static DC_BRUSH := 0x12
 	Critical
 
@@ -1123,37 +1144,37 @@ Class Splashy
 		{
 		SplitPath % This.imagePath,,, spr
 
-		if (StrLen(spr))
-		{
-		This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
-
-			if (fileExist(This.imagePath))
+			if (StrLen(spr))
 			{
-			spr := This.imagePath
+			This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
 
-				if (This.vImgType)
+				if (fileExist(This.imagePath))
 				{
-					if (This.imagePath == A_AhkPath)
+				spr := This.imagePath
+
+					if (This.vImgType)
 					{
-					This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2": "") . spr1, spr)
-					return
+						if (This.imagePath == A_AhkPath)
+						{
+						This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2": "") . spr1, spr)
+						return
+						}
+						else
+						{
+							if (This.hIcon := LoadPicture(spr, spr1, spr)) ; must use 3rd parm or bitmap handle returned!
+							return
+						}
 					}
 					else
 					{
-						if (This.hIcon := LoadPicture(spr, spr1, spr)) ; must use 3rd parm or bitmap handle returned!
+						if (This.hBitmap := LoadPicture(spr, spr1))
 						return
 					}
 				}
-				else
-				{
-					if (This.hBitmap := LoadPicture(spr, spr1))
-					return
-				}
-			}
 
-		SplitPath % This.imagePath, spr
-		This.ImageName := spr
-		}
+			SplitPath % This.imagePath, spr
+			This.ImageName := spr
+			}
 
 			; Fail, so download
 
@@ -1169,16 +1190,18 @@ Class Splashy
 				{
 					if (This.imageUrl == value)
 					{
-					if (fileExist(key))
-						Try
+						if (fileExist(key))
 						{
-							if (key != This.ImageName)
-							FileCopy, %key%, % This.ImageName
-						Break
-						}
-						Catch e
-						{
-						msgbox, 8208, FileCopy, % key . " could not be copied with error: " . e
+							Try
+							{
+								if (key != This.ImageName)
+								FileCopy, %key%, % This.ImageName
+							Break
+							}
+							Catch e
+							{
+							msgbox, 8208, FileCopy, % key . " could not be copied with error: " . e
+							}
 						}
 					}
 				}
@@ -1432,11 +1455,16 @@ Class Splashy
 SplashRef := Splashy.SplashImg ; function reference
 
 
+%SplashRef%(Splashy, {imagePath: "C:\Windows\Cursors\busy_l.cur", bkgdColour: "Blue", vMovable: "", vBorder: "", vOnTop: ""
+, vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
+msgbox ok
 
+%SplashRef%(Splashy, {release: 1}*)
+msgbox released
 ;%SplashRef%(Splashy, {initSplash: 1, imagePath: "", bkgdColour: "FFFF00", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 ;, vMgnX: "D", mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
-%SplashRef%(Splashy, {imagePath: "1", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+%SplashRef%(Splashy, {initSplash: 1, imagePath: "1", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 return
 %SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
@@ -1490,7 +1518,7 @@ Thread, Priority, 2000000000
 ;, vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
 
 
-%SplashRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "movable", vBorder: "", vOnTop: "onTop"
+%SplashRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "1", vBorder: "", vOnTop: "onTop"
 , vMgnY: 6, mainText: "", subText: "AHK RULES!", subFontColour: "Green", subFontSize: 24, subFontStrike: 0, subFontQuality: 5, subFontUnderline: 1}*)
 
 
