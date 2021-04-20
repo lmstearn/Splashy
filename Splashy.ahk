@@ -54,6 +54,8 @@ Class Splashy
 	Static hBitmap := 0
 	Static hIcon := 0
 	Static vHide := 0
+	Static vPosX := 0
+	Static vPosY := 0
 	Static vMgnX := 0
 	Static vMgnY := 0
 	Static vImgX := 0
@@ -175,6 +177,13 @@ Class Splashy
 			This.vBorder := Value
 			Case "vOnTop":
 			This.vOnTop := Value
+
+			Case "vPosX":
+			This.vPosX := (Value == "D")? Value: Floor(Value)
+
+			Case "vPosY":
+			This.vPosY := (Value == "D")? Value: Floor(Value)
+
 			Case "vMgnX":
 			{
 				if (Value >= 0)
@@ -302,7 +311,7 @@ Class Splashy
 	This.SplashImgInit(This.imagePath, This.imageUrl
 	, This.bkgdColour, This.transCol, This.vHide, This.noHWndActivate
 	, This.vMovable, This.vBorder, This.vOnTop
-	, This.vMgnX, This.vMgnY, This.vImgW, This.vImgH
+	, This.vPosX, This.vPosY, This.vMgnX, This.vMgnY, This.vImgW, This.vImgH
 	, This.mainText, mainBkgdColour
 	, This.mainFontName, This.mainFontSize, This.mainFontWeight, This.mainFontColour
 	, This.mainFontQuality, This.mainFontItalic, This.mainFontStrike, This.mainFontUnderline
@@ -315,7 +324,7 @@ Class Splashy
 	SplashImgInit(imagePathIn := "", imageUrlIn := ""
 	, bkgdColourIn := -1, transColIn := "", vHideIn := -1, noHWndActivateIn := ""
 	, vMovableIn := 0, vBorderIn := "", vOnTopIn := 0
-	, vMgnXIn := -1, vMgnYIn := -1, vImgWIn := 0, vImgHIn := 0
+	, vPosXIn := -1, vPosYIn := -1, vMgnXIn := -1, vMgnYIn := -1, vImgWIn := 0, vImgHIn := 0
 	, mainTextIn := "", mainBkgdColourIn := -1
 	, mainFontNameIn := "", mainFontSizeIn := 0, mainFontWeightIn := 0, mainFontColourIn := -1
 	, mainFontQualityIn := -1, mainFontItalicIn := 0, mainFontStrikeIn := 0, mainFontUnderlineIn := 0
@@ -343,6 +352,12 @@ Class Splashy
 
 			if (!This.hWndSaved)
 			{
+
+				if (vPosXIn == 0)
+				vPosXIn := "D"
+				if (vPosYIn == 0)
+				vPosYIn := "D"
+
 			; default of -1 never set, unfortunately
 				if (bkgdColourIn == "")
 				bkgdColourIn := -1
@@ -397,6 +412,10 @@ Class Splashy
 
 		This.vMovable := vMovableIn
 		This.vBorder := vBorderIn
+
+			This.vPosX := (vPosXIn == "D")? vPosXIn: Floor(vPosXIn)
+			This.vPosY := (vPosYIn == "D")? vPosYIn: Floor(vPosYIn)
+
 
 			if (vMgnXIn == "D")
 			{
@@ -569,12 +588,18 @@ Class Splashy
 	DetectHiddenWindows On
 		if (!This.hWndSaved)
 		{
-		This.hGDIPLUS := DllCall("LoadLibrary", "Str", "GdiPlus.dll", "Ptr")
-		VarSetCapacity(SI, 24, 0), Numput(1, SI, 0, "Int")
-		DllCall("GdiPlus.dll\GdiplusStartup", "UPtr*", spr, "Ptr", &SI, "Ptr", 0)
-		This.pToken := spr		
+			if (This.hGDIPLUS := DllCall("LoadLibrary", "Str", "GdiPlus.dll", "Ptr"))
+			{
+			VarSetCapacity(SI, 24, 0), Numput(1, SI, 0, "Int")
+			DllCall("GdiPlus.dll\GdiplusStartup", "UPtr*", spr, "Ptr", &SI, "Ptr", 0)
+			; for return value see status enumeration in  gdiplustypes.h 
+			This.pToken := spr
+			}
+			else
+			msgbox, 8208, LoadLibrary, Critical GDIPLUS error!
+
 		;WS_DLGFRAME := 0x400000
-		Gui, Splashy: New, % "+ToolWindow -Caption " . ((This.vBorder)? ((This.vBorder == "B")? "+Border ": "+0x400000 "): "")
+		Gui, Splashy: New, % "+OwnDialogs +ToolWindow -Caption " . ((This.vBorder)? ((This.vBorder == "B")? "+Border ": "+0x400000 "): "")
 		This.BindWndProc()
 		}
 
@@ -679,7 +704,25 @@ Class Splashy
 
 		if (!This.vHide)
 		{
-		Gui, Splashy: Show, % "Hide " . Format("W{} H{}", vWinW, vWinH)
+		spr := " "
+
+		if (This.vPosX == "D" && This.vPosX == "D")
+		spr .= Format("W{} H{}", vWinW, vWinH)
+		else
+		{
+			if (This.vPosX != "D" && This.vPosY == "D")
+			spr .= Format(" X{} W{} H{}", This.vPosX, vWinW, vWinH)
+			else
+			{
+				if (This.vPosX == "D")
+				spr .= Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
+				else
+				spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+			}
+		}
+
+
+		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
 		DllCall("GetWindowRect", "Ptr", This.hWnd(), "Ptr", &rect)
 		;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWnd() ; fail
@@ -753,10 +796,12 @@ Class Splashy
 	This.BindWndProc(1)
 	This.SubClassTextCtl(0, 1)
 	; AHK takes care of Splashy.hBitmap deletion
-	;Splashy.Delete("", chr(255))
-	;This.SetCapacity(0)
-	;This.base := ""
+	;This.Delete("", chr(255))
+	This.SetCapacity(0)
+	This.base := ""
+	if (This.pToken)
 	DllCall("GdiPlus.dll\GdiplusShutdown", "Ptr", This.pToken)
+	if (This.hGDIPLUS)
 	DllCall("FreeLibrary", "Ptr", This.hGDIPLUS)
 	}
 
@@ -1145,37 +1190,35 @@ Class Splashy
 		SplitPath % This.imagePath,,, spr
 
 			if (StrLen(spr))
-			{
 			This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
+			else
+			This.vImgType := 0 ; assume image
 
-				if (fileExist(This.imagePath))
+			if (fileExist(This.imagePath))
+			{
+			spr := This.imagePath
+
+				if (This.vImgType)
 				{
-				spr := This.imagePath
-
-					if (This.vImgType)
+					if (This.imagePath == A_AhkPath)
 					{
-						if (This.imagePath == A_AhkPath)
-						{
-						This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2": "") . spr1, spr)
-						return
-						}
-						else
-						{
-							if (This.hIcon := LoadPicture(spr, spr1, spr)) ; must use 3rd parm or bitmap handle returned!
-							return
-						}
+					This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2": "") . spr1, spr)
+					return
 					}
 					else
 					{
-						if (This.hBitmap := LoadPicture(spr, spr1))
+						if (This.hIcon := LoadPicture(spr, spr1, spr)) ; must use 3rd parm or bitmap handle returned!
 						return
 					}
 				}
-
+				else
+				{
+					if (This.hBitmap := LoadPicture(spr, spr1))
+					return
+				}
+			}
 			SplitPath % This.imagePath, spr
 			This.ImageName := spr
-			}
-
 			; Fail, so download
 
 			if (This.imageUrl && RegExMatch(This.imageUrl, "^(https?://|www\.)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?$"))
@@ -1259,12 +1302,6 @@ Class Splashy
 		{
 			case 0:
 			{
-			;VarSetCapacity(bm, (A_PtrSize == 8)? 32 : 24, 0)
-	;		if (!(spr := DllCall("GetCurrentObject", "Ptr", This.hDCWin, "uint", OBJ_BITMAP, "Ptr")))
-	;		msgbox, 8208, GetCurrentObject hDCWin, Object could not be retrieved!
-			;if (This.hBitmap != spr)
-	;		msgbox, 8208, hBitmap, hBitmap is not current!
-
 
 			VarSetCapacity(bm, ((A_PtrSize == 8)? 24: 20), 0)
 			if (!(DllCall("GetObject", "Ptr", This.hBitmap, "uInt", ((A_PtrSize == 8)? 24 : 20), "Ptr", &bm)))
@@ -1466,7 +1503,7 @@ msgbox released
 
 %SplashRef%(Splashy, {initSplash: 1, imagePath: "1", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
-return
+msgbox green
 %SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
