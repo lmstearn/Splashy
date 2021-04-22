@@ -43,7 +43,6 @@ Class Splashy
 	Static WndProcOld := 0
 
 
-	Static ImageName := ""
 	Static userWorkingDir := ""
 	Static downloadedPathNames := []
 	Static downloadedUrlNames := []
@@ -63,12 +62,12 @@ Class Splashy
 	Static vImgW := 0
 	Static vImgH := 0
 
-
+	Static ImageName := ""
 	Static imagePath := ""
 	Static imageUrl := ""
 	Static bkgdColour := ""
 	Static transCol := 0
-	Static noHWndActivate := 0
+	Static noHWndActivate := ""
 	Static vBorder := 0
 	Static vOnTop := 0
 
@@ -126,211 +125,441 @@ Class Splashy
 
 	SplashImg(argList*)
 	{
+	imagePathOut := ""
+	imageUrlOut := ""
+	bkgdColourOut := -1
+	transColOut := ""
+	vHideOut := 0
+	noHWndActivateOut := ""
+	vMovableOut := 0
+	vBorderOut := ""
+	vOnTopOut := 0
+	vPosXOut := "D"
+	vPosYOut := "D"
+	vMgnXOut := -1
+	vMgnYOut := -1
+	vImgWOut := 0
+	vImgHOut := 0
+	mainTextOut := ""
+	mainBkgdColourOut := -1
+	mainFontNameOut := ""
+	mainFontSizeOut := 0
+	mainFontWeightOut := 0
+	mainFontColourOut := -1
+	mainFontQualityOut := -1
+	mainFontItalicOut := 0
+	mainFontStrikeOut := 0
+	mainFontUnderlineOut := 0
+	subTextOut := ""
+	subBkgdColourOut := -1
+	subFontNameOut := ""
+	subFontSizeOut := 0
+	subFontWeightOut := 0
+	subFontColourOut := -1
+	subFontQualityOut := -1
+	subFontItalicOut := 0
+	subFontStrikeOut := 0
+	subFontUnderlineOut := 0
+
+		if (This.hWndSaved)
+		{
+			if (argList.HasKey(initSplash))
+			{
+				For Key, Value in argList
+				{
+					if (Key == "initSplash")
+					{
+						if (Value)
+						This.updateFlag := 0
+						else
+						This.updateFlag := 1
+					}
+				}
+			}
+			else
+			This.updateFlag := 1
+		}
 
 		For Key, Value in argList
 		{
-		; arguments not in the current argList are set to zero.
-		; An alternative: https://www.autohotkey.com/boards/viewtopic.php?f=6&t=9656
-			Switch Key
-			{
-			Case "release":
-			{
-				if (Value)
-				{
-				This.Destroy()
-				return
-				}
-			}
-			Case "imagePath":
-			This.imagePath := This.ValidateText(Value)
-			Case "imageUrl":
-			This.imageUrl := This.ValidateText(Value)
 
-			Case "bkgdColour":
-			This.bkgdColour := This.ValidateColour(Value)
-			Case "transCol":
+		; An alternative: https://www.autohotkey.com/boards/viewtopic.php?f=6&t=9656
+			if (Key)
 			{
-				if (This.transCol)
+				Switch Key
 				{
-					if (!Value && This.hWndSaved)
+				Case "release":
+				{
+					if (Value)
 					{
-					WinSet, TransColor, Off, % "ahk_id" . This.hWndSaved
-						if (This.subTextHWnd)
-						WinSet, TransColor, Off, % "ahk_id" . This.subTextHWnd
-						if (This.mainTextHWnd)
-						WinSet, TransColor, Off, % "ahk_id" . This.mainTextHWnd
+					This.Destroy()
+					return
 					}
 				}
-			This.transCol := Value
-			}
-			Case "vHide":
-			This.vHide := Value
-
-			Case "noHWndActivate":
-			{
-				if (Value)
-				This.noHWndActivate := "NoActivate "
-			}
-			Case "vMovable":
-			This.vMovable := Value
-			Case "vBorder":
-			This.vBorder := Value
-			Case "vOnTop":
-			This.vOnTop := Value
-
-			Case "vPosX":
-			This.vPosX := (Value == "D")? Value: Floor(Value)
-
-			Case "vPosY":
-			This.vPosY := (Value == "D")? Value: Floor(Value)
-
-			Case "vMgnX":
-			{
-				if (Value >= 0)
-				This.vMgnX := (Value == "D")? Value: Floor(Value)
-			}
-			Case "vMgnY":
-			{
-				if (Value >= 0)
-				This.vMgnY := (Value == "D")? Value: Floor(Value)
-			}
-			Case "vImgW":
-			{
-				if (Value > 1)
-				This.vImgW := Floor(Value)
-				else
+				Case "imagePath":
 				{
-					if (Value > 0)
-					This.vImgW := A_ScreenWidth * Value
+					if (This.updateFlag)
+					This.imagePath := This.ValidateText(Value)
+					else
+					imagePathOut := This.ValidateText(Value)
 				}
-			}
-			Case "vImgH":
-			{
-				if (Value >= 1)
-				This.vImgH := Floor(Value)
-				else
+				Case "imageUrl":
 				{
-					if (Value > 0)
-					This.vImgH := A_ScreenHeight * Value
+					if (This.updateFlag)
+					imageUrlOut := This.ValidateText(Value)
+					else
+					This.imageUrl := This.ValidateText(Value)
 				}
-			}
+				Case "bkgdColour":
+				{
+					if (Value >= 0)
+					{
+						if (This.updateFlag)
+						bkgdColourOut := This.ValidateColour(Value)
+						else
+						This.bkgdColour := This.ValidateColour(Value)
+					}
+				}
+				Case "transCol":
+				{
+					if (This.transCol)
+					{
+						if (!Value && This.hWndSaved)
+						{
+						WinSet, TransColor, Off, % "ahk_id" . This.hWndSaved
+							if (This.subTextHWnd)
+							WinSet, TransColor, Off, % "ahk_id" . This.subTextHWnd
+							if (This.mainTextHWnd)
+							WinSet, TransColor, Off, % "ahk_id" . This.mainTextHWnd
+						}
+					}
+
+					if (This.updateFlag)
+					transColOut := Value
+					else
+					This.transCol := Value
+				}
+				Case "vHide":
+				{
+					if (This.updateFlag)
+					vHideOut := Value
+					else
+					This.vHide := Value
+				}
+				Case "noHWndActivate":
+				{
+					if (This.updateFlag)
+					noHWndActivateOut := (Value)? "NoActivate ": ""
+					else
+					This.noHWndActivate := (Value)? "NoActivate ": ""
+				}
+				Case "vMovable":
+				{
+					if (This.updateFlag)
+					vMovableOut := Value
+					else
+					This.vMovable := Value
+				}
+				Case "vBorder":
+				{
+					if (This.updateFlag)
+					vBorderOut := Value
+					else
+					This.vBorder := Value
+				}
+				Case "vOnTop":
+				{
+					if (This.updateFlag)
+					vOnTopOut := Value
+					else
+					This.vOnTop := Value
+				}
+				Case "vPosX":
+				{
+					if (This.updateFlag)
+					vPosXOut := (Value == "D")? Value: Floor(Value)
+					else
+					This.vPosX := (Value == "D")? Value: Floor(Value)
+				}
+
+				Case "vPosY":
+				{
+					if (This.updateFlag)
+					vPosYOut := (Value == "D")? Value: Floor(Value)
+					else
+					This.vPosY := (Value == "D")? Value: Floor(Value)
+				}
+
+				Case "vMgnX":
+				{
+					if (Value >= 0)
+					{
+						if (This.updateFlag)
+						vMgnXOut := (Value == "D")? Value: Floor(Value)
+						else
+						This.vMgnX := (Value == "D")? Value: Floor(Value)
+					}
+				}
+				Case "vMgnY":
+				{
+					if (Value >= 0)
+					{
+						if (This.updateFlag)
+						vMgnYOut := (Value == "D")? Value: Floor(Value)
+						else
+						This.vMgnY := (Value == "D")? Value: Floor(Value)
+					}
+				}
+				Case "vImgW":
+				{
+					if (Value > 1)
+					{
+						if (This.updateFlag)
+						vImgWOut := Floor(Value)
+						else
+						This.vImgW := Floor(Value)
+					}
+					else
+					{
+						if (Value > 0)
+						{
+							if (This.updateFlag)
+							vImgWOut := A_ScreenWidth * Value
+							else
+							This.vImgW := A_ScreenWidth * Value
+						}
+					}
+				}
+				Case "vImgH":
+				{
+					if (Value >= 1)
+					{
+						if (This.updateFlag)
+						vImgHOut := Floor(Value)
+						else
+						This.vImgH := Floor(Value)
+					}
+					else
+					{
+						if (Value > 0)
+						{
+							if (This.updateFlag)
+							vImgHOut := A_ScreenHeight * Value
+							else
+							This.vImgH := A_ScreenHeight * Value
+						}
+					}
+				}
 
 
 
-			Case "mainText":
-			This.mainText := This.ValidateText(Value)
-			Case "mainBkgdColour":
-			This.mainBkgdColour := This.ValidateColour(Value, 1)
-			Case "mainFontName":
-			{
-				if (Value)
-				This.mainFontName := This.ValidateText(Value)
-			}
-			Case "mainFontSize":
-			{
-				if (200 >= Value >= 0) ; arbitrary limit
-				This.mainFontSize := Floor(Value)
-			}
-			Case "mainFontWeight":
-			{
-				if (1000 >= Value >= 0)
-				This.mainFontWeight := Floor(Value)
-			}
-			Case "mainFontColour":
-			This.mainFontColour := This.ValidateColour(Value, 1)
-			Case "mainFontQuality":
-			{
-				if (Value >= 0 && Value <= 5)
-				This.mainFontQuality := Floor(Value)
-			}
-			Case "mainFontItalic":
-			{
-				This.mainFontItalic := (Value)? " Italic": ""
-			}
-			Case "mainFontStrike":
-			{
-				This.mainFontStrike := (Value)? " Strike": ""
-			}
-			Case "mainFontUnderline":
-			{
-				This.mainFontUnderline := (Value)? " Underline": ""
-			}
+				Case "mainText":
+				mainTextOut := This.ValidateText(Value)
+				This.mainText := This.ValidateText(Value)
+				Case "mainBkgdColour":
+				{
+					if (Value >= 0)
+					{
+						if (This.updateFlag)
+						mainBkgdColourOut := This.ValidateColour(Value, 1)
+						else
+						This.mainBkgdColour := This.ValidateColour(Value, 1)
+					}
+				}
+				Case "mainFontName":
+				{
+					if (Value)
+					{
+						if (This.updateFlag)
+						mainFontNameOut := This.ValidateText(Value)
+						else
+						This.mainFontName := This.ValidateText(Value)
+					}
+				}
+				Case "mainFontSize":
+				{
+					if (200 >= Value >= 0) ; arbitrary limit
+					{
+						if (This.updateFlag)
+						mainFontSizeOut := Floor(Value)
+						else
+						This.mainFontSize := Floor(Value)
+					}
+				}
+				Case "mainFontWeight":
+				{
+					if (1000 >= Value >= 0)
+					{
+						if (This.updateFlag)
+						mainFontWeightOut := Floor(Value)
+						else
+						This.mainFontWeight := Floor(Value)
+					}
+				}
+				Case "mainFontColour":
+				{
+					if (Value >= 0)
+					{
+						if (This.updateFlag)
+						mainFontColourOut := This.ValidateColour(Value, 1)
+						else
+						This.mainFontColour := This.ValidateColour(Value, 1)
+					}
+				}
+				Case "mainFontQuality":
+				{
+					if (Value >= 0 && Value <= 5) ; 0 :=  DEFAULT_QUALITY
+					{
+						if (This.updateFlag)
+						mainFontQualityOut := Floor(Value)
+						else
+						This.mainFontQuality := Floor(Value)
+					}
+				}
+				Case "mainFontItalic":
+				{
+					if (This.updateFlag)
+					mainFontItalicOut := (Value)? " Italic": ""
+					else
+					This.mainFontItalic := (Value)? " Italic": ""
+				}
+				Case "mainFontStrike":
+				{
+					if (This.updateFlag)
+					mainFontStrikeOut := (Value)? " Strike": ""
+					else
+					This.mainFontStrike := (Value)? " Strike": ""
+				}
+				Case "mainFontUnderline":
+				{
+					if (This.updateFlag)
+					mainFontUnderlineOut := (Value)? " Underline": ""
+					else
+					This.mainFontUnderline := (Value)? " Underline": ""
+				}
 
 
 
 
-			Case "subText":
-			This.subText := This.ValidateText(Value)
-			Case "subBkgdColour":
-			This.subBkgdColour := This.ValidateColour(Value, 1)
-			Case "subFontName":
-			{
-				if (Value)
-				This.subFontName := This.ValidateText(Value)
-			}
-			Case "subFontSize":
-			{
-				if (200 >= Value >= 0) ; arbitrary limit
-				This.subFontSize := Floor(Value)
-			}
-			Case "subFontWeight":
-			{
-				if (1000 >= Value >= 0)
-				This.subFontWeight := Floor(Value)
-			}
-			Case "subFontColour":
-			This.subFontColour := This.ValidateColour(Value, 1)
-			Case "subFontQuality":
-			{
-				if (Value >= 0 && Value <= 5)
-				This.subFontQuality := Floor(Value)
-			}
-			Case "subFontItalic":
-			{
-				This.subFontItalic := (Value)? " Italic": ""
-			}
-			Case "subFontStrike":
-			{
-				This.subFontStrike := (Value)? " Strike": ""
-			}
-			Case "subFontUnderline":
-			{
-				This.subFontUnderline := (Value)? " Underline": ""
-			}
+				Case "subText":
+				{
+					if (This.updateFlag)
+					subTextOut := This.ValidateText(Value)
+					else
+					This.subText := This.ValidateText(Value)
+				}
+				Case "subBkgdColour":
+				{
+					if (Value >= 0)
+					{
+						if (This.updateFlag)
+						subBkgdColourOut := This.ValidateColour(Value, 1)
+						else
+						This.subBkgdColour := This.ValidateColour(Value, 1)
+					}
+				}
+
+				Case "subFontName":
+				{
+					if (Value)
+					{
+						if (This.updateFlag)
+						subFontNameOut := This.ValidateText(Value)
+						else
+						This.subFontName := This.ValidateText(Value)
+					}
+				}
+				Case "subFontSize":
+				{
+					if (200 >= Value >= 0) ; arbitrary limit
+					{
+						if (This.updateFlag)
+						subFontSizeOut := Floor(Value)
+						else
+						This.subFontSize := Floor(Value)
+					}
+				}
+				Case "subFontWeight":
+				{
+					if (1000 >= Value >= 0)
+					{
+						if (This.updateFlag)
+						subFontWeightOut := Floor(Value)
+						else
+						This.subFontWeight := Floor(Value)
+					}
+				}
+				Case "subFontColour":
+				{
+					if (Value >= 0)
+					{
+						if (This.updateFlag)
+						subFontColourOut := This.ValidateColour(Value, 1)
+						else
+						This.subFontColour := This.ValidateColour(Value, 1)
+					}
+				}
+				Case "subFontQuality":
+				{
+					if (Value >= 0 && Value <= 5)
+					{
+						if (This.updateFlag)
+						subFontQualityOut := Floor(Value)
+						else
+						This.subFontQuality := Floor(Value)
+					}
+				}
+				Case "subFontItalic":
+				{
+					if (This.updateFlag)
+					subFontItalicOut := (Value)? " Italic": ""
+					else
+					This.subFontItalic := (Value)? " Italic": ""
+				}
+				Case "subFontStrike":
+				{
+					if (This.updateFlag)
+					subFontStrikeOut := (Value)? " Strike": ""
+					else
+					This.subFontStrike := (Value)? " Strike": ""
+				}
+				Case "subFontUnderline":
+				{
+					if (This.updateFlag)
+					subFontUnderlineOut := (Value)? " Underline": ""
+					else
+					This.subFontUnderline := (Value)? " Underline": ""
+				}
 
 
-			Case "initSplash":
-			{
-				if (Value)
-				This.updateFlag := 0
-			}
-			
+				}
+				
 			}
 		}
 
-	This.SplashImgInit(This.imagePath, This.imageUrl
-	, This.bkgdColour, This.transCol, This.vHide, This.noHWndActivate
-	, This.vMovable, This.vBorder, This.vOnTop
-	, This.vPosX, This.vPosY, This.vMgnX, This.vMgnY, This.vImgW, This.vImgH
-	, This.mainText, mainBkgdColour
-	, This.mainFontName, This.mainFontSize, This.mainFontWeight, This.mainFontColour
-	, This.mainFontQuality, This.mainFontItalic, This.mainFontStrike, This.mainFontUnderline
-	, This.subText, subBkgdColour
-	, This.subFontName, This.subFontSize, This.subFontWeight, This.subFontColour
-	, This.subFontQuality, This.subFontItalic, This.subFontStrike, This.subFontUnderline)
+	This.SplashImgInit(imagePathOut, imageUrlOut
+	, bkgdColourOut, transColOut, vHideOut, noHWndActivateOut
+	, vMovableOut, vBorderOut, vOnTopOut
+	, vPosXOut, vPosYOut, vMgnXOut, vMgnYOut, vImgWOut, vImgHOut
+	, mainTextOut, mainBkgdColourOut
+	, mainFontNameOut, mainFontSizeOut, mainFontWeightOut, mainFontColourOut
+	, mainFontQualityOut, mainFontItalicOut, mainFontStrikeOut, mainFontUnderlineOut
+	, subTextOut, subBkgdColourOut
+	, subFontNameOut, subFontSizeOut, subFontWeightOut, subFontColourOut
+	, subFontQualityOut, subFontItalicOut, subFontStrikeOut, subFontUnderlineOut)
 	
 	}
 
-	SplashImgInit(imagePathIn := "", imageUrlIn := ""
-	, bkgdColourIn := -1, transColIn := "", vHideIn := -1, noHWndActivateIn := ""
-	, vMovableIn := 0, vBorderIn := "", vOnTopIn := 0
-	, vPosXIn := -1, vPosYIn := -1, vMgnXIn := -1, vMgnYIn := -1, vImgWIn := 0, vImgHIn := 0
-	, mainTextIn := "", mainBkgdColourIn := -1
-	, mainFontNameIn := "", mainFontSizeIn := 0, mainFontWeightIn := 0, mainFontColourIn := -1
-	, mainFontQualityIn := -1, mainFontItalicIn := 0, mainFontStrikeIn := 0, mainFontUnderlineIn := 0
-	, subTextIn := "", subBkgdColourIn := -1
-	, subFontNameIn := "", subFontSizeIn := 0, subFontWeightIn := 0, subFontColourIn := -1
-	, subFontQualityIn := -1, subFontItalicIn := "", subFontStrikeIn := "", subFontUnderlineIn := "")
+	SplashImgInit(imagePathIn, imageUrlIn
+	, bkgdColourIn, transColIn, vHideIn, noHWndActivateIn
+	, vMovableIn, vBorderIn, vOnTopIn
+	, vPosXIn, vPosYIn, vMgnXIn, vMgnYIn, vImgWIn, vImgHIn
+	, mainTextIn, mainBkgdColourIn
+	, mainFontNameIn, mainFontSizeIn, mainFontWeightIn, mainFontColourIn
+	, mainFontQualityIn, mainFontItalicIn, mainFontStrikeIn, mainFontUnderlineIn
+	, subTextIn, subBkgdColourIn
+	, subFontNameIn, subFontSizeIn, subFontWeightIn, subFontColourIn
+	, subFontQualityIn, subFontItalicIn, subFontStrikeIn, subFontUnderlineIn)
 	/*
 	; Future expansion:
 	, rightText := "", rightFontNameIn := "", rightFontSizeIn := 0, rightFontWeightIn := 0, rightFontColourIn := -1
@@ -344,33 +573,9 @@ Class Splashy
 
 	This.procEnd := 0
 
-		if (This.updateFlag > 0)
-		This.updateFlag := 0
-		else
+		if (This.updateFlag <= 0)
 		{
 		;Set defaults
-
-			if (!This.hWndSaved)
-			{
-
-				if (vPosXIn == 0)
-				vPosXIn := "D"
-				if (vPosYIn == 0)
-				vPosYIn := "D"
-
-			; default of -1 never set, unfortunately
-				if (bkgdColourIn == "")
-				bkgdColourIn := -1
-				if (mainBkgdColourIn == "")
-				mainBkgdColourIn := -1
-				if (subBkgdColourIn == "")
-				subBkgdColourIn := -1
-				if (mainFontColourIn == "")
-				mainFontColourIn := -1
-				if (subFontColourIn == "")
-				subFontColourIn := -1
-			}
-
 
 			if (StrLen(imagePathIn))
 			This.imagePath := imagePathIn
@@ -400,10 +605,7 @@ Class Splashy
 		This.transCol := transColIn
 
 
-			if (vHideIn >= 0)
 			This.vHide := vHideIn
-			else
-			This.vHide := 0
 
 			if (noHWndActivateIn)
 			This.noHWndActivate := "NoActivate "
@@ -1036,6 +1238,7 @@ Class Splashy
 	SetColour(textDC, bkgdColour, fontColour)
 	{
 		static NULL_BRUSH := 0x5, TRANSPARENT := 0X1, OPAQUE := 0X2, CLR_INVALID := 0xFFFFFFFF
+
 		DllCall("Gdi32.dll\SetBkMode", "Ptr", textDC, "UInt", (This.transCol)? TRANSPARENT: OPAQUE)
 		if (DllCall("Gdi32.dll\SetBkColor", "Ptr", textDC, "UInt", bkgdColour) == CLR_INVALID)
 		msgbox, 8208, SetBkColor, Cannot set background colour for text!
@@ -1489,22 +1692,22 @@ Class Splashy
 
 ;=====================================================================================
 ; Autoexec here:
-SplashRef := Splashy.SplashImg ; function reference
+SplashyRef := Splashy.SplashImg ; function reference
 
 
-%SplashRef%(Splashy, {imagePath: "C:\Windows\Cursors\busy_l.cur", bkgdColour: "Blue", vMovable: "", vBorder: "", vOnTop: ""
+%SplashyRef%(Splashy, {imagePath: "C:\Windows\Cursors\busy_l.cur", bkgdColour: "Blue", vMovable: "", vBorder: "", vOnTop: ""
 , vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
 msgbox ok
 
-%SplashRef%(Splashy, {release: 1}*)
+%SplashyRef%(Splashy, {release: 1}*)
 msgbox released
 ;%SplashRef%(Splashy, {initSplash: 1, imagePath: "", bkgdColour: "FFFF00", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 ;, vMgnX: "D", mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
-%SplashRef%(Splashy, {initSplash: 1, imagePath: "1", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+%SplashyRef%(Splashy, {initSplash: 1, imagePath: "1", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 msgbox green
-%SplashRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+%SplashyRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
 Return
@@ -1555,7 +1758,7 @@ Thread, Priority, 2000000000
 ;, vMgnY: 2, mainText: "ByeByeByeByeByeByeByeByeByeByeByeByeByeByeBye`nBye`nHello", mainFontSize: 24, subText: "HiHi", subFontItalic: 1, subFontStrike: 1}*)
 
 
-%SplashRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "1", vBorder: "", vOnTop: "onTop"
+%SplashyRef%(Splashy, {bkgdColour: "Blue", transCol: "1", vMovable: "1", vBorder: "", vOnTop: "onTop"
 , vMgnY: 6, mainText: "", subText: "AHK RULES!", subFontColour: "Green", subFontSize: 24, subFontStrike: 0, subFontQuality: 5, subFontUnderline: 1}*)
 
 
