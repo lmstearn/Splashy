@@ -210,14 +210,14 @@ Class Splashy
 					if (This.updateFlag)
 					This.imagePath := This.ValidateText(Value)
 					else
-					imagePathOut := This.ValidateText(Value)
+					imagePathOut := Value
 				}
 				Case "imageUrl":
 				{
 					if (This.updateFlag)
 					This.imageUrl := This.ValidateText(Value)
 					else
-					imageUrlOut := This.ValidateText(Value)
+					imageUrlOut := Value
 				}
 				Case "bkgdColour":
 				{
@@ -226,7 +226,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.bkgdColour := This.ValidateColour(Value)
 						else
-						bkgdColourOut := This.ValidateColour(Value)
+						bkgdColourOut := Value
 					}
 				}
 				Case "transCol":
@@ -260,7 +260,7 @@ Class Splashy
 					if (This.updateFlag)
 					This.noHWndActivate := (Value)? "NoActivate ": ""
 					else
-					noHWndActivateOut := (Value)? "NoActivate ": ""
+					noHWndActivateOut := Value
 				}
 				Case "vMovable":
 				{
@@ -296,7 +296,7 @@ Class Splashy
 					if (This.updateFlag)
 					This.vPosY := (Value == "D")? Value: Floor(Value)
 					else
-					vPosYOut := (Value == "D")? Value: Floor(Value)
+					vPosYOut := Value
 				}
 
 				Case "vMgnX":
@@ -306,7 +306,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.vMgnX := (Value == "D")? Value: Floor(Value)
 						else
-						vMgnXOut := (Value == "D")? Value: Floor(Value)
+						vMgnXOut := Value
 					}
 				}
 				Case "vMgnY":
@@ -316,7 +316,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.vMgnY := (Value == "D")? Value: Floor(Value)
 						else
-						vMgnYOut := (Value == "D")? Value: Floor(Value)
+						vMgnYOut := Value
 					}
 				}
 				Case "vImgW":
@@ -326,7 +326,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.vImgW := Floor(Value)
 						else
-						vImgWOut := Floor(Value)
+						vImgWOut := Value
 					}
 					else
 					{
@@ -346,7 +346,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.vImgH := Floor(Value)
 						else
-						vImgHOut := Floor(Value)
+						vImgHOut := Value
 					}
 					else
 					{
@@ -367,7 +367,7 @@ Class Splashy
 					if (This.updateFlag)
 					This.mainText := This.ValidateText(Value)
 					else
-					mainTextOut := This.ValidateText(Value)
+					mainTextOut := Value
 				}
 				Case "mainBkgdColour":
 				{
@@ -376,7 +376,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.mainBkgdColour := This.ValidateColour(Value, 1)
 						else
-						mainBkgdColourOut := This.ValidateColour(Value)
+						mainBkgdColourOut := Value
 					}
 				}
 				Case "mainFontName":
@@ -386,7 +386,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.mainFontName := This.ValidateText(Value)
 						else
-						mainFontNameOut := This.ValidateText(Value)
+						mainFontNameOut := Value
 					}
 				}
 				Case "mainFontSize":
@@ -396,7 +396,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.mainFontSize := Floor(Value)
 						else
-						mainFontSizeOut := Floor(Value)
+						mainFontSizeOut := Value
 					}
 				}
 				Case "mainFontWeight":
@@ -406,7 +406,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.mainFontWeight := Floor(Value)
 						else
-						mainFontWeightOut := Floor(Value)
+						mainFontWeightOut := Value
 					}
 				}
 				Case "mainFontColour":
@@ -416,7 +416,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.mainFontColour := This.ValidateColour(Value, 1)
 						else
-						mainFontColourOut := This.ValidateColour(Value)
+						mainFontColourOut := Value
 					}
 				}
 				Case "mainFontQuality":
@@ -426,7 +426,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.mainFontQuality := Floor(Value)
 						else
-						mainFontQualityOut := Floor(Value)
+						mainFontQualityOut := Value
 					}
 				}
 				Case "mainFontItalic":
@@ -434,21 +434,21 @@ Class Splashy
 					if (This.updateFlag)
 					This.mainFontItalic := (Value)? " Italic": ""
 					else
-					mainFontItalicOut := (Value)? " Italic": ""
+					mainFontItalicOut := Value
 				}
 				Case "mainFontStrike":
 				{
 					if (This.updateFlag)
 					This.mainFontStrike := (Value)? " Strike": ""
 					else
-					mainFontStrikeOut := (Value)? " Strike": ""
+					mainFontStrikeOut := Value
 				}
 				Case "mainFontUnderline":
 				{
 					if (This.updateFlag)
 					This.mainFontUnderline := (Value)? " Underline": ""
 					else
-					mainFontUnderlineOut := (Value)? " Underline": ""
+					mainFontUnderlineOut := Value
 				}
 
 
@@ -459,7 +459,7 @@ Class Splashy
 					if (This.updateFlag)
 					This.subText := This.ValidateText(Value)
 					else
-					subTextOut := This.ValidateText(Value)
+					subTextOut := Value
 				}
 				Case "subBkgdColour":
 				{
@@ -468,7 +468,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.subBkgdColour := This.ValidateColour(Value, 1)
 						else
-						subBkgdColourOut := This.ValidateColour(Value)
+						subBkgdColourOut := Value
 					}
 				}
 
@@ -479,7 +479,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.subFontName := This.ValidateText(Value)
 						else
-						subFontNameOut := This.ValidateText(Value)
+						subFontNameOut := Value
 					}
 				}
 				Case "subFontSize":
@@ -489,7 +489,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.subFontSize := Floor(Value)
 						else
-						subFontSizeOut := Floor(Value)
+						subFontSizeOut := Value
 					}
 				}
 				Case "subFontWeight":
@@ -499,7 +499,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.subFontWeight := Floor(Value)
 						else
-						subFontWeightOut := Floor(Value)
+						subFontWeightOut := Value
 					}
 				}
 				Case "subFontColour":
@@ -509,7 +509,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.subFontColour := This.ValidateColour(Value, 1)
 						else
-						subFontColourOut := This.ValidateColour(Value)
+						subFontColourOut := Value
 					}
 				}
 				Case "subFontQuality":
@@ -519,7 +519,7 @@ Class Splashy
 						if (This.updateFlag)
 						This.subFontQuality := Floor(Value)
 						else
-						subFontQualityOut := Floor(Value)
+						subFontQualityOut := Value
 					}
 				}
 				Case "subFontItalic":
@@ -527,21 +527,21 @@ Class Splashy
 					if (This.updateFlag)
 					This.subFontItalic := (Value)? " Italic": ""
 					else
-					subFontItalicOut := (Value)? " Italic": ""
+					subFontItalicOut := Value
 				}
 				Case "subFontStrike":
 				{
 					if (This.updateFlag)
 					This.subFontStrike := (Value)? " Strike": ""
 					else
-					subFontStrikeOut := (Value)? " Strike": ""
+					subFontStrikeOut := Value
 				}
 				Case "subFontUnderline":
 				{
 					if (This.updateFlag)
 					This.subFontUnderline := (Value)? " Underline": ""
 					else
-					subFontUnderlineOut := (Value)? " Underline": ""
+					subFontUnderlineOut := Value
 				}
 
 
@@ -684,7 +684,7 @@ Class Splashy
 			This.mainBkgdColour := This.ValidateColour(mainBkgdColourIn, 1)
 
 			if (StrLen(mainFontNameIn))
-			This.mainFontName := mainFontNameIn
+			This.mainFontName := This.ValidateText(mainFontNameIn)
 			else
 			{
 				if (!This.mainFontName)
@@ -692,7 +692,7 @@ Class Splashy
 			}
 
 			if (mainFontSizeIn)
-			This.mainFontSize := mainFontSizeIn
+			This.mainFontSize := Floor(mainFontSizeIn)
 			else
 			{
 				if (!This.mainFontSize)
@@ -700,7 +700,7 @@ Class Splashy
 			}
 
 			if (mainFontWeightIn)
-			This.mainFontWeight := mainFontWeightIn
+			This.mainFontWeight := Floor(mainFontWeightIn)
 			else
 			{
 				if (!This.mainFontWeight)
@@ -716,7 +716,7 @@ Class Splashy
 			This.mainFontColour := This.ValidateColour(mainFontColourIn, 1)
 
 			if (mainFontQualityIn >= 0)
-			This.mainFontQuality := mainFontQualityIn
+			This.mainFontQuality := Floor(mainFontQualityIn)
 			else
 			{
 				; NONANTIALIASED_QUALITY for better performance
@@ -746,7 +746,7 @@ Class Splashy
 
 
 			if (StrLen(subFontNameIn))
-			This.subFontName := subFontNameIn
+			This.subFontName := This.ValidateText(subFontNameIn)
 			else
 			{
 				if (!This.subFontName)
@@ -754,7 +754,7 @@ Class Splashy
 			}
 
 			if (subFontSizeIn)
-			This.subFontSize := subFontSizeIn
+			This.subFontSize := Floor(subFontSizeIn)
 			else
 			{
 				if (!This.subFontSize)
@@ -762,7 +762,7 @@ Class Splashy
 			}
 
 			if (subFontWeightIn)
-			This.subFontWeight := subFontWeightIn
+			This.subFontWeight := Floor(subFontWeightIn)
 			else
 			{
 				if (!This.subFontWeight)
@@ -778,7 +778,7 @@ Class Splashy
 			This.subFontColour := This.ValidateColour(subFontColourIn, 1)
 
 			if (subFontQualityIn >= 0)
-			This.subFontQuality := subFontQualityIn
+			This.subFontQuality := Floor(subFontQualityIn)
 			else
 			{
 				if (!This.subFontQuality)
@@ -1047,17 +1047,23 @@ Class Splashy
 		else
 		{
 		spr := ""
+
 		spr1 := StrLen(keyOrVal)
+
+		; If "0X" found, remove it. Will be added later. Remove other X's
+		
+		if (InStr(SubStr(keyOrVal, 1, 2), "0X"))
+		keyOrVal := StrReplace(SubStr(keyOrVal, 3, spr1 - 2), "X", "0")
+		else
+		keyOrVal := StrReplace(SubStr(keyOrVal, 1, spr1), "X", "0")			; filter out numerics 
 
 			if keyOrVal is not xdigit
 			{
-				loop, %spr1%
+				; Filter out all but numerics
+				loop, Parse, keyOrVal, , %A_Space%%A_Tab% `,
 				{
 					if A_Loopfield is xdigit
-					{
-						if A_Loopfield != "X"
-						spr .= A_Loopfield
-					}
+					spr .= A_Loopfield
 				}
 
 				if (spr)
@@ -1066,7 +1072,8 @@ Class Splashy
 				keyOrVal := 0
 			}
 
-			if keyOrVal is digit ;  assume decimal
+			if (spr1 != 6 && keyOrVal is digit) ;  assume decimal,
+			; which may not be desired if they were digits in above loop
 			keyOrVal := This.ToBase(keyOrVal, 16)
 
 		spr1 := StrLen(keyOrVal)
@@ -1081,22 +1088,13 @@ Class Splashy
 
 		}
 
-		if (InStr(SubStr(keyOrVal, 1, 2), "0X"))
-		spr := StrReplace(SubStr(keyOrVal, 3, spr1), "X", "0")
-		else
-		spr := StrReplace(SubStr(keyOrVal, 1, spr1), "X", "0")
-
-	spr1 := StrLen(spr)
-
-
-
+	; pad zeroes
 	spr2 := ""
-	;spr := Format("{:0x}", Number)
+
 		loop, % (6 - spr1)
 		spr2 := spr2 . "0"
 
-	spr := "0X" . spr2 . spr
-
+	spr := "0X" . spr2 . keyOrVal
 
 
 		if (toBGR) ; for the GDI functions (ColorRef)
@@ -1118,10 +1116,9 @@ Class Splashy
 		if colour is digit
 		{
 		spr := This.ToBase(colour, 16)
-
+		; possible to return spr here
+		; The following just pads the zeroes.
 		spr1 := StrLen(spr)
-		spr := SubStr(spr, 3, spr1 - 2)
-		
 
 		spr2 := ""
 
@@ -1157,8 +1154,8 @@ Class Splashy
 			if (n < 1)
 			Break
 		}
-	
-	Return % (b == 16)? "0X" . m: m
+	; returns without "0X"
+	Return m
 	}
 
 	GetDefaultGUIColour(font := 0)
