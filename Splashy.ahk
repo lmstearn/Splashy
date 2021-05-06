@@ -59,12 +59,16 @@ Class Splashy
 	Static vMgnY := 0
 	Static vImgX := 0
 	Static vImgY := 0
+	Static inputVImgW := 0
+	Static inputVImgH := 0
 	Static vImgW := 0
 	Static vImgH := 0
 	Static oldVImgW := 0
 	Static oldVImgH := 0
 	Static actualVImgW := 0
 	Static actualVImgH := 0
+	Static oldPicInScript := 0
+	Static picInScript := 0
 
 	Static ImageName := ""
 	Static oldImagePath := ""
@@ -216,6 +220,11 @@ Class Splashy
 					This.imagePath := This.ValidateText(Value)
 					else
 					imagePathOut := Value
+
+					if ((InStr(This.imagePath, "*")))
+					This.picInScript := 1
+					else
+					This.picInScript := 0
 				}
 				Case "imageUrl":
 				{
@@ -332,7 +341,7 @@ Class Splashy
 						{
 						This.oldVImgW := This.vImgW
 							if (This.updateFlag)
-							This.vImgW := Floor(Value)
+							This.inputVImgW := Floor(Value)
 							else
 							vImgWOut := Value
 						}
@@ -342,16 +351,16 @@ Class Splashy
 							{
 							This.oldVImgW := This.vImgW
 								if (This.updateFlag)
-								This.vImgW := A_ScreenWidth * Value
+								This.inputVImgW := A_ScreenWidth * Value
 								else
 								vImgWOut := A_ScreenWidth * Value
 							}
 							else
-							This.vImgW := 0
+							This.inputVImgW := 0
 						}
 					}
 					else
-					This.vImgW := 0
+					This.inputVImgW := 0
 				}
 
 				Case "vImgH":
@@ -362,7 +371,7 @@ Class Splashy
 						{
 						This.oldVImgH := This.vImgH
 							if (This.updateFlag)
-							This.vImgH := Floor(Value)
+							This.inputVImgH := Floor(Value)
 							else
 							vImgHOut := Value
 						}
@@ -372,16 +381,16 @@ Class Splashy
 							{
 							This.oldVImgH := This.vImgH
 								if (This.updateFlag)
-								This.vImgH := A_ScreenWidth * Value
+								This.inputVImgH := A_ScreenWidth * Value
 								else
 								vImgHOut := A_ScreenWidth * Value
 							}
 							else
-							This.vImgH := 0
+							This.inputVImgH := 0
 						}
 					}
 					else
-					This.vImgH := 0
+					This.inputVImgH := 0
 				}
 
 
@@ -675,23 +684,23 @@ Class Splashy
 			This.vMgnY := Floor(vMgnYIn)
 
 			if (vImgWIn > 0)
-			This.vImgW := Floor(vImgWIn)
+			This.inputVImgW := Floor(vImgWIn)
 			else
 			{
 			; negative values ignored
 				if (This.hWndSaved)
-				This.vImgW := 0
+				This.inputVImgW := 0
 				else
 				; At startup only
 				This.vImgW := A_ScreenWidth/5
 			}
 
 			if (vImgHIn > 0)
-			This.vImgH := Floor(vImgHIn)
+			This.inputVImgH := Floor(vImgHIn)
 			else
 			{
 				if (This.hWndSaved)
-				This.vImgH := 0
+				This.inputVImgH := 0
 				else
 				This.vImgH := A_ScreenHeight/3
 			}
@@ -826,10 +835,8 @@ Class Splashy
 		}
 
 
-		;if (!(This.vImgW && This.vImgH)) ;  get actual pic size
-		This.GetPicWH()
-
-	This.DisplayToggle()
+		if (This.GetPicWH())
+		This.DisplayToggle()
 
 
 	DetectHiddenWindows On
@@ -1458,8 +1465,8 @@ Class Splashy
 	static vToggle := 1
 
 	vToggle := !vToggle
-	spr := (This.vImgW)? This.vImgW: This.actualVImgW
-	spr1 := (This.vImgH)? This.vImgH: This.actualVImgH
+	This.vImgW := (This.inputVImgW)? This.inputVImgW: This.actualVImgW
+	This.vImgH := (This.inputVImgH)? This.inputVImgH: This.actualVImgH
 
 	spr1 := Format("W{} H{}", spr, spr1)
 	; This function uses LoadPicture to populate hBitmap and hIcon
@@ -1468,28 +1475,25 @@ Class Splashy
 		{
 			if (This.hWndSaved)
 			{
-			; No need to reload
-				if (This.oldImagePath == This.imagePath && This.oldVImgW == This.vImgW && This.oldVImgH == This.vImgH)
-				return
-				else
-				{
 				This.oldImagePath := This.imagePath
 
-					if (This.hBitmap)
-					{
-						if (!(InStr(This.imagePath, "*")))
-						{
-						DllCall("DeleteObject", "ptr", This.hBitmap)
-						This.hBitmap := 0
-						}
-					}
+				if (This.hBitmap)
+				{
+					if (This.picInScript)
+					This.oldPicInScript := 1
 					else
 					{
-						if (This.hIcon)
-						{
-						DllCall("DestroyIcon", "ptr", This.hIcon)
-						This.hIcon := 0
-						}
+					DllCall("DeleteObject", "ptr", This.hBitmap)
+					This.hBitmap := 0
+					This.oldPicInScript := 0
+					}
+				}
+				else
+				{
+					if (This.hIcon)
+					{
+					DllCall("DestroyIcon", "ptr", This.hIcon)
+					This.hIcon := 0
 					}
 				}
 			}
@@ -1537,11 +1541,19 @@ Class Splashy
 						return
 					}
 				}
+				else
+				{
+					if (!fileExist(This.ImageName) && !This.hIcon)
+					{
+					msgbox, 8208, DisplayToggle, Unknown Error!
+					return
+					}
+				}
 			}
-		}
-
 		SplitPath % This.imagePath, spr
 		This.ImageName := spr
+		}
+
 		; Fail, so download
 
 			if (This.imageUrl && RegExMatch(This.imageUrl, "^(https?://|www\.)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?$"))
@@ -1618,34 +1630,60 @@ Class Splashy
 	} BITMAP, *PBITMAP, *NPBITMAP, *LPBITMAP; ==> Extra pointer reference
 	*/
 	This.ImageName := ""
-	if (!(This.vImgW && This.vImgH))
-	spr1 := ""
+	if (This.inputVImgW || This.inputVImgH)
+	spr1 := Format("W{} H{}", This.inputVImgW, This.inputVImgH)
 	else
-	spr1 := Format("W{} H{}", This.vImgW, This.vImgH)
+	spr1 := ""
 
 	if (This.imagePath)
 	{
 		if (This.hWndSaved)
 		{
-		; No need to reload
-			if (This.oldImagePath == This.imagePath && This.oldVImgW == This.vImgW && This.oldVImgH == This.vImgH)
-			return
-			else
+			if (This.oldImagePath == This.imagePath)
 			{
-				if (This.hBitmap)
+			; No need to reload
+				if (This.inputVImgW && This.inputVImgH)
 				{
-				DllCall("DeleteObject", "ptr", This.hBitmap)
-				This.hBitmap := 0
+					if (This.oldVImgW == This.inputVImgW && This.oldVImgH == This.inputVImgH)
+					return 0
 				}
 				else
 				{
-					if (This.hIcon)
+					if ((This.picInScript && This.oldPicInScript) || (!This.picInScript && !This.oldPicInScript))
 					{
-					DllCall("DestroyIcon", "ptr", This.hIcon)
-					This.hIcon := 0
+						if (This.inputVImgW)
+						{
+							if (This.oldVImgW == This.inputVImgW)
+							return 0
+						}
+						else
+						{
+							if (This.inputVImgH)
+							{
+								if (This.oldVImgH == This.inputVImgH)
+								return 0
+							}
+							else
+							return 0
+						}
 					}
 				}
 			}
+
+			if (This.hBitmap)
+			{
+			DllCall("DeleteObject", "ptr", This.hBitmap)
+			This.hBitmap := 0
+			}
+			else
+			{
+				if (This.hIcon)
+				{
+				DllCall("DestroyIcon", "ptr", This.hIcon)
+				This.hIcon := 0
+				}
+			}
+
 		}
 
 	SplitPath % This.imagePath,,, spr
@@ -1692,9 +1730,12 @@ Class Splashy
 
 	if (!(This.hBitmap || This.hIcon))
 	{
-	SplitPath % This.imagePath, spr
-	This.ImageName := spr
 	; Fail, so download
+		if (This.ImageName)
+		{
+		SplitPath % This.imagePath, spr
+		This.ImageName := spr
+		}
 
 		if (This.imageUrl && RegExMatch(This.imageUrl, "^(https?://|www\.)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?$"))
 		{
@@ -1737,7 +1778,10 @@ Class Splashy
 			This.downloadedUrlNames(spr) := This.imageUrl
 			}
 			else
-			msgbox, 8208, LoadPicture, Format not recognized!
+			{
+			msgbox, 8208, LoadPicture, Format of bitmap not recognized!
+			return 0
+			}
 
 		}
 		else
@@ -1746,8 +1790,13 @@ Class Splashy
 
 		if (!This.hBitmap)
 		{
-		This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": "") . spr1, spr)
-		This.vImgType := 1
+			if (This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": "") . spr1, spr))
+			This.vImgType := 1
+			else
+			{
+			msgbox, 8208, LoadPicture, Format of icon/cursor not recognized!
+			return 0
+			}
 		}
 	}
 
@@ -1801,6 +1850,7 @@ Class Splashy
 		}
 	This.actualVImgW := spr
 	This.actualVImgH := spr1
+	return 1
 	}
 
 
@@ -1831,7 +1881,7 @@ Class Splashy
 					}
 					else
 					{
-					if (!DllCall("gdi32\BitBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", This.vImgW, "Int", This.vImgH, "Ptr", hDCCompat, "Int", 0, "Int", 0, "UInt", SRCCOPY))
+					if (!DllCall("gdi32\BitBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", spr, "Int", spr1, "Ptr", hDCCompat, "Int", 0, "Int", 0, "UInt", SRCCOPY))
 					msgbox, 8208, PaintDC, BitBlt Failed!
 					}
 				This.selectObject(hDCCompat, hBitmapOld)
@@ -2000,7 +2050,7 @@ msgbox ok
 ;%SplashRef%(Splashy, {initSplash: 1, imagePath: "", bkgdColour: "FFFF00", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 ;, vMgnX: "D", mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontColour: "yellow", subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 
-%SplashyRef%(Splashy, {initSplash: 1, vImgW: 500, vImgH: 400, imagePath: "*", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
+%SplashyRef%(Splashy, {initSplash: 1, vImgW: 0, vImgH: 0, imagePath: "*", bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
 , vMgnX: 6, mainText: "Yippee`n`nGreat", noHWndActivate: 1, subFontSize: 24, subText: "Hi`nHi", subBkgdColour: "blue", subFontItalic: 1, subFontStrike: 1}*)
 msgbox initSplash blue subBkgdColour
 %SplashyRef%(Splashy, {bkgdColour: "green", mainFontUnderline: 1, transCol: "", vMovable: "movable", vBorder: "", vOnTop: ""
