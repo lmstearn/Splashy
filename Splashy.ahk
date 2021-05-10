@@ -77,6 +77,7 @@ Class Splashy
 	Static bkgdColour := ""
 	Static transCol := 0
 	Static noHWndActivate := ""
+	Static vCentre := 1
 	Static vBorder := 0
 	Static vOnTop := 0
 
@@ -140,6 +141,7 @@ Class Splashy
 	transColOut := ""
 	vHideOut := 0
 	noHWndActivateOut := ""
+	vCentreOut := 1
 	vMovableOut := 0
 	vBorderOut := ""
 	vOnTopOut := 0
@@ -275,6 +277,13 @@ Class Splashy
 					This.noHWndActivate := (Value)? "NoActivate ": ""
 					else
 					noHWndActivateOut := Value
+				}
+				Case "vCentre":
+				{
+					if (This.updateFlag)
+					This.Centre := Value
+					else
+					vCentreOut := Value
 				}
 				Case "vMovable":
 				{
@@ -585,7 +594,7 @@ Class Splashy
 
 	This.SplashImgInit(imagePathOut, imageUrlOut
 	, bkgdColourOut, transColOut, vHideOut, noHWndActivateOut
-	, vMovableOut, vBorderOut, vOnTopOut
+	, vCentreOut, vMovableOut, vBorderOut, vOnTopOut
 	, vPosXOut, vPosYOut, vMgnXOut, vMgnYOut, vImgWOut, vImgHOut
 	, mainTextOut, mainBkgdColourOut
 	, mainFontNameOut, mainFontSizeOut, mainFontWeightOut, mainFontColourOut
@@ -598,7 +607,7 @@ Class Splashy
 
 	SplashImgInit(imagePathIn, imageUrlIn
 	, bkgdColourIn, transColIn, vHideIn, noHWndActivateIn
-	, vMovableIn, vBorderIn, vOnTopIn
+	, vCentreIn, vMovableIn, vBorderIn, vOnTopIn
 	, vPosXIn, vPosYIn, vMgnXIn, vMgnYIn, vImgWIn, vImgHIn
 	, mainTextIn, mainBkgdColourIn
 	, mainFontNameIn, mainFontSizeIn, mainFontWeightIn, mainFontColourIn
@@ -658,6 +667,7 @@ Class Splashy
 			else
 			This.noHWndActivate := ""
 
+		This.vCentre := vCentreIn
 		This.vMovable := vMovableIn
 		This.vBorder := vBorderIn
 
@@ -959,22 +969,41 @@ Class Splashy
 		if (!This.vHide)
 		{
 		spr := " "
-
-		if (This.vPosX == "D" && This.vPosX == "D")
-		spr .= Format("W{} H{}", vWinW, vWinH)
-		else
-		{
-			if (This.vPosX != "D" && This.vPosY == "D")
-			spr .= Format(" X{} W{} H{}", This.vPosX, vWinW, vWinH)
-			else
+			if (This.vCentre)
 			{
 				if (This.vPosX == "D")
-				spr .= Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
-				else
-				spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+				{
+					if (vWinW < A_ScreenWidth)
+					This.vPosX := (A_ScreenWidth - vWinW)/2
+					else
+					This.vPosX := 0
+				}
+				if (This.vPosY == "D")
+				{
+					if (vWinH < A_ScreenHeight)
+					This.vPosY := (A_ScreenHeight - vWinH)/2
+					else
+					This.vPosY := 0
+				}
+			spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
 			}
-		}
-
+			else
+			{
+				if (This.vPosX == "D" && This.vPosX == "D")
+				spr .= Format("W{} H{}", vWinW, vWinH)
+				else
+				{
+					if (This.vPosX != "D" && This.vPosY == "D")
+					spr .= Format(" X{} W{} H{}", This.vPosX, vWinW, vWinH)
+					else
+					{
+						if (This.vPosX == "D")
+						spr .= Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
+						else
+						spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+					}
+				}
+			}
 
 		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
@@ -1355,7 +1384,9 @@ Class Splashy
 					;return ;uncomment This line and the window will be blank
 
 						if (vDoDrawImg)
+						{
 						This.PaintDC()
+						}
 						else
 						Sleep, -1
 
@@ -1406,9 +1437,10 @@ Class Splashy
 	;Which means we have to create our own class and window for the control anyway,
 	; Then use Pens & Brushes & DrawTextEx et al.
 
-	/*
-	static DC_BRUSH := 0x12
 	Critical
+	static DC_BRUSH := 0x12
+	/*
+
 
 
 		if (uMsg == This.WM_ERASEBKGND)
@@ -1418,11 +1450,11 @@ Class Splashy
 		if (uMsg == This.WM_PAINT)
 		{
 		VarSetCapacity(PAINTSTRUCT, 60 + A_PtrSize, 0)
-		hDC := DllCall("User32.dll\BeginPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr")
-
-			spr := This.ToBase(hWnd, 16)
-			spr1 := InStr(spr, This.mainTextHWnd)
-			spr2 := InStr(spr, This.subTextHWnd)
+			if (!(hDC := DllCall("User32.dll\BeginPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr")))
+			return 0
+		spr := This.ToBase(hWnd, 16)
+		spr1 := InStr(spr, This.mainTextHWnd)
+		spr2 := InStr(spr, This.subTextHWnd)
 
 
 			if (spr1 || spr2)
@@ -1445,14 +1477,15 @@ Class Splashy
 					}
 				}
 			}
+
 		DllCall("User32.dll\EndPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr")
-		Return 0
+		return 0
 		}
 
 ;Marquee code in an outside function
-            RECT rectControls = {wd + xCurrentScroll, yCurrentScroll, xNewSize + xCurrentScroll, yNewSize + yCurrentScroll};
-            if (!ScrollDC(hdcWinCl, -xDelta, 0, (CONST RECT*) &rectControls, (CONST RECT*) &rectControls, (HRGN)NULL, (RECT*) &rectControls))
-                ReportErr(L"HORZ_SCROLL: ScrollD Failed!");
+            ;RECT rectControls = {wd + xCurrentScroll, yCurrentScroll, xNewSize + xCurrentScroll, yNewSize + yCurrentScroll};
+            ;if (!ScrollDC(hdcWinCl, -xDelta, 0, (CONST RECT*) &rectControls, (CONST RECT*) &rectControls, (HRGN)NULL, (RECT*) &rectControls))
+                ;ReportErr(L"HORZ_SCROLL: ScrollD Failed!");
 
 */
 
@@ -1611,7 +1644,6 @@ Class Splashy
 		; "Neverfail" default 
 		This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": "") . spr1, spr)
 		This.vImgType := 1
-
 		
 	}
 
@@ -2082,7 +2114,7 @@ Thread, Priority, 2000000000
 
 , bkgdColour: colourStringorVal, transCol: boolValue, vHide: boolValue, noHWndActivate: boolValue
 
-, vMovable: boolValue, vBorder: borderString, vOnTop: boolValue
+, vCentre: boolValue, vMovable: boolValue, vBorder: borderString, vOnTop: boolValue
 
 , vMgnX: value, vMgnY: value, vImgW: value, vImgH: value
 
