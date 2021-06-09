@@ -645,7 +645,7 @@ Class Splashy
 			else
 			{
 				if (!This.imageUrl)
-				This.imageUrl := "https://www.autohotkey.com/assets/images/ahk_wallpaper_reduced.jpg"
+				This.imageUrl := "https://www.autohotkey.com/assets/images/features-why.png"
 			}
 
 
@@ -1505,6 +1505,7 @@ Class Splashy
 	spr1 := Format("W{} H{}", spr, spr1)
 	; This function uses LoadPicture to populate hBitmap and hIcon
 	; and sets the image type for the painting routines accordingly
+
 		if (This.imagePath)
 		{
 			if (This.hWndSaved)
@@ -1531,7 +1532,6 @@ Class Splashy
 					}
 				}
 			}
-
 		SplitPath % This.imagePath,,, spr
 
 			if (StrLen(spr))
@@ -1554,6 +1554,7 @@ Class Splashy
 			{
 				if (fileExist(This.imagePath))
 				{
+
 				spr := This.imagePath
 
 					if (This.vImgType)
@@ -1571,6 +1572,7 @@ Class Splashy
 					}
 					else
 					{
+
 						if (This.hBitmap := LoadPicture(spr, spr1))
 						return
 					}
@@ -2053,7 +2055,7 @@ SplashyRef := Splashy.SplashImg
 splashPicWd := 250
 splashPicHt := 250
 
-gui, +resize -caption HWNDthisHWnd
+gui, +OwnDialogs +resize -caption HWNDthisHWnd
 
 fnParms := []
 ctlTogs := []
@@ -2144,18 +2146,6 @@ GuiControl, , launchSplashy, Click to Update
 launchStr := {}
 	loop, 40 ; number of Splashy control variables
 	{
-	if (ctlTogsold[A_Index])
-		{
-		c := mod(A_Index, 4)
-		r := floor(A_Index/4) + (c? 1: 0)
-			if (!c)
-			c := 4
-		spr := c . "_" . r
-		GuiControl, , %spr%, %BTONSAV%
-		}
-	}
-	loop, 40 ; number of Splashy control variables
-	{
 	if (ctlTogs[A_Index])
 		{
 			if (A_Index == 2)
@@ -2186,7 +2176,26 @@ launchStr := {}
 				switch A_Index
 				{
 					case 1:
+					{
 					launchStr[txt[A_Index]] := 1
+						loop, 40 ; number of Splashy control variables
+						{
+							if (ctlTogsOld[A_Index])
+							{
+							c := mod(A_Index, 4)
+							r := floor(A_Index/4) + (c? 1: 0)
+								if (!c)
+								c := 4
+							spr := c . "_" . r
+							GuiControl, , %spr%, %BTOFF%
+							GuiControl, movedraw, %spr%, 0
+							spr := "t_" . spr
+							GuiControl, , %spr%, % txt[A_Index]
+							GuiControl, +cgray, %spr%
+							}
+						}					
+					
+					}
 					case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
 					{
 					launchStr[txt[A_Index]] := 1
@@ -2209,6 +2218,22 @@ launchStr := {}
 
 	}
 
+
+	if (!(ctlTogs[1] || ctlTogs[2]))
+	{
+		loop, 40 ; number of Splashy control variables
+		{
+		if (ctlTogsold[A_Index])
+			{
+			c := mod(A_Index, 4)
+			r := floor(A_Index/4) + (c? 1: 0)
+				if (!c)
+				c := 4
+			spr := c . "_" . r
+			GuiControl, , %spr%, %BTONSAV%
+			}
+		}
+	}
 
 %SplashyRef%(Splashy, launchStr*)
 
