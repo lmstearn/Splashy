@@ -2051,7 +2051,7 @@ gosub, decode
 ; set function reference
 ;SplashyRef := ObjBindMethod(Splashy, "SplashImg")
 SplashyRef := Splashy.SplashImg
-
+inputBoxActive := 0
 splashPicWd := 250
 splashPicHt := 250
 
@@ -2141,6 +2141,11 @@ gui, show, % "W" . sprx + sprw . " H" . spry + ySep * 2 + sprh
 return
 
 LaunchSplashy:
+if (inputBoxActive)
+{
+msgbox, 8240, InputBox, InputBox still active, please close.
+return
+}
 GuiControl, Enable, repaintSplashy
 GuiControl, , launchSplashy, Click to Update
 launchStr := {}
@@ -2173,45 +2178,69 @@ launchStr := {}
 			}
 			else
 			{
-				switch A_Index
+				if (A_Index == 1)
 				{
-					case 1:
+				launchStr[txt[A_Index]] := 1
+					loop, 40 ; number of Splashy control variables
 					{
-					launchStr[txt[A_Index]] := 1
-						loop, 40 ; number of Splashy control variables
+						if (ctlTogsOld[A_Index])
 						{
-							if (ctlTogsOld[A_Index])
+						c := mod(A_Index, 4)
+						r := floor(A_Index/4) + (c? 1: 0)
+							if (!c)
+							c := 4
+						spr := c . "_" . r
+						GuiControl, , %spr%, %BTOFF%
+						GuiControl, movedraw, %spr%, 0
+						spr := "t_" . spr
+						GuiControl, , %spr%, % txt[A_Index]
+						GuiControl, +cgray, %spr%
+						}
+						else
+						{
+							switch A_Index
 							{
-							c := mod(A_Index, 4)
-							r := floor(A_Index/4) + (c? 1: 0)
-								if (!c)
-								c := 4
-							spr := c . "_" . r
-							GuiControl, , %spr%, %BTOFF%
-							GuiControl, movedraw, %spr%, 0
-							spr := "t_" . spr
-							GuiControl, , %spr%, % txt[A_Index]
-							GuiControl, +cgray, %spr%
+								case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+								{
+								launchStr[txt[A_Index]] := 1
+								ctlTogsOld[A_Index] := 1
+								}
+								Default:
+								{
+								c := mod(A_Index, 4)
+								r := floor(A_Index/4) + (c? 1: 0)
+									if (!c)
+									c := 4
+								GuiControlGet, spr, , % "t_" . c . "_" . r
+								launchStr[txt[A_Index]] := spr
+								ctlTogsOld[A_Index] := 1						
+								}
 							}
-						}					
-					
+						}	
 					}
-					case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+				}
+				else
+				{
+			
+					switch A_Index
 					{
-					launchStr[txt[A_Index]] := 1
-					ctlTogsOld[A_Index] := 1
+						case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+						{
+						launchStr[txt[A_Index]] := 1
+						ctlTogsOld[A_Index] := 1
+						}
+						Default:
+						{
+						c := mod(A_Index, 4)
+						r := floor(A_Index/4) + (c? 1: 0)
+							if (!c)
+							c := 4
+						GuiControlGet, spr, , % "t_" . c . "_" . r
+						launchStr[txt[A_Index]] := spr
+						ctlTogsOld[A_Index] := 1
+						}
+						
 					}
-					Default:
-					{
-					c := mod(A_Index, 4)
-					r := floor(A_Index/4) + (c? 1: 0)
-						if (!c)
-						c := 4
-					GuiControlGet, spr, , % "t_" . c . "_" . r
-					launchStr[txt[A_Index]] := spr
-					ctlTogsOld[A_Index] := 1
-					}
-					
 				}
 			}
 		}
@@ -2239,6 +2268,12 @@ launchStr := {}
 
 return
 RepaintSplashy:
+if (inputBoxActive)
+{
+msgbox, 8240, InputBox, InputBox still active, please close.
+return
+}
+
 	if (Splashy.vHide)
 	DetectHiddenWindows, On
 
@@ -2254,6 +2289,12 @@ Splashy.PaintProc()
 return
 
 click:
+if (inputBoxActive)
+{
+msgbox, 8240, InputBox, InputBox still active, please close.
+return
+}
+
 out:=a_guicontrol
 
 %out%:= !%out% ? 1 : 0
@@ -2376,9 +2417,14 @@ local spr, ct
 		}
 		Default:
 		{
+		inputBoxActive := 1
 		InputBox, textIn, Enter %textIn%
-		if (Errorlevel)
-		return ""
+			if (Errorlevel)
+			{
+			inputBoxActive := 0
+			return ""
+			}
+		inputBoxActive := 0
 		}
 	}
 	; AutoTrim On by default
