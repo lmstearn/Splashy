@@ -2149,19 +2149,39 @@ return
 GuiControl, Enable, repaintSplashy
 GuiControl, , launchSplashy, Click to Update
 launchStr := {}
-	loop, 40 ; number of Splashy control variables
+
+
+	if (ctlTogs[2])
 	{
-	if (ctlTogs[A_Index])
+	GuiControl, Disable, repaintSplashy
+	launchStr[txt[2]] := 1
+	; reset all controls
+		loop, 40 ; number of Splashy control variables
 		{
-			if (A_Index == 2)
+		ctlTogs[A_Index] := 0
+		ctlTogsOld[A_Index] := 0
+		c := mod(A_Index, 4)
+		r := floor(A_Index/4) + (c? 1: 0)
+			if (!c)
+			c := 4
+		spr := c . "_" . r
+		GuiControl, , %spr%, %BTOFF%
+		GuiControl, movedraw, %spr%, 0
+		spr := "t_" . spr
+		GuiControl, , %spr%, % txt[A_Index]
+		GuiControl, +cgray, %spr%
+		}
+
+	}
+	else
+	{
+		if (ctlTogs[1])
+		{
+		launchStr[txt[1]] := 1
+			loop, 40 ; number of Splashy control variables
 			{
-			GuiControl, Disable, repaintSplashy
-			launchStr[txt[A_Index]] := 1
-			; reset all controls
-				loop, 40 ; number of Splashy control variables
+				if (ctlTogsOld[A_Index])
 				{
-				ctlTogs[A_Index] := 0
-				ctlTogsOld[A_Index] := 0
 				c := mod(A_Index, 4)
 				r := floor(A_Index/4) + (c? 1: 0)
 					if (!c)
@@ -2173,55 +2193,8 @@ launchStr := {}
 				GuiControl, , %spr%, % txt[A_Index]
 				GuiControl, +cgray, %spr%
 				}
-
-			break
-			}
-			else
-			{
-				if (A_Index == 1)
-				{
-				launchStr[txt[A_Index]] := 1
-					loop, 40 ; number of Splashy control variables
-					{
-						if (ctlTogsOld[A_Index])
-						{
-						c := mod(A_Index, 4)
-						r := floor(A_Index/4) + (c? 1: 0)
-							if (!c)
-							c := 4
-						spr := c . "_" . r
-						GuiControl, , %spr%, %BTOFF%
-						GuiControl, movedraw, %spr%, 0
-						spr := "t_" . spr
-						GuiControl, , %spr%, % txt[A_Index]
-						GuiControl, +cgray, %spr%
-						}
-						else
-						{
-							switch A_Index
-							{
-								case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
-								{
-								launchStr[txt[A_Index]] := 1
-								ctlTogsOld[A_Index] := 1
-								}
-								Default:
-								{
-								c := mod(A_Index, 4)
-								r := floor(A_Index/4) + (c? 1: 0)
-									if (!c)
-									c := 4
-								GuiControlGet, spr, , % "t_" . c . "_" . r
-								launchStr[txt[A_Index]] := spr
-								ctlTogsOld[A_Index] := 1						
-								}
-							}
-						}	
-					}
-				}
 				else
 				{
-			
 					switch A_Index
 					{
 						case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
@@ -2237,41 +2210,64 @@ launchStr := {}
 							c := 4
 						GuiControlGet, spr, , % "t_" . c . "_" . r
 						launchStr[txt[A_Index]] := spr
-						ctlTogsOld[A_Index] := 1
+						ctlTogsOld[A_Index] := 1						
 						}
-						
 					}
+				}	
+			}
+		}
+		else
+		{
+			loop, 40 ; number of Splashy control variables
+			{
+				if (ctlTogsold[A_Index])
+				{
+				c := mod(A_Index, 4)
+				r := floor(A_Index/4) + (c? 1: 0)
+					if (!c)
+					c := 4
+				spr := c . "_" . r
+				GuiControl, , %spr%, %BTONSAV%
 				}
 			}
 		}
 
-	}
-
-
-	if (!(ctlTogs[1] || ctlTogs[2]))
-	{
-		loop, 40 ; number of Splashy control variables
+		loop, 40
 		{
-		if (ctlTogsold[A_Index])
+			if (ctlTogs[A_Index])
 			{
-			c := mod(A_Index, 4)
-			r := floor(A_Index/4) + (c? 1: 0)
-				if (!c)
-				c := 4
-			spr := c . "_" . r
-			GuiControl, , %spr%, %BTONSAV%
+				switch A_Index
+				{
+					case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+					{
+					launchStr[txt[A_Index]] := 1
+					ctlTogsOld[A_Index] := 1
+					}
+					Default:
+					{
+					c := mod(A_Index, 4)
+					r := floor(A_Index/4) + (c? 1: 0)
+						if (!c)
+						c := 4
+					GuiControlGet, spr, , % "t_" . c . "_" . r
+					launchStr[txt[A_Index]] := spr
+					ctlTogsOld[A_Index] := 1
+					}
+					
+				}
 			}
 		}
 	}
+
 
 %SplashyRef%(Splashy, launchStr*)
 
 return
 RepaintSplashy:
-if (inputBoxActive)
-{
-msgbox, 8240, InputBox, InputBox still active, please close.
-return
+	if (inputBoxActive)
+	{
+	msgbox, 8240, InputBox, InputBox still active, please close.
+	return
 }
 
 	if (Splashy.vHide)
