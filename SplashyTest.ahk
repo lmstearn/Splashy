@@ -2069,11 +2069,7 @@ ctlTogsOld := []
 Global xSep := A_ScreenWidth/24
 Global ySep := A_ScreenHeight/18
 
-Gui, Font, % "w700 cBlue s" . ySep/2, Verdana
-gui, add, text, % "Center" . " w" . 4 * xSep . " h" . ySep * 2 . " x" . 8 * xSep . " y" . ySep/3, Splashy`nSandbox
-Gui, Font
-
-gui, add, pic, section x0, % bg
+gui, add, pic, section x0 y0, % bg
 
 	loop
 	{
@@ -2086,6 +2082,10 @@ gui, add, pic, section x0, % bg
 	Break
 	gui, add, pic, section xs , % bg
 	}
+
+Gui, Font, % "w700 cBlue s" . ySep/2, Verdana
+gui, add, text, % "Center" . " w" . 4 * xSep . " h" . ySep * 2 . " x" . 8 * xSep . " y" . ySep/3, Splashy`nSandbox
+Gui, Font
 
 opt:="gclick backgroundtrans" 
 r:=c:=0, rows:=10, cols:=4
