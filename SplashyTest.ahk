@@ -1760,6 +1760,8 @@ Class Splashy
 					msgbox, 8208, LoadPicture, Problem loading picture!
 				}
 			}
+			else
+			This.imagePath := ""
 		}
 	}
 
