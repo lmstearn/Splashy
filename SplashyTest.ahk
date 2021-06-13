@@ -2141,11 +2141,20 @@ gui, show, % "W" . sprx + sprw . " H" . spry + ySep * 2 + sprh
 return
 
 LaunchSplashy:
-if (inputBoxActive)
-{
-msgbox, 8240, InputBox, InputBox still active, please close.
-return
-}
+	if (inputBoxActive)
+	{
+	msgbox, 8240, InputBox, InputBox still active, please close.
+		loop
+		{
+		WinGetTitle, spr , ahk_class #32770
+			if (A_index == 10000)
+			return
+		} Until InStr(spr, "Please enter ")
+	WinGet, spr, ID, Please enter 
+	WinActivate, ahk_id %spr%
+	return
+	}
+
 GuiControl, Enable, repaintSplashy
 GuiControl, , launchSplashy, Click to Update
 launchStr := {}
@@ -2177,7 +2186,6 @@ launchStr := {}
 	{
 		if (ctlTogs[1])
 		{
-		launchStr[txt[1]] := 1
 			loop, 40 ; number of Splashy control variables
 			{
 				if (ctlTogsOld[A_Index])
@@ -2195,26 +2203,29 @@ launchStr := {}
 				}
 				else
 				{
-					switch A_Index
+					if (ctlTogs[A_Index])
 					{
-						case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+						switch A_Index
 						{
-						launchStr[txt[A_Index]] := 1
-						ctlTogsOld[A_Index] := 1
-						}
-						Default:
-						{
-						c := mod(A_Index, 4)
-						r := floor(A_Index/4) + (c? 1: 0)
-							if (!c)
-							c := 4
-						GuiControlGet, spr, , % "t_" . c . "_" . r
-						launchStr[txt[A_Index]] := spr
-						ctlTogsOld[A_Index] := 1						
+							case 1, 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+							{
+							launchStr[txt[A_Index]] := 1
+							}
+							Default:
+							{
+							c := mod(A_Index, 4)
+							r := floor(A_Index/4) + (c? 1: 0)
+								if (!c)
+								c := 4
+							GuiControlGet, spr, , % "t_" . c . "_" . r
+							launchStr[txt[A_Index]] := spr
+							}
+							ctlTogsOld[A_Index] := 1
 						}
 					}
-				}	
+				}
 			}
+		launchStr[txt[1]] := 1
 		}
 		else
 		{
@@ -2259,7 +2270,6 @@ launchStr := {}
 		}
 	}
 
-
 %SplashyRef%(Splashy, launchStr*)
 
 return
@@ -2285,11 +2295,19 @@ Splashy.PaintProc()
 return
 
 click:
-if (inputBoxActive)
-{
-msgbox, 8240, InputBox, InputBox still active, please close.
-return
-}
+	if (inputBoxActive)
+	{
+	msgbox, 8240, InputBox, Another InputBox still active, please close.
+		loop
+		{
+		WinGetTitle, spr , ahk_class #32770
+			if (A_index == 10000)
+			return
+		} Until InStr(spr, "Please enter ")
+	WinGet, spr, ID, Please enter 
+	WinActivate, ahk_id %spr%
+	return
+	}
 
 out:=a_guicontrol
 
@@ -2340,7 +2358,6 @@ i := c + 4 * (r - 1)
 	}
 	}
 
-
 GuiControl, , %a_guicontrol%, % %out% ? BTON : BTOFF
 GuiControl,  % (%out%) ? "+clime" : "+cgray", % "t_" a_guicontrol
 GuiControl, movedraw, % "t_" a_guicontrol, 0
@@ -2383,8 +2400,13 @@ VarSetCapacity( Bin, nBytes, 0 ), BLen := StrLen(B64)
 Return hICON
 }
 
-WM_LBUTTONDOWN() {
+WM_LBUTTONDOWN()
+{
 Global
+WinGet, spr, ID, A
+	if (spr != thisHWnd)
+	return
+
 	if (WinExist(, Splashy Sandbox))
 	{
 	MouseGetPos, xpos, ypos 
@@ -2414,12 +2436,13 @@ local spr, ct
 		Default:
 		{
 		inputBoxActive := 1
-		InputBox, textIn, Enter %textIn%
+		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
 			{
 			inputBoxActive := 0
 			return ""
 			}
+		WinActivate ahk_id %thisHWnd%
 		inputBoxActive := 0
 		}
 	}
