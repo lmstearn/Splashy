@@ -2039,7 +2039,7 @@ inputBoxActive := 0
 splashPicWd := 250
 splashPicHt := 250
 
-gui, +OwnDialogs +resize -caption HWNDthisHWnd
+gui, +OwnDialogs +resize -caption -DPIScale HWNDthisHWnd
 
 fnParms := []
 ctlTogs := []
@@ -2139,14 +2139,15 @@ LaunchSplashy:
 	return
 	}
 
-GuiControl, Enable, repaintSplashy
-GuiControl, , launchSplashy, Click to Update
+
 launchStr := {}
 
 
 	if (ctlTogs[2])
 	{
 	GuiControl, Disable, repaintSplashy
+	GuiControl, , launchSplashy, Click to Launch
+
 	launchStr[txt[2]] := 1
 	; reset all controls
 		loop, 40 ; number of Splashy control variables
@@ -2171,6 +2172,8 @@ launchStr := {}
 	}
 	else
 	{
+	GuiControl, Enable, repaintSplashy
+	GuiControl, , launchSplashy, Click to Update
 		if (ctlTogs[1])
 		{
 			loop, 40 ; number of Splashy control variables
@@ -2355,7 +2358,7 @@ return
 guiclose:
 DetectHiddenWindows, On
 esc::
-%SplashRef%(Splashy, {release: 1}*)
+%SplashyRef%(Splashy, {release: 1}*)
 exitapp 
 return
 
@@ -2395,6 +2398,13 @@ WinGet, spr, ID, A
 	if (spr != thisHWnd)
 	return
 
+	if (inputBoxActive)
+	{
+	; Issue: if the same control is clicked while inputBoxActive is set,
+	; the WM_LBUTTONDOWN message is not received for the control.
+	gosub Click
+	return
+	}
 	if (WinExist(, Splashy Sandbox))
 	{
 	MouseGetPos, xpos, ypos 
