@@ -1,21 +1,4 @@
 ﻿
-#SingleInstance, force
-#NoEnv  ; Performance and compatibility with future AHK releases.
-;#Warn, All, OutputDebug ; Enable warnings for a debugger to display to assist with detecting common errors.
-;#Warn UseUnsetLocal, OutputDebug  ; Warn when a local variable is used before it's set; send to OutputDebug
-#MaxMem 256
-#MaxThreads 3
-#Persistent
-#Include %A_ScriptDir%
-
-
-AutoTrim, Off ; traditional assignments off
-ListLines Off ;A_ListLines default is on: history of lines most recently executed 
-SendMode Input  ; Recommended for new scripts due to superior speed & reliability.
-SetWinDelay, 40
-; ListVars for debugging
-SetBatchLines, 25ms ; too fast? A_BatchLines is 10ms
-
 Class Splashy
 {
 
@@ -172,40 +155,23 @@ Class Splashy
 	subFontStrikeOut := 0
 	subFontUnderlineOut := 0
 
+		if (argList["release"])
+		{
+			This.Destroy()
+			return
+		}
+
 		if (This.hWndSaved)
 		{
-			if (argList.HasKey("release"))
+			if (argList.HasKey("initSplash"))
 			{
-				For Key, Value in argList
-				{
-					if (Key == "release")
-					{
-						if (Value)
-						{
-						This.Destroy()
-						return
-						}
-					}
-				}
-			}
-			else
-			{
-				if (argList.HasKey("initSplash"))
-				{
-					For Key, Value in argList
-					{
-						if (Key == "initSplash")
-						{
-							if (Value)
-							This.updateFlag := 0
-							else
-							This.updateFlag := 1
-						}
-					}
-				}
+				if (argList["initSplash"])
+				This.updateFlag := 0
 				else
 				This.updateFlag := 1
 			}
+			else
+			This.updateFlag := 1
 		}
 
 		For Key, Value in argList
@@ -2046,6 +2012,22 @@ Class Splashy
 
 
 
+#SingleInstance, force
+#NoEnv  ; Performance and compatibility with future AHK releases.
+;#Warn, All, OutputDebug ; Enable warnings for a debugger to display to assist with detecting common errors.
+;#Warn UseUnsetLocal, OutputDebug  ; Warn when a local variable is used before it's set; send to OutputDebug
+#MaxMem 256
+#MaxThreads 3
+#Persistent
+#Include %A_ScriptDir%
+
+
+AutoTrim, Off ; traditional assignments off
+ListLines Off ;A_ListLines default is on: history of lines most recently executed 
+SendMode Input  ; Recommended for new scripts due to superior speed & reliability.
+SetWinDelay, 40
+; ListVars for debugging
+SetBatchLines, 25ms ; too fast? A_BatchLines is 10ms
 
 OnMessage(0x201, "WM_LBUTTONDOWN")
 gosub, decode
@@ -2169,18 +2151,21 @@ launchStr := {}
 	; reset all controls
 		loop, 40 ; number of Splashy control variables
 		{
-		ctlTogs[A_Index] := 0
-		ctlTogsOld[A_Index] := 0
-		c := mod(A_Index, 4)
-		r := floor(A_Index/4) + (c? 1: 0)
-			if (!c)
-			c := 4
-		spr := c . "_" . r
-		GuiControl, , %spr%, %BTOFF%
-		GuiControl, movedraw, %spr%, 0
-		spr := "t_" . spr
-		GuiControl, , %spr%, % txt[A_Index]
-		GuiControl, +cgray, %spr%
+			if (ctlTogs[A_Index] || ctlTogsOld[A_Index])
+			{
+			ctlTogs[A_Index] := 0
+			ctlTogsOld[A_Index] := 0
+			c := mod(A_Index, 4)
+			r := floor(A_Index/4) + (c? 1: 0)
+				if (!c)
+				c := 4
+			spr := c . "_" . r
+			GuiControl, , %spr%, %BTOFF%
+			GuiControl, movedraw, %spr%, 0
+			spr := "t_" . spr
+			GuiControl, , %spr%, % txt[A_Index]
+			GuiControl, +cgray, %spr%
+			}
 		}
 
 	}
@@ -2190,7 +2175,7 @@ launchStr := {}
 		{
 			loop, 40 ; number of Splashy control variables
 			{
-				if (ctlTogsOld[A_Index])
+				if (ctlTogsOld[A_Index] || A_Index == 1)
 				{
 				c := mod(A_Index, 4)
 				r := floor(A_Index/4) + (c? 1: 0)
@@ -2202,6 +2187,7 @@ launchStr := {}
 				spr := "t_" . spr
 				GuiControl, , %spr%, % txt[A_Index]
 				GuiControl, +cgray, %spr%
+				ctlTogsOld[A_Index] := 0
 				}
 				else
 				{
@@ -2368,9 +2354,9 @@ return
 
 guiclose:
 DetectHiddenWindows, On
-;if !WinExist(%Splashy%)
-;%SplashRef%(Splashy, {release: 1}*)
-esc::exitapp 
+esc::
+%SplashRef%(Splashy, {release: 1}*)
+exitapp 
 return
 
 ; https://www.autohotkey.com/boards/viewtopic.php?f=6&t=36636
