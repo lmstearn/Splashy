@@ -2349,7 +2349,7 @@ i := c + 4 * (r - 1)
 	{
 		if (%out%)
 		{
-			if (!(fnParms[txt[i]] := InputProc(txt[i])))
+			if (!(fnParms[txt[i]] := InputProc(thisHWnd,i,txt[i])))
 			%out% := 0
 		ctlTogs[i] := 1
 		}
@@ -2365,7 +2365,7 @@ i := c + 4 * (r - 1)
 	{
 		if (%out%)
 		{
-		spr := InputProc(txt[i], 1)
+		spr := InputProc(thisHWnd, i, txt[i], 1)
 			if (spr == "")
 			{
 			%out% := 0
@@ -2394,6 +2394,11 @@ return
 
 guiclose:
 DetectHiddenWindows, On
+#ifWinActive AHK Fonts ahk_class AutoHotkeyGUI
+esc::
+gui, FontDlg: hide
+return
+#ifWinActive
 esc::
 %SplashyRef%(Splashy, {release: 1}*)
 exitapp 
@@ -2439,15 +2444,140 @@ exit()
 	exitapp	
 }
 
-InputProc(textIn, allowZero := 0)
+ProcFonts(thisHWnd)
 {
-local spr, ct
+	;https://autohotkey.com/board/topic/72109-ahk-fonts/
+	; gui variables in function must be global
+	Global GuiFontDlg_fontType, fontSizeUD, inputText, outputText
+	static recFontList, fontList, recFontCount, fontCount, acceptDlg := 0, recFontTog := 0
+	recFontList =
+	(
+	Aharoni|Andalus|Angsana New|AngsanaUPC|Arial|Arial Black|Batang|Comic Sans MS|Cordia New|CordiaUPC|Courier|Courier New|David|DFKai-SB|DilleniaUPC|Estrangelo Edessa|EucrosiaUPC|Fixedsys|Franklin Gothic Medium|FrankRuehl|FreesiaUPC|Gautami|Georgia|Gulim|Impact|IrisUPC|JasmineUPC|KaiTi|Kartika|KodchiangUPC|Latha|Levenim MT|LilyUPC|Lucida Console|Lucida Sans|Lucida Sans Unicode|Mangal|Microsoft Sans Serif|Miriam|Miriam Fixed|Modern|MS Gothic|MS Mincho|MS Sans Serif|MS Serif|Mv Boli|Narkisim|Palatino Linotype|PMingLiU|Raavi|Rod|Roman|Script|Shruti|SimHei|Simplified Arabic|Simplified Arabic Fixed|SimSun|Small Fonts|Sylfaen|System|Tahoma|Terminal|Times New Roman|Traditional Arabic|Trebuchet MS|Tunga|Verdana|Vrinda
+	)
+	fontList =
+	(
+	Abadi MT Condensed Light|Aharoni|Andalus|Angsana New|AngsanaUPC|Arial|Arial Alternative Regular|Arial Alternative Symbol|Arial Black|Arial Bold|Arial Bold Italic|Arial Italic|Arial Nova|Book Antiqua|Batang|Browallia New|BrowalliaUPC|Calibri|Calibri Light|Cambria|Cambria Math|Candara|Calisto MT|Century Gothic|Century Gothic Bold|Century Gothic Bold Italic|Century Gothic Italic|Comic Sans MS|Comic Sans MS Bold|Consolas|Constantia|Copperplate Gothic Bold|Copperplate Gothic Light|Corbel|Cordia New|CordiaUPC|Courier|Courier New|Courier New Bold|Courier New Bold Italic|Courier New Italic|DaunPenh|David|DFKai-SB|DilleniaUPC|Estrangelo Edessa|EucrosiaUPC|Fixedsys|Franklin Gothic Medium|Franklin Gothic Medium Italic|FrankRuehl|FreesiaUPC|Gabriola|Gadugi|Gautami|Georgia|Georgia Bold|Georgia Bold Italic|Georgia Italic|Georgia Italic Impact|Georgia Pro|Gill Sans Nova|Gulim|HoloLens MDL2 Assets|Impact|IrisUPC|Iskoola Pota|JasmineUPC|KaiTi|Kalinga|Kartika|Khmer UI|KodchiangUPC|Kokila|Lao UI|Latha|Levenim MT|LilyUPC|Lucida Console|Lucida Handwriting Italic|Lucida Sans|Lucida Sans Italic|Lucida Sans Unicode|Mangal|Marlett|Matisse ITC|Microsoft Himalaya|Microsoft New Tai Lue|Microsoft PhagsPa|Microsoft Sans Serif|Microsoft Tai Le|Microsoft Uighur|Microsoft Yi Baiti|Miriam|Miriam Fixed|Modern|Modern MS Sans Serif|Mongolian Baiti|MoolBoran|MS Gothic|MS Mincho|MS Sans Serif|MS Serif|Mv Boli|Myanmar Text|Narkisim|Neue Haas Grotesk Text Pro|News Gothic MT|News Gothic MT Bold|News Gothic MT Italic|OCR A Extended|Palatino Linotype|Palatino Linotype Bold|Palatino Linotype Bold Italic|Palatino Linotype Italic|Plantagenet Cherokee|PMingLiU|Raavi|Rockwell Nova|Rod|Roman|Sanskrit Text|Script|Segoe MDL2 Assets|Segoe Print|Segoe Script|Segoe UI|Segoe UI Emoji|Segoe UI Historic|Segoe UI Light|Segoe UI Semibold|Segoe UI Semilight|Segoe UI Symbol|Shruti|SimHei|Simplified Arabic|Simplified Arabic Fixed|SimSun|Sitka Banner|Sitka Display|Sitka Heading|Sitka Small|Sitka Subheading|Sitka Text|Small Fonts|Smallfonts|Sylfaen|Symbol|System|Tahoma|Tahoma Bold|Tempus Sans ITC|Terminal|Times New Roman|Times New Roman Bold|Times New Roman Bold Italic|Times New Roman Italic|Traditional Arabic|Trebuchet|Trebuchet Bold|Trebuchet Bold Italic|Trebuchet Italic|Trebuchet MS|Trebuchet MS Bold|Trebuchet MS Bold Italic|Trebuchet MS Italic|Tunga|UD Digi Kyokasho N-B|Utsaah|Vani|Verdana|Verdana Bold|Verdana Bold Italic|Verdana Italic|Verdana Pro|Vijaya|Vrinda|Webdings|Westminster|Wingdings|WST_Czech|WST_Engl|WST_Fren|WST_Germ|WST_Ital|WST_Span|WST_Swed|Yu Gothic
+	)
+		if (!fontCount)
+		{
+			loop, parse, fontList, |
+			fontCount := a_index
+			loop, parse, recFontList, |
+			recFontCount := a_index
+		}
+
+	gui, FontDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox HWNDhWndFontDlg
+	gui, FontDlg: add, ddl, % "section gGuiFontDlgSelectFont vGuiFontDlg_fontType w" . xSep*5, % fontList
+	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended, Recommended
+	gui, FontDlg: add, edit, ys w%xSep%
+	gui, FontDlg: add, updown, gGuiFontDlgFontSizeUD vfontSizeUD, 15
+	gui, FontDlg: add, button, ys gGuiFontDlgAccept, Accept
+	gui, FontDlg: add, edit, % "xm center gGuiFontDlgInputText vinputText w" . xSep*8, The quick brown fox jumps over the lazy dog.
+	gui, FontDlg: font, s15
+	gui, FontDlg: add, text, % "0x1000 center voutputText w" . xSep*10 . "h" . ySep, The quick brown fox jumps over the lazy dog.
+
+	WinSet, Disable, , ahk_id %thisHWnd%
+	gui, FontDlg: show,, AHK Fonts
+	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+	gosub GuiFontDlgSelectFont
+	WinWaitActive, ahk_id %thisHWnd%
+
+		if (acceptDlg)
+		return thisFont
+		else
+		return 0
+
+FontDlgGuiClose:
+acceptDlg := 0
+gui, FontDlg: Destroy
+; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
+WinActivate ahk_id %thisHWnd%
+WinSet, Enable, , ahk_id %thisHWnd%
+
+return 0
+GuiFontDlgAccept:
+acceptDlg := 1
+GuiControlGet thisFont, FontDlg:, GuiFontDlg_fontType
+gui, FontDlg: Destroy
+WinActivate ahk_id %thisHWnd%
+WinSet, Enable, , ahk_id %thisHWnd%
+return thisFont
+
+FontDlgGuiSize:
+
+if (a_eventinfo != 0)
+return
+wingetpos, winX, winY, winW, winH, A
+
+guicontrol, FontDlg: movedraw, OutputText, % "W" . winW-xSep . "H" . winH-ySep
+return
+
+GuiFontDlgFontSizeUD:
+gui, FontDlg: submit, nohide
+gui, FontDlg: font, s%fontSizeUD%
+guicontrol, FontDlg: font, outputText
+return
+
+GuiFontDlgInputText:
+gui, FontDlg: submit, nohide
+guicontrol, FontDlg:, outputText, % InputText
+return
+
+GuiFontDlgSelectFont:
+gui, FontDlg: submit, nohide
+	loop, parse, fontList, |
+	{
+	if (a_loopfield != GuiFontDlg_fontType)
+	continue
+	thisFont := a_loopfield
+	gosub, makeChanges
+	break
+	}
+return
+
+GuiFontDlgRecommended:
+gui, FontDlg: submit, nohide
+recFontTog:= A_GuiControl
+%recFontTog%:= !%recFontTog% ? 1 : 0
+	if (%recFontTog%)
+	{
+	guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" recFontList
+	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+	}
+	else
+	{
+	guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" fontList
+	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+	}
+gosub GuiFontDlgSelectFont
+return
+
+MakeChanges:
+gui, FontDlg: font, s15, %thisFont%
+guicontrol, FontDlg: font, OutputText
+guicontrol, FontDlg: movedraw, OutputText
+return
+}
+
+InputProc(thisHWnd, i, textIn, allowZero := 0)
+{
+;spr, ct
 
 	switch i
 	{
 		case 1, 2, 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
 		{
 		return 1
+		}
+		case 21,33:
+		{
+			if (spr := ProcFonts(thisHWnd))
+			{
+			GuiControl, , % "t_" a_guicontrol, %spr%
+			return spr
+			}
+			else
+			return
 		}
 		Default:
 		{
@@ -2456,7 +2586,6 @@ local spr, ct
 			{
 			return ""
 			}
-		WinActivate ahk_id %thisHWnd%
 		}
 	}
 	; AutoTrim On by default
