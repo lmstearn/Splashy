@@ -2396,7 +2396,9 @@ guiclose:
 DetectHiddenWindows, On
 #ifWinActive AHK Fonts ahk_class AutoHotkeyGUI
 esc::
-gui, FontDlg: hide
+gui, FontDlg: destroy
+WinActivate ahk_id %thisHWnd%
+WinSet, Enable, , ahk_id %thisHWnd%
 return
 #ifWinActive
 esc::
@@ -2530,7 +2532,10 @@ gui, FontDlg: submit, nohide
 	if (a_loopfield != GuiFontDlg_fontType)
 	continue
 	thisFont := a_loopfield
-	gosub, makeChanges
+	gui, FontDlg: font, s%fontSizeUD%, %thisFont%
+	guicontrol, FontDlg: font, OutputText
+	guicontrol, FontDlg: movedraw, OutputText
+
 	break
 	}
 return
@@ -2539,6 +2544,8 @@ GuiFontDlgRecommended:
 gui, FontDlg: submit, nohide
 recFontTog:= A_GuiControl
 %recFontTog%:= !%recFontTog% ? 1 : 0
+gui, FontDlg: font, s15
+guicontrol, FontDlg: , fontSizeUD,  15
 	if (%recFontTog%)
 	{
 	guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" recFontList
@@ -2550,12 +2557,6 @@ recFontTog:= A_GuiControl
 	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
 	}
 gosub GuiFontDlgSelectFont
-return
-
-MakeChanges:
-gui, FontDlg: font, s15, %thisFont%
-guicontrol, FontDlg: font, OutputText
-guicontrol, FontDlg: movedraw, OutputText
 return
 }
 
