@@ -2312,6 +2312,8 @@ launchStr := {}
 				}
 			}
 		}
+	if (fnParms["ImagePath"] == "*")
+	launchStr["ImagePath"] := "*"
 	}
 
 %SplashyRef%(Splashy, launchStr*)
@@ -2344,7 +2346,30 @@ r := Substr(out, 3, 2)
 i := c + 4 * (r - 1)
 	switch i
 	{
-	case 2, 3, 4, 15, 16, 17, 21, 22, 23, 29, 33, 34, 35:
+	case 3:
+	{
+		if (%out%)
+		{
+		spr := InputProc(thisHWnd,i,txt[i])
+			if (spr == "*")
+			{
+			%out% := 0
+			ctlTogs[i] := 0
+			}
+			else
+			ctlTogs[i] := 1
+		fnParms[txt[i]] := spr
+		}
+		else
+		{
+			if (fnParms[txt[i]] != "*")
+			fnParms.delete(txt[i])
+		GuiControl, , % "t_" a_guicontrol, % txt[i]
+		ctlTogs[i] := 0
+		}
+
+	}
+	case 2, 4, 15, 16, 17, 21, 22, 23, 29, 33, 34, 35:
 	{
 		if (%out%)
 		{
@@ -2572,7 +2597,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		case 5, 18, 30:
 		{
 		spr := ChooseColor(0x80FF, thisHWnd, , , Colors*)
-			if (spr == 0x80FF)
+			if (spr == "")
 			return
 			else
 			{
@@ -2589,6 +2614,17 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			}
 			else
 			return
+		}
+		case 3:
+		{
+			FileSelectFile, spr, , %A_ScriptDir%, Open an Image
+			if (ErrorLevel)
+			return "*"
+			else
+			{
+			GuiControl, , % "t_" a_guicontrol, %spr%
+			return spr
+			}
 		}
 		Default:
 		{
@@ -2683,11 +2719,15 @@ ChooseColor(pRGB := 0, hOwner := 0, DlgX := 0, DlgY := 0, Palette*)
 	ErrorLevel := ! DllCall("comdlg32\ChooseColor", "UPtr", &ChooseColor, "UInt")
 
 	;___Save the changes made to the custom colors
-		if not ErrorLevel
-		Loop 16
-		Palette[A_Index] := BGR2RGB(NumGet(CustColors, (A_Index - 1) * 4, "UInt"))
-
-	return BGR2RGB(NumGet(ChooseColor, 3 * A_PtrSize, "UINT"))
+    if ErrorLevel
+	return
+	else
+	{
+			Loop 16
+			Palette[A_Index] := BGR2RGB(NumGet(CustColors, (A_Index - 1) * 4, "UInt"))
+        
+		return BGR2RGB(NumGet(ChooseColor, 3 * A_PtrSize, "UINT"))
+	}
 }
 
 /*!
