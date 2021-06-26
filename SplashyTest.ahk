@@ -2336,7 +2336,6 @@ return
 click:
 Gui +OwnDialogs
 
-
 out:=a_guicontrol
 
 %out%:= !%out% ? 1 : 0
@@ -2470,7 +2469,7 @@ ProcFonts(thisHWnd)
 
 	gui, FontDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox HWNDhWndFontDlg
 	gui, FontDlg: add, ddl, % "section gGuiFontDlgSelectFont vGuiFontDlg_fontType w" . xSep*5, % fontList
-	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended, Recommended
+	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended, AHK`nRecommended
 	gui, FontDlg: add, edit, ys w%xSep%
 	gui, FontDlg: add, updown, gGuiFontDlgFontSizeUD vfontSizeUD, 15
 	gui, FontDlg: add, button, ys gGuiFontDlgAccept, Accept
@@ -2489,88 +2488,99 @@ ProcFonts(thisHWnd)
 		else
 		return 0
 
-FontDlgGuiClose:
-acceptDlg := 0
-gui, FontDlg: Destroy
-; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
-WinActivate ahk_id %thisHWnd%
-WinSet, Enable, , ahk_id %thisHWnd%
+	FontDlgGuiClose:
+	acceptDlg := 0
+	gui, FontDlg: Destroy
+	; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
+	WinActivate ahk_id %thisHWnd%
+	WinSet, Enable, , ahk_id %thisHWnd%
 
-return 0
-GuiFontDlgAccept:
-acceptDlg := 1
-GuiControlGet thisFont, FontDlg:, GuiFontDlg_fontType
-gui, FontDlg: Destroy
-WinActivate ahk_id %thisHWnd%
-WinSet, Enable, , ahk_id %thisHWnd%
-return thisFont
+	return 0
+	GuiFontDlgAccept:
+	acceptDlg := 1
+	GuiControlGet thisFont, FontDlg:, GuiFontDlg_fontType
+	gui, FontDlg: Destroy
+	WinActivate ahk_id %thisHWnd%
+	WinSet, Enable, , ahk_id %thisHWnd%
+	return thisFont
 
-FontDlgGuiSize:
+	FontDlgGuiSize:
 
-if (a_eventinfo != 0)
-return
-wingetpos, winX, winY, winW, winH, A
+	if (a_eventinfo != 0)
+	return
+	wingetpos, winX, winY, winW, winH, A
 
-guicontrol, FontDlg: movedraw, OutputText, % "W" . winW-xSep . "H" . winH-ySep
-return
+	guicontrol, FontDlg: movedraw, OutputText, % "W" . winW-xSep . "H" . winH-ySep
+	return
 
-GuiFontDlgFontSizeUD:
-gui, FontDlg: submit, nohide
-gui, FontDlg: font, s%fontSizeUD%
-guicontrol, FontDlg: font, outputText
-return
+	GuiFontDlgFontSizeUD:
+	gui, FontDlg: submit, nohide
+	gui, FontDlg: font, s%fontSizeUD%
+	guicontrol, FontDlg: font, outputText
+	return
 
-GuiFontDlgInputText:
-gui, FontDlg: submit, nohide
-guicontrol, FontDlg:, outputText, % InputText
-return
+	GuiFontDlgInputText:
+	gui, FontDlg: submit, nohide
+	guicontrol, FontDlg:, outputText, % InputText
+	return
 
-GuiFontDlgSelectFont:
-gui, FontDlg: submit, nohide
-	loop, parse, fontList, |
-	{
-	if (a_loopfield != GuiFontDlg_fontType)
-	continue
-	thisFont := a_loopfield
-	gui, FontDlg: font, s%fontSizeUD%, %thisFont%
-	guicontrol, FontDlg: font, OutputText
-	guicontrol, FontDlg: movedraw, OutputText
+	GuiFontDlgSelectFont:
+	gui, FontDlg: submit, nohide
+		loop, parse, fontList, |
+		{
+		if (a_loopfield != GuiFontDlg_fontType)
+		continue
+		thisFont := a_loopfield
+		gui, FontDlg: font, s%fontSizeUD%, %thisFont%
+		guicontrol, FontDlg: font, OutputText
+		guicontrol, FontDlg: movedraw, OutputText
 
-	break
-	}
-return
+		break
+		}
+	return
 
-GuiFontDlgRecommended:
-gui, FontDlg: submit, nohide
-recFontTog:= A_GuiControl
-%recFontTog%:= !%recFontTog% ? 1 : 0
-gui, FontDlg: font, s15
-guicontrol, FontDlg: , fontSizeUD,  15
-	if (%recFontTog%)
-	{
-	guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" recFontList
-	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
-	}
-	else
-	{
-	guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" fontList
-	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
-	}
-gosub GuiFontDlgSelectFont
-return
+	GuiFontDlgRecommended:
+	gui, FontDlg: submit, nohide
+	recFontTog:= A_GuiControl
+	%recFontTog%:= !%recFontTog% ? 1 : 0
+	gui, FontDlg: font, s15
+	guicontrol, FontDlg: , fontSizeUD,  15
+		if (%recFontTog%)
+		{
+		guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" recFontList
+		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+		}
+		else
+		{
+		guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" fontList
+		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+		}
+	gosub GuiFontDlgSelectFont
+	return
 }
 
 InputProc(thisHWnd, i, textIn, allowZero := 0)
 {
 ;spr, ct
-
+Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 	switch i
 	{
 		case 1, 2, 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
 		{
 		return 1
 		}
-		case 21,33:
+		case 5, 18, 30:
+		{
+		spr := ChooseColor(0x80FF, thisHWnd, , , Colors*)
+			if (spr == 0x80FF)
+			return
+			else
+			{
+				GuiControl, , % "t_" a_guicontrol, %spr%
+				return spr
+			}
+		}
+		case 21, 33:
 		{
 			if (spr := ProcFonts(thisHWnd))
 			{
@@ -2620,6 +2630,127 @@ InputProc(thisHWnd, i, textIn, allowZero := 0)
 		return 0
 
 }
+
+
+/*!
+	Function: rbrtryn's ChooseColor([pRGB, hOwner, DlgX, DlgY, Palette])
+	https://autohotkey.com/board/topic/91229-windows-color-picker-plus/
+		Displays a standard Windows dialog for choosing colors.
+
+	Parameters:
+		pRGB - The initial color to display in the dialog in RGB format.
+		The default setting is Black.
+		hOwner - The Window ID of the dialog's owner, if it has one. Defaults to
+		0, i.e. no owner. If specified DlgX and DlgY are ignored.
+		DlgX, DlgY - The X and Y coordinates of the upper left corner of the 
+		dialog. Both default to 0.
+		Palette - An array of up to 16 RGB color values. These become the 
+		initial custom colors in the dialog.
+
+	Remarks:
+		The custom colors in the dialog are remembered between calls.
+
+		If the user selects OK, the Palette array (if it exists) will be loaded 
+		with the custom colors from the dialog. 
+
+	Returns:
+		If the user selects OK, the selected color is returned in RGB format 
+		and ErrorLevel is set to 0. Otherwise, the original pRGB value is 
+		returned and ErrorLevel is set to 1.
+*/
+ChooseColor(pRGB := 0, hOwner := 0, DlgX := 0, DlgY := 0, Palette*)
+{
+	static CustColors    ; Custom colors are remembered between calls
+	static SizeOfCustColors := VarSetCapacity(CustColors, 64, 0)
+	static StructSize := VarSetCapacity(ChooseColor, 9 * A_PtrSize, 0)
+
+	CustData := (DlgX << 16) | DlgY    ; Store X in high word, Y in the low word
+
+	;___Load user's custom colors
+		for Index, Value in Palette
+		NumPut(BGR2RGB(Value), CustColors, (Index - 1) * 4, "UInt")
+
+	;___Set up a ChooseColor structure as described in the MSDN
+	NumPut(StructSize, ChooseColor, 0, "UInt")
+	NumPut(hOwner, ChooseColor, A_PtrSize, "UPtr")
+	NumPut(BGR2RGB(pRGB), ChooseColor, 3 * A_PtrSize, "UInt")
+	NumPut(&CustColors, ChooseColor, 4 * A_PtrSize, "UPtr")
+	NumPut(0x113, ChooseColor, 5 * A_PtrSize, "UInt")
+	NumPut(CustData, ChooseColor, 6 * A_PtrSize, "UInt")
+	NumPut(RegisterCallback("ColorWindowProc"), ChooseColor, 7 * A_PtrSize, "UPtr")
+
+	;___Call the function
+	ErrorLevel := ! DllCall("comdlg32\ChooseColor", "UPtr", &ChooseColor, "UInt")
+
+	;___Save the changes made to the custom colors
+		if not ErrorLevel
+		Loop 16
+		Palette[A_Index] := BGR2RGB(NumGet(CustColors, (A_Index - 1) * 4, "UInt"))
+
+	return BGR2RGB(NumGet(ChooseColor, 3 * A_PtrSize, "UINT"))
+}
+
+/*!
+    Function: ColorWindowProc(hwnd, msg, wParam, lParam)
+        Callback function used to modify the Color dialog before it is displayed
+
+    Parameters:
+        hwnd - Handle to the Color dialog window.
+        msg - The message sent to the window.
+        wParam - The handle to the control that has the keyboard focus.
+        lParam - A pointer to the ChooseColor structure associated with the 
+                 Color dialog.
+
+    Remarks:
+        This is intended to be a private function, called only by ChooseColor. 
+        In response to a WM_INITDIALOG message, this function can be used to 
+        modify the Color dialog before it is displayed. Currently it just moves 
+        the window to a new X, Y location.
+
+    Returns:
+        If the hook procedure returns zero, the default dialog box procedure 
+        also processes the message. Otherwise, the default dialog box procedure 
+        ignores the message.
+*/
+ColorWindowProc(hwnd, msg, wParam, lParam)
+{
+	static WM_INITDIALOG := 0x0110
+
+		if (msg <> WM_INITDIALOG)
+		return 0
+
+	hOwner := NumGet(lParam+0, A_PtrSize, "UPtr")
+		if (hOwner)
+		return 0
+
+	DetectSetting := A_DetectHiddenWindows
+	DetectHiddenWindows On
+	CustData := NumGet(lParam+0, 6 * A_PtrSize, "UInt")
+	DlgX := CustData >> 16, DlgY := CustData & 0xFFFF
+	WinMove ahk_id %hwnd%, , %DlgX%, %DlgY%
+
+	DetectHiddenWindows %DetectSetting%
+	return 0
+}
+
+/*!
+    Function: BGR2RGB(Color)
+        Converts a BGR color value to a RGB one or vice versa.
+
+    Parameters:
+        Color - The BGR or RGB value to convert
+
+    Returns:
+        The converted value.
+*/
+BGR2RGB(Color)
+{
+	return  (Color & 0xFF000000) 
+	| ((Color & 0xFF0000) >> 16) 
+	|  (Color & 0x00FF00) 
+	| ((Color & 0x0000FF) << 16)
+}
+
 
 GuiGetSize(thisHWnd, ByRef W, ByRef H)
 {
