@@ -185,7 +185,7 @@ Class Splashy
 				Case "imagePath":
 				{
 
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.imagePath := This.ValidateText(Value)
 					else
 					imagePathOut := Value
@@ -197,7 +197,7 @@ Class Splashy
 				}
 				Case "imageUrl":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.imageUrl := This.ValidateText(Value)
 					else
 					imageUrlOut := Value
@@ -206,7 +206,7 @@ Class Splashy
 				{
 					if (Value != -1)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.bkgdColour := This.ValidateColour(Value)
 						else
 						bkgdColourOut := Value
@@ -226,56 +226,56 @@ Class Splashy
 						}
 					}
 
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.transCol := Value
 					else
 					transColOut := Value
 				}
 				Case "vHide":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.vHide := Value
 					else
 					vHideOut := Value
 				}
 				Case "noHWndActivate":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.noHWndActivate := (Value)? "NoActivate ": ""
 					else
 					noHWndActivateOut := Value
 				}
 				Case "vCentre":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.Centre := Value
 					else
 					vCentreOut := Value
 				}
 				Case "vMovable":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.vMovable := Value
 					else
 					vMovableOut := Value
 				}
 				Case "vBorder":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.vBorder := Value
 					else
 					vBorderOut := Value
 				}
 				Case "vOnTop":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.vOnTop := Value
 					else
 					vOnTopOut := Value
 				}
 				Case "vPosX":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.vPosX := (Value == "D")? Value: Floor(Value)
 					else
 					vPosXOut := (Value == "D")? Value: Floor(Value)
@@ -283,7 +283,7 @@ Class Splashy
 
 				Case "vPosY":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.vPosY := (Value == "D")? Value: Floor(Value)
 					else
 					vPosYOut := Value
@@ -293,7 +293,7 @@ Class Splashy
 				{
 					if (Value >= 0)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.vMgnX := (Value == "D")? Value: Floor(Value)
 						else
 						vMgnXOut := Value
@@ -303,7 +303,7 @@ Class Splashy
 				{
 					if (Value >= 0)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.vMgnY := (Value == "D")? Value: Floor(Value)
 						else
 						vMgnYOut := Value
@@ -316,7 +316,7 @@ Class Splashy
 						if (Value > 1)
 						{
 						This.oldVImgW := This.vImgW
-							if (This.updateFlag)
+							if (This.updateFlag > 0)
 							This.inputVImgW := Floor(Value)
 							else
 							vImgWOut := Value
@@ -326,7 +326,7 @@ Class Splashy
 							if (Value > 0)
 							{
 							This.oldVImgW := This.vImgW
-								if (This.updateFlag)
+								if (This.updateFlag > 0)
 								This.inputVImgW := A_ScreenWidth * Value
 								else
 								vImgWOut := A_ScreenWidth * Value
@@ -346,7 +346,7 @@ Class Splashy
 						if (Value > 1)
 						{
 						This.oldVImgH := This.vImgH
-							if (This.updateFlag)
+							if (This.updateFlag > 0)
 							This.inputVImgH := Floor(Value)
 							else
 							vImgHOut := Value
@@ -356,7 +356,7 @@ Class Splashy
 							if (Value > 0)
 							{
 							This.oldVImgH := This.vImgH
-								if (This.updateFlag)
+								if (This.updateFlag > 0)
 								This.inputVImgH := A_ScreenWidth * Value
 								else
 								vImgHOut := A_ScreenWidth * Value
@@ -373,7 +373,7 @@ Class Splashy
 
 				Case "mainText":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.mainText := This.ValidateText(Value)
 					else
 					mainTextOut := Value
@@ -382,7 +382,7 @@ Class Splashy
 				{
 					if (Value != -1)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.mainBkgdColour := This.ValidateColour(Value, 1)
 						else
 						mainBkgdColourOut := Value
@@ -392,7 +392,7 @@ Class Splashy
 				{
 					if (Value)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.mainFontName := This.ValidateText(Value)
 						else
 						mainFontNameOut := Value
@@ -402,7 +402,7 @@ Class Splashy
 				{
 					if (200 >= Value >= 0) ; arbitrary limit
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.mainFontSize := Floor(Value)
 						else
 						mainFontSizeOut := Value
@@ -412,7 +412,7 @@ Class Splashy
 				{
 					if (1000 >= Value >= 0)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.mainFontWeight := Floor(Value)
 						else
 						mainFontWeightOut := Value
@@ -422,7 +422,7 @@ Class Splashy
 				{
 					if (Value != -1)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.mainFontColour := This.ValidateColour(Value, 1)
 						else
 						mainFontColourOut := Value
@@ -432,7 +432,7 @@ Class Splashy
 				{
 					if (Value >= 0 && Value <= 5) ; 0 :=  DEFAULT_QUALITY
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.mainFontQuality := Floor(Value)
 						else
 						mainFontQualityOut := Value
@@ -440,21 +440,21 @@ Class Splashy
 				}
 				Case "mainFontItalic":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.mainFontItalic := (Value)? " Italic": ""
 					else
 					mainFontItalicOut := Value
 				}
 				Case "mainFontStrike":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.mainFontStrike := (Value)? " Strike": ""
 					else
 					mainFontStrikeOut := Value
 				}
 				Case "mainFontUnderline":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.mainFontUnderline := (Value)? " Underline": ""
 					else
 					mainFontUnderlineOut := Value
@@ -465,7 +465,7 @@ Class Splashy
 
 				Case "subText":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.subText := This.ValidateText(Value)
 					else
 					subTextOut := Value
@@ -474,7 +474,7 @@ Class Splashy
 				{
 					if (Value != -1)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.subBkgdColour := This.ValidateColour(Value, 1)
 						else
 						subBkgdColourOut := Value
@@ -485,7 +485,7 @@ Class Splashy
 				{
 					if (Value)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.subFontName := This.ValidateText(Value)
 						else
 						subFontNameOut := Value
@@ -495,7 +495,7 @@ Class Splashy
 				{
 					if (200 >= Value >= 0) ; arbitrary limit
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.subFontSize := Floor(Value)
 						else
 						subFontSizeOut := Value
@@ -505,7 +505,7 @@ Class Splashy
 				{
 					if (1000 >= Value >= 0)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.subFontWeight := Floor(Value)
 						else
 						subFontWeightOut := Value
@@ -515,7 +515,7 @@ Class Splashy
 				{
 					if (Value != -1)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.subFontColour := This.ValidateColour(Value, 1)
 						else
 						subFontColourOut := Value
@@ -525,7 +525,7 @@ Class Splashy
 				{
 					if (Value >= 0 && Value <= 5)
 					{
-						if (This.updateFlag)
+						if (This.updateFlag > 0)
 						This.subFontQuality := Floor(Value)
 						else
 						subFontQualityOut := Value
@@ -533,21 +533,21 @@ Class Splashy
 				}
 				Case "subFontItalic":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.subFontItalic := (Value)? " Italic": ""
 					else
 					subFontItalicOut := Value
 				}
 				Case "subFontStrike":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.subFontStrike := (Value)? " Strike": ""
 					else
 					subFontStrikeOut := Value
 				}
 				Case "subFontUnderline":
 				{
-					if (This.updateFlag)
+					if (This.updateFlag > 0)
 					This.subFontUnderline := (Value)? " Underline": ""
 					else
 					subFontUnderlineOut := Value
@@ -625,7 +625,6 @@ Class Splashy
 
 
 		This.transCol := transColIn
-
 
 			This.vHide := vHideIn
 
@@ -725,7 +724,7 @@ Class Splashy
 
 			if (mainFontColourIn == -1)
 			{
-				if (This.mainFontColour = "")
+				if (This.mainFontColour == "")
 				This.mainFontColour := This.GetDefaultGUIColour(1)
 			}
 			else
@@ -841,7 +840,7 @@ Class Splashy
 	vWinH := This.vImgH + 2 * This.vMgnY
 
 
-
+msgbox % "This.mainText " This.mainText " mainTextIn " mainTextIn
 		if (StrLen(This.mainText))
 		{
 		Gui, Splashy: Font, % "norm s" . This.mainFontSize . " w" . This.mainFontWeight . " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
@@ -933,7 +932,9 @@ Class Splashy
 
 
 
-		if (!This.vHide)
+		if (This.vHide)
+		WinHide % "ahk_id" This.hWndSaved
+		else
 		{
 		spr := " "
 			if (This.vCentre)
@@ -1041,9 +1042,9 @@ Class Splashy
 
 	if (not This.vImgType)  ; IMAGE_BITMAP (0) or the ImageType parameter was omitted.
 	DllCall("DeleteObject", "ptr", This.hBitmap)
-	else if (This.vImgType = 1)  ; IMAGE_ICON
+	else if (This.vImgType == 1)  ; IMAGE_ICON
 	DllCall("DestroyIcon", "ptr", This.hIcon)
-	else if (This.vImgType = 2)  ; IMAGE_CURSOR
+	else if (This.vImgType == 2)  ; IMAGE_CURSOR
 	DllCall("DestroyCursor", "ptr", This.hIcon)
 
 	This.downloadedPathNames.SetCapacity(0)
@@ -1456,7 +1457,7 @@ Class Splashy
 		}
 
 ;Marquee code in an outside function
-            ;RECT rectControls = {wd + xCurrentScroll, yCurrentScroll, xNewSize + xCurrentScroll, yNewSize + yCurrentScroll};
+            ;RECT rectControls := {wd + xCurrentScroll, yCurrentScroll, xNewSize + xCurrentScroll, yNewSize + yCurrentScroll};
             ;if (!ScrollDC(hdcWinCl, -xDelta, 0, (CONST RECT*) &rectControls, (CONST RECT*) &rectControls, (HRGN)NULL, (RECT*) &rectControls))
                 ;ReportErr(L"HORZ_SCROLL: ScrollD Failed!");
 
@@ -2231,51 +2232,52 @@ launchStr := {}
 		{
 			loop, 40 ; number of Splashy control variables
 			{
-				if (ctlTogsOld[A_Index] || A_Index == 1)
+				if (A_Index == 1)
 				{
-				c := mod(A_Index, 4)
-				r := floor(A_Index/4) + (c? 1: 0)
-					if (!c)
-					c := 4
-				spr := c . "_" . r
+				spr := "1_1"
 				GuiControl, , %spr%, %BTOFF%
 				GuiControl, movedraw, %spr%, 0
 				spr := "t_" . spr
-				GuiControl, , %spr%, % txt[A_Index]
+				GuiControl, , %spr%, % txt[1]
 				GuiControl, +cgray, %spr%
-				ctlTogsOld[A_Index] := 0
 				}
 				else
 				{
-					if (ctlTogs[A_Index])
+					if (ctlTogsOld[A_Index])
 					{
-						switch A_Index
+						if (ctlTogs[A_Index] == 2)
+						ctlTogs[A_Index] := 1
+						else
 						{
-							case 1, 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
-							{
-							launchStr[txt[A_Index]] := 1
-							}
-							Default:
-							{
-							c := mod(A_Index, 4)
-							r := floor(A_Index/4) + (c? 1: 0)
-								if (!c)
-								c := 4
-							GuiControlGet, spr, , % "t_" . c . "_" . r
-							launchStr[txt[A_Index]] := spr
-							}
-							ctlTogsOld[A_Index] := 1
+						c := mod(A_Index, 4)
+						r := floor(A_Index/4) + (c? 1: 0)
+							if (!c)
+							c := 4
+						spr := c . "_" . r
+						GuiControl, , %spr%, %BTOFF%
+						GuiControl, movedraw, %spr%, 0
+						spr := "t_" . spr
+						GuiControl, , %spr%, % txt[A_Index]
+						GuiControl, +cgray, %spr%
+						ctlTogsOld[A_Index] := 0
+						ctlTogs[A_Index] := 0
 						}
+					}
+					else
+					{
+						if (ctlTogs[A_Index])
+						ctlTogsOld[A_Index] := 1
 					}
 				}
 			}
+		ctlTogs[1] := 0
 		launchStr[txt[1]] := 1
 		}
 		else
 		{
 			loop, 40 ; number of Splashy control variables
 			{
-				if (ctlTogsold[A_Index])
+				if (ctlTogsold[A_Index] && (ctlTogs[A_Index] < 2))
 				{
 				c := mod(A_Index, 4)
 				r := floor(A_Index/4) + (c? 1: 0)
@@ -2293,9 +2295,12 @@ launchStr := {}
 			{
 				switch A_Index
 				{
+					case 1:
+					Continue
 					case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
 					{
 					launchStr[txt[A_Index]] := 1
+					ctlTogs[A_Index] := 1
 					ctlTogsOld[A_Index] := 1
 					}
 					Default:
@@ -2306,6 +2311,7 @@ launchStr := {}
 						c := 4
 					GuiControlGet, spr, , % "t_" . c . "_" . r
 					launchStr[txt[A_Index]] := spr
+					ctlTogs[A_Index] := 1
 					ctlTogsOld[A_Index] := 1
 					}
 					
@@ -2315,6 +2321,8 @@ launchStr := {}
 	if (fnParms["ImagePath"] == "*")
 	launchStr["ImagePath"] := "*"
 	}
+spr := launchStr["maintext"]
+msgbox % " ctlTogs[17] " ctlTogs[17] " ctlTogsOld[17] " ctlTogsOld[17] " launchStr[maintext] " spr
 
 %SplashyRef%(Splashy, launchStr*)
 
@@ -2322,7 +2330,7 @@ return
 RepaintSplashy:
 
 	if (Splashy.vHide)
-	DetectHiddenWindows, On
+	WinShow % "ahk_id" Splashy.hWndSaved
 
 ; Possible use for compilations or Splashy in separate script
 WinGet, spr, ID, A
@@ -2331,8 +2339,7 @@ WinGetClass, vWinClass, % "ahk_id " spr
 	return
 
 Splashy.PaintProc()
-	if (Splashy.vHide)
-	DetectHiddenWindows, Off
+
 return
 
 click:
@@ -2350,14 +2357,14 @@ i := c + 4 * (r - 1)
 	{
 		if (%out%)
 		{
-		spr := InputProc(thisHWnd,i,txt[i])
+		spr := InputProc(thisHWnd, i, txt[i])
 			if (spr == "*")
 			{
 			%out% := 0
 			ctlTogs[i] := 0
 			}
 			else
-			ctlTogs[i] := 1
+			ctlTogs[i] := 2
 		fnParms[txt[i]] := spr
 		}
 		else
@@ -2369,13 +2376,13 @@ i := c + 4 * (r - 1)
 		}
 
 	}
-	case 2, 4, 15, 16, 17, 21, 22, 23, 29, 33, 34, 35:
+	case 2, 4, 15, 16, 21, 22, 23, 33, 34, 35:
 	{
 		if (%out%)
 		{
 			if (!(fnParms[txt[i]] := InputProc(thisHWnd,i,txt[i])))
 			%out% := 0
-		ctlTogs[i] := 1
+		ctlTogs[i] := 2
 		}
 		else
 		{
@@ -2383,6 +2390,31 @@ i := c + 4 * (r - 1)
 		GuiControl, , % "t_" a_guicontrol, % txt[i]
 		ctlTogs[i] := 0
 		}
+	}
+	case 17, 29:
+	{
+		if (%out%)
+		{
+		spr := InputProc(thisHWnd, i, txt[i], 1)
+			if (spr == "Errorlevel")
+			{
+			%out% := 0
+			fnParms.delete(txt[i])
+			GuiControl, , % "t_" a_guicontrol, % txt[i]
+			ctlTogs[i] := 0
+			}
+			else
+			{
+			fnParms[txt[i]] := spr
+			ctlTogs[i] := 2
+			}
+		}
+		else
+		{
+		fnParms.delete(txt[i])
+		GuiControl, , % "t_" a_guicontrol, % txt[i]
+		ctlTogs[i] := 0
+		}		
 	}
 
 	Default:
@@ -2398,7 +2430,7 @@ i := c + 4 * (r - 1)
 			else
 			{
 			fnParms[txt[i]] := spr
-			ctlTogs[i] := 1
+			ctlTogs[i] := 2
 			}
 		}
 		else
@@ -2626,6 +2658,16 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			return spr
 			}
 		}
+		case 17, 29:
+		{
+		InputBox, textIn, Please enter %textIn%
+			if (Errorlevel)
+			{
+			return "Errorlevel"
+			}
+			else
+			GuiControl, , % "t_" a_guicontrol, % spr
+		}
 		Default:
 		{
 		InputBox, textIn, Please enter %textIn%
@@ -2635,6 +2677,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			}
 		}
 	}
+
 	; AutoTrim On by default
 	spr := StrReplace(textIn, A_Space, "")
 		if (spr == "")
