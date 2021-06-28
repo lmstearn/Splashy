@@ -840,7 +840,6 @@ Class Splashy
 	vWinH := This.vImgH + 2 * This.vMgnY
 
 
-msgbox % "This.mainText " This.mainText " mainTextIn " mainTextIn
 		if (StrLen(This.mainText))
 		{
 		Gui, Splashy: Font, % "norm s" . This.mainFontSize . " w" . This.mainFontWeight . " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
@@ -997,7 +996,7 @@ msgbox % "This.mainText " This.mainText " mainTextIn " mainTextIn
 
 	This.procEnd := 1
 
-	SetWorkingDir % This.userWorkingDir ; else use full path for 
+	SetWorkingDir % This.userWorkingDir
 	DetectHiddenWindows Off
 
 	}
@@ -1470,14 +1469,19 @@ msgbox % "This.mainText " This.mainText " mainTextIn " mainTextIn
 	DisplayToggle()
 	{
 	static vToggle := 1
+	; This function uses LoadPicture to populate hBitmap and hIcon
+	; and sets the image type for the painting routines accordingly
+	; Now that the image dimensions are determined from GetPicWH,
+	; adjust the images with the extra possible input from vImgW and vImgW.
 
 	vToggle := !vToggle
+	; If the image is the same between calls, this routine is never called, 
+	; so vToggle doesn't change.
+
 	This.vImgW := (This.inputVImgW)? This.inputVImgW: This.actualVImgW
 	This.vImgH := (This.inputVImgH)? This.inputVImgH: This.actualVImgH
 
 	spr1 := Format("W{} H{}", spr, spr1)
-	; This function uses LoadPicture to populate hBitmap and hIcon
-	; and sets the image type for the painting routines accordingly
 
 		if (This.imagePath)
 		{
@@ -1625,7 +1629,9 @@ msgbox % "This.mainText " This.mainText " mainTextIn " mainTextIn
 
 	GetPicWH()
 	{
-	Static ICONINFO := []
+	Static ICONINFO := [], vToggle := 1
+
+	vToggle := !vToggle
 	/*
 	typedef struct tagBITMAP {
 	  LONG   bmType;
@@ -2107,7 +2113,7 @@ SplashyRef := Splashy.SplashImg
 splashPicWd := 250
 splashPicHt := 250
 
-gui, +resize -caption -DPIScale HWNDthisHWnd
+gui, Test: +resize -caption -DPIScale HWNDthisHWnd
 
 fnParms := []
 ctlTogs := []
@@ -2121,36 +2127,36 @@ ctlTogsOld := []
 Global xSep := A_ScreenWidth/24
 Global ySep := A_ScreenHeight/18
 
-gui, add, pic, section x0 y0, % bg
+gui, Test: add, pic, section x0 y0, % bg
 
 	loop
 	{
 		loop
 		{
-		gui, add, pic, x+0 , % bg
+		gui, Test: add, pic, x+0 , % bg
 		} Until (A_Index * splashPicWd >= 17 * xSep)
 
 	if (A_Index * splashPicHt >= 12 * ySep)
 	Break
-	gui, add, pic, section xs , % bg
+	gui, Test: add, pic, section xs , % bg
 	}
 
-Gui, Font, % "w700 cBlue s" . ySep/2, Verdana
-gui, add, text, % "Center" . " w" . 4 * xSep . " h" . ySep * 2 . " x" . 8 * xSep . " y" . ySep/3, Splashy`nSandbox
-Gui, Font
+Gui, Test: Font, % "w700 cBlue s" . ySep/2, Verdana
+gui, Test: add, text, % "Center" . " w" . 4 * xSep . " h" . ySep * 2 . " x" . 8 * xSep . " y" . ySep/3, Splashy`nSandbox
+Gui, Test: Font
 
 opt:="gclick backgroundtrans" 
 r:=c:=0, rows:=10, cols:=4
 While r++ < rows {
 	while c++ < cols{
-	gui add, pic, % opt "  v" c "_" r  
+	gui, Test: add, pic, % opt "  v" c "_" r  
 	. (c=1&&r=1    ? " x"xSep/2 " y"2*ySep " section"
 	:  c=1&&r>1 ? " xs yp+"ySep 
 	: " xp+"5*xSep " yp"), % BTOFF
 	} c:=0
 } r:=0, c:=0
 
-gui, font, s12 bold
+gui, Test: font, s12 bold
 
 txt:=[	"initSplash"		, "release"			, "imagePath"		, "imageUrl"
 ,		"bkgdColour"		, "transCol"		, "vHide"			, "noHWndActivate"
@@ -2168,28 +2174,28 @@ opt:=" 0x201 left cgray -border backgroundtrans"
 While r++ < rows {
 	while c++ < cols { 
 	i++
-	gui add, text, % opt " h"ySep " w"3*xSep " v" "t_" c "_" r  
+	gui, Test: add, text, % opt " h"ySep " w"3*xSep " v" "t_" c "_" r  
 	. (c=1&&r=1 ? " x"5*xSep/2 " y"2*ySep " section"
 	:  c=1&&r>1 ? " xs yp+"ySep
 	: " xp+"5*xSep " yp"), % txt[i]
 	} c:=0
 } r:=0, c:=0
-Gui, Font, % "w700 cRed s" . ySep/2, Verdana
-gui, add, text, % "gLaunchSplashy vlaunchSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 4 * xSep . " y" . ySep * 12, Click to Launch
-gui, add, text, % "gRepaintSplashy vrepaintSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 10 * xSep . " y" . ySep * 12, Click to Repaint
-Gui, Font
+Gui, Test: Font, % "w700 cRed s" . ySep/2, Verdana
+gui, Test: add, text, % "gLaunchSplashy vlaunchSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 4 * xSep . " y" . ySep * 12, Click to Launch
+gui, Test: add, text, % "gRepaintSplashy vrepaintSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 10 * xSep . " y" . ySep * 12, Click to Repaint
+Gui, Test: Font
 
-GuiControl, Disable, repaintSplashy
-GuiControlGet, spr, Hwnd, t_4_10
-GuiControlGet, spr, Pos, %spr%
+GuiControl, Test: Disable, repaintSplashy
+GuiControlGet, spr, Test: Hwnd, t_4_10
+GuiControlGet, spr, Test: Pos, %spr%
 
-GuiControl, Hide, 4_5
-GuiControl, Hide, 3_5
-GuiControl, Hide, 3_8
-GuiControl, Hide, 4_8
-gui, Margin, 0, 0
-gui, color, aqua
-gui, show, % "W" . sprx + sprw . " H" . spry + ySep * 2 + sprh
+GuiControl, Test: Hide, 4_5
+GuiControl, Test: Hide, 3_5
+GuiControl, Test: Hide, 3_8
+GuiControl, Test: Hide, 4_8
+gui, Test: Margin, 0, 0
+gui, Test: color, aqua
+gui, Test: show, % "W" . sprx + sprw . " H" . spry + ySep * 2 + sprh
 return
 
 LaunchSplashy:
@@ -2199,8 +2205,8 @@ launchStr := {}
 
 	if (ctlTogs[2])
 	{
-	GuiControl, Disable, repaintSplashy
-	GuiControl, , launchSplashy, Click to Launch
+	GuiControl, Test: Disable, repaintSplashy
+	GuiControl, Test:, launchSplashy, Click to Launch
 
 	launchStr[txt[2]] := 1
 	; reset all controls
@@ -2215,19 +2221,19 @@ launchStr := {}
 				if (!c)
 				c := 4
 			spr := c . "_" . r
-			GuiControl, , %spr%, %BTOFF%
-			GuiControl, movedraw, %spr%, 0
+			GuiControl, Test:, %spr%, %BTOFF%
+			GuiControl, Test: movedraw, %spr%, 0
 			spr := "t_" . spr
-			GuiControl, , %spr%, % txt[A_Index]
-			GuiControl, +cgray, %spr%
+			GuiControl, Test:, %spr%, % txt[A_Index]
+			GuiControl, Test: +cgray, %spr%
 			}
 		}
 
 	}
 	else
 	{
-	GuiControl, Enable, repaintSplashy
-	GuiControl, , launchSplashy, Click to Update
+	GuiControl, Test: Enable, repaintSplashy
+	GuiControl, Test:, launchSplashy, Click to Update
 		if (ctlTogs[1])
 		{
 			loop, 40 ; number of Splashy control variables
@@ -2235,11 +2241,11 @@ launchStr := {}
 				if (A_Index == 1)
 				{
 				spr := "1_1"
-				GuiControl, , %spr%, %BTOFF%
-				GuiControl, movedraw, %spr%, 0
+				GuiControl, Test:, %spr%, %BTOFF%
+				GuiControl, Test: movedraw, %spr%, 0
 				spr := "t_" . spr
-				GuiControl, , %spr%, % txt[1]
-				GuiControl, +cgray, %spr%
+				GuiControl, Test:, %spr%, % txt[1]
+				GuiControl, Test:+cgray, %spr%
 				}
 				else
 				{
@@ -2254,11 +2260,11 @@ launchStr := {}
 							if (!c)
 							c := 4
 						spr := c . "_" . r
-						GuiControl, , %spr%, %BTOFF%
-						GuiControl, movedraw, %spr%, 0
+						GuiControl, Test:, %spr%, %BTOFF%
+						GuiControl, Test: movedraw, %spr%, 0
 						spr := "t_" . spr
-						GuiControl, , %spr%, % txt[A_Index]
-						GuiControl, +cgray, %spr%
+						GuiControl, Test:, %spr%, % txt[A_Index]
+						GuiControl, Test: +cgray, %spr%
 						ctlTogsOld[A_Index] := 0
 						ctlTogs[A_Index] := 0
 						}
@@ -2277,14 +2283,14 @@ launchStr := {}
 		{
 			loop, 40 ; number of Splashy control variables
 			{
-				if (ctlTogsold[A_Index] && (ctlTogs[A_Index] < 2))
+				if (ctlTogsold[A_Index] && (ctlTogs[A_Index] == 1))
 				{
 				c := mod(A_Index, 4)
 				r := floor(A_Index/4) + (c? 1: 0)
 					if (!c)
 					c := 4
 				spr := c . "_" . r
-				GuiControl, , %spr%, %BTONSAV%
+				GuiControl, Test:, %spr%, %BTONSAV%
 				}
 			}
 		}
@@ -2299,7 +2305,7 @@ launchStr := {}
 					Continue
 					case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
 					{
-					launchStr[txt[A_Index]] := 1
+					launchStr[txt[A_Index]] := fnParms[txt[A_Index]]
 					ctlTogs[A_Index] := 1
 					ctlTogsOld[A_Index] := 1
 					}
@@ -2309,7 +2315,7 @@ launchStr := {}
 					r := floor(A_Index/4) + (c? 1: 0)
 						if (!c)
 						c := 4
-					GuiControlGet, spr, , % "t_" . c . "_" . r
+					GuiControlGet, spr, Test: , % "t_" . c . "_" . r
 					launchStr[txt[A_Index]] := spr
 					ctlTogs[A_Index] := 1
 					ctlTogsOld[A_Index] := 1
@@ -2321,29 +2327,43 @@ launchStr := {}
 	if (fnParms["ImagePath"] == "*")
 	launchStr["ImagePath"] := "*"
 	}
-spr := launchStr["maintext"]
-msgbox % " ctlTogs[17] " ctlTogs[17] " ctlTogsOld[17] " ctlTogsOld[17] " launchStr[maintext] " spr
 
 %SplashyRef%(Splashy, launchStr*)
 
 return
 RepaintSplashy:
-
+Gui Test: +OwnDialogs
 	if (Splashy.vHide)
 	WinShow % "ahk_id" Splashy.hWndSaved
+	else ; This probably posts a WM_PAINT- will we get there first?
+	WinSet, Top, , % "ahk_id" Splashy.hWndSaved
 
 ; Possible use for compilations or Splashy in separate script
 WinGet, spr, ID, A
 WinGetClass, vWinClass, % "ahk_id " spr
 	if (vWinClass != "AutoHotkeyGUI")
 	return
-
 Splashy.PaintProc()
 
 return
 
+Testguiclose:
+DetectHiddenWindows, On
+#ifWinActive AHK Fonts ahk_class AutoHotkeyGUI
+esc::
+gui, FontDlg: destroy
+WinActivate ahk_id %thisHWnd%
+WinSet, Enable, , ahk_id %thisHWnd%
+return
+#ifWinActive
+esc::
+%SplashyRef%(Splashy, {release: 1}*)
+exitapp 
+return
+
+
 click:
-Gui +OwnDialogs
+Gui Test: +OwnDialogs
 
 out:=a_guicontrol
 
@@ -2369,12 +2389,36 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-			if (fnParms[txt[i]] != "*")
-			fnParms.delete(txt[i])
-		GuiControl, , % "t_" a_guicontrol, % txt[i]
+		fnParms[txt[i]] := "*"
+		GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
 		ctlTogs[i] := 0
 		}
 
+	}
+	case 17, 29:
+	{
+		if (%out%)
+		{
+		spr := InputProc(thisHWnd, i, txt[i], 1)
+			if (spr == "Errorlevel")
+			{
+			%out% := 0
+			fnParms.delete(txt[i])
+			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			ctlTogs[i] := 0
+			}
+			else
+			{
+			fnParms[txt[i]] := spr
+			ctlTogs[i] := 2
+			}
+		}
+		else
+		{
+		fnParms.delete(txt[i])
+		GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+		ctlTogs[i] := 0
+		}		
 	}
 	case 2, 4, 15, 16, 21, 22, 23, 33, 34, 35:
 	{
@@ -2387,34 +2431,9 @@ i := c + 4 * (r - 1)
 		else
 		{
 		fnParms.delete(txt[i])
-		GuiControl, , % "t_" a_guicontrol, % txt[i]
+		GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
 		ctlTogs[i] := 0
 		}
-	}
-	case 17, 29:
-	{
-		if (%out%)
-		{
-		spr := InputProc(thisHWnd, i, txt[i], 1)
-			if (spr == "Errorlevel")
-			{
-			%out% := 0
-			fnParms.delete(txt[i])
-			GuiControl, , % "t_" a_guicontrol, % txt[i]
-			ctlTogs[i] := 0
-			}
-			else
-			{
-			fnParms[txt[i]] := spr
-			ctlTogs[i] := 2
-			}
-		}
-		else
-		{
-		fnParms.delete(txt[i])
-		GuiControl, , % "t_" a_guicontrol, % txt[i]
-		ctlTogs[i] := 0
-		}		
 	}
 
 	Default:
@@ -2435,32 +2454,34 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		fnParms.delete(txt[i])
-		GuiControl, , % "t_" a_guicontrol, % txt[i]
-		ctlTogs[i] := 0
+		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+			if (spr == "Removed")
+			{
+			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			fnParms[txt[i]] := 0
+			ctlTogs[i] := 2
+			}
+			else
+			{
+			fnParms.delete(txt[i])
+			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			ctlTogs[i] := 0
+			%out% := 1
+			}
 		}
 	}
 	}
 
-GuiControl, , %a_guicontrol%, % %out% ? BTON : BTOFF
-GuiControl,  % (%out%) ? "+clime" : "+cgray", % "t_" a_guicontrol
-GuiControl, movedraw, % "t_" a_guicontrol, 0
+if (!ctlTogs[i])
+GuiControl, Test:, %a_guicontrol%, %BTOFF%
+else
+GuiControl, Test:, %a_guicontrol%, % %out% ? BTON : BTOFF
+
+GuiControl, Test:, % (%out%) ? "+clime" : "+cgray", % "t_" a_guicontrol
+GuiControl, Test: MoveDraw, % "t_" a_guicontrol, 0
 return
 
 
-guiclose:
-DetectHiddenWindows, On
-#ifWinActive AHK Fonts ahk_class AutoHotkeyGUI
-esc::
-gui, FontDlg: destroy
-WinActivate ahk_id %thisHWnd%
-WinSet, Enable, , ahk_id %thisHWnd%
-return
-#ifWinActive
-esc::
-%SplashyRef%(Splashy, {release: 1}*)
-exitapp 
-return
 
 ; https://www.autohotkey.com/boards/viewtopic.php?f=6&t=36636
 ; HICON may not be square, but AHK "tiles" them as if they were.
@@ -2633,7 +2654,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			return
 			else
 			{
-				GuiControl, , % "t_" a_guicontrol, %spr%
+				GuiControl, Test:, % "t_" a_guicontrol, %spr%
 				return spr
 			}
 		}
@@ -2641,7 +2662,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		{
 			if (spr := ProcFonts(thisHWnd))
 			{
-			GuiControl, , % "t_" a_guicontrol, %spr%
+			GuiControl, Test:, % "t_" a_guicontrol, %spr%
 			return spr
 			}
 			else
@@ -2654,7 +2675,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			return "*"
 			else
 			{
-			GuiControl, , % "t_" a_guicontrol, %spr%
+			GuiControl, Test:, % "t_" a_guicontrol, %spr%
 			return spr
 			}
 		}
@@ -2666,7 +2687,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			return "Errorlevel"
 			}
 			else
-			GuiControl, , % "t_" a_guicontrol, % spr
+			GuiControl, Test:, % "t_" a_guicontrol, % spr
 		}
 		Default:
 		{
@@ -2694,7 +2715,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		{
 			if (spr != "")
 			{
-			GuiControl, , % "t_" a_guicontrol, %spr%
+			GuiControl, Test:, % "t_" a_guicontrol, %spr%
 			}
 		return spr
 		}
@@ -2702,7 +2723,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		{
 			if (spr)
 			{
-			GuiControl, , % "t_" a_guicontrol, %spr%
+			GuiControl, Test:, % "t_" a_guicontrol, %spr%
 			return spr
 			}
 		}
