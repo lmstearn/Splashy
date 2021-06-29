@@ -397,6 +397,8 @@ Class Splashy
 						else
 						mainFontNameOut := Value
 					}
+					else
+					This.mainFontName := "Verdana"
 				}
 				Case "mainFontSize":
 				{
@@ -490,6 +492,8 @@ Class Splashy
 						else
 						subFontNameOut := Value
 					}
+					else
+					This.subFontName := "Verdana"
 				}
 				Case "subFontSize":
 				{
@@ -2303,24 +2307,24 @@ launchStr := {}
 				{
 					case 1:
 					Continue
-					case 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+					case 3, 4, 17, 29:
 					{
 					launchStr[txt[A_Index]] := fnParms[txt[A_Index]]
 					ctlTogs[A_Index] := 1
-					ctlTogsOld[A_Index] := 1
+						if (fnParms[txt[A_Index]] == "")
+						ctlTogsOld[A_Index] := 0
+						else
+						ctlTogsOld[A_Index] := 1
 					}
 					Default:
 					{
-					c := mod(A_Index, 4)
-					r := floor(A_Index/4) + (c? 1: 0)
-						if (!c)
-						c := 4
-					GuiControlGet, spr, Test: , % "t_" . c . "_" . r
-					launchStr[txt[A_Index]] := spr
+					launchStr[txt[A_Index]] := fnParms[txt[A_Index]]
 					ctlTogs[A_Index] := 1
-					ctlTogsOld[A_Index] := 1
+						if (fnParms[txt[A_Index]])
+						ctlTogsOld[A_Index] := 1
+						else
+						ctlTogsOld[A_Index] := 0
 					}
-					
 				}
 			}
 		}
@@ -2365,9 +2369,9 @@ return
 click:
 Gui Test: +OwnDialogs
 
-out:=a_guicontrol
+out := a_guicontrol
 
-%out%:= !%out% ? 1 : 0
+%out% := !%out% ? 1 : 0
 c := Substr(out, 1, 1)
 r := Substr(out, 3, 2)
 i := c + 4 * (r - 1)
@@ -2389,24 +2393,30 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		fnParms[txt[i]] := "*"
-		GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
-		ctlTogs[i] := 0
+		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+			if (spr == "Removed")
+			{
+			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			fnParms[txt[i]] := "*"
+			ctlTogs[i] := 2
+			}
+			else
+			{
+			fnParms.delete(txt[i])
+			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			ctlTogs[i] := 0
+			%out% := 1
+			}
 		}
 
 	}
-	case 17, 29:
+	case 17, 21, 23, 29:
 	{
 		if (%out%)
 		{
 		spr := InputProc(thisHWnd, i, txt[i], 1)
-			if (spr == "Errorlevel")
-			{
+			if (spr == "**Errorlevel**")
 			%out% := 0
-			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
-			ctlTogs[i] := 0
-			}
 			else
 			{
 			fnParms[txt[i]] := spr
@@ -2415,12 +2425,23 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		fnParms.delete(txt[i])
-		GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
-		ctlTogs[i] := 0
+		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+			if (spr == "Removed")
+			{
+			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			fnParms[txt[i]] := ""
+			ctlTogs[i] := 2
+			}
+			else
+			{
+			fnParms.delete(txt[i])
+			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			ctlTogs[i] := 0
+			%out% := 1
+			}
 		}		
 	}
-	case 2, 4, 15, 16, 21, 22, 23, 33, 34, 35:
+	case 2, 4, 15, 16, 22, 23, 34, 35:
 	{
 		if (%out%)
 		{
@@ -2430,9 +2451,20 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		fnParms.delete(txt[i])
-		GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
-		ctlTogs[i] := 0
+		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+			if (spr == "Removed")
+			{
+			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			fnParms[txt[i]] := 0
+			ctlTogs[i] := 2
+			}
+			else
+			{
+			fnParms.delete(txt[i])
+			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			ctlTogs[i] := 0
+			%out% := 1
+			}
 		}
 	}
 
@@ -2472,8 +2504,8 @@ i := c + 4 * (r - 1)
 	}
 	}
 
-if (!ctlTogs[i])
-GuiControl, Test:, %a_guicontrol%, %BTOFF%
+if (!ctlTogs[i] && %out%)
+GuiControl, Test:, %a_guicontrol%, %BTONSAV%
 else
 GuiControl, Test:, %a_guicontrol%, % %out% ? BTON : BTOFF
 
@@ -2547,7 +2579,8 @@ ProcFonts(thisHWnd)
 
 	gui, FontDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox HWNDhWndFontDlg
 	gui, FontDlg: add, ddl, % "section gGuiFontDlgSelectFont vGuiFontDlg_fontType w" . xSep*5, % fontList
-	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended, AHK`nRecommended
+	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended, AHK_Recommended
+	; illegal character when evaluating "AHK`nRecommended" or "AHK Recommended"
 	gui, FontDlg: add, edit, ys w%xSep%
 	gui, FontDlg: add, updown, gGuiFontDlgFontSizeUD vfontSizeUD, 15
 	gui, FontDlg: add, button, ys gGuiFontDlgAccept, Accept
@@ -2619,10 +2652,10 @@ ProcFonts(thisHWnd)
 
 	GuiFontDlgRecommended:
 	gui, FontDlg: submit, nohide
-	recFontTog:= A_GuiControl
-	%recFontTog%:= !%recFontTog% ? 1 : 0
+	recFontTog := A_GuiControl
+	%recFontTog% := !%recFontTog% ? 1 : 0
 	gui, FontDlg: font, s15
-	guicontrol, FontDlg: , fontSizeUD,  15
+	guicontrol, FontDlg:, fontSizeUD,  15
 		if (%recFontTog%)
 		{
 		guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" recFontList
@@ -2666,7 +2699,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			return spr
 			}
 			else
-			return
+			return "**Errorlevel**"
 		}
 		case 3:
 		{
@@ -2684,7 +2717,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
 			{
-			return "Errorlevel"
+			return "**Errorlevel**"
 			}
 			else
 			GuiControl, Test:, % "t_" a_guicontrol, % spr
