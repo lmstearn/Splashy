@@ -2122,7 +2122,7 @@ gui, Test: +resize -caption -DPIScale HWNDthisHWnd
 fnParms := []
 ctlTogs := []
 ctlTogsOld := []
-	loop, 40 ; number of Splashy control variables
+	loop, 44
 	{
 	ctlTogs[A_Index] := 0
 	ctlTogsOld[A_Index] := 0
@@ -2149,11 +2149,11 @@ Gui, Test: Font, % "w700 cBlue s" . ySep/2, Verdana
 gui, Test: add, text, % "Center" . " w" . 4 * xSep . " h" . ySep * 2 . " x" . 8 * xSep . " y" . ySep/3, Splashy`nSandbox
 Gui, Test: Font
 
-opt:="gclick backgroundtrans" 
-r:=c:=0, rows:=10, cols:=4
+spr := "gclick backgroundtrans" 
+r:=c:=0, rows:=11, cols:=4
 While r++ < rows {
 	while c++ < cols{
-	gui, Test: add, pic, % opt "  v" c "_" r  
+	gui, Test: add, pic, % spr "  v" c "_" r  
 	. (c=1&&r=1    ? " x"xSep/2 " y"2*ySep " section"
 	:  c=1&&r>1 ? " xs yp+"ySep 
 	: " xp+"5*xSep " yp"), % BTOFF
@@ -2165,7 +2165,8 @@ gui, Test: font, s12 bold
 txt:=[	"initSplash"		, "release"			, "imagePath"		, "imageUrl"
 ,		"bkgdColour"		, "transCol"		, "vHide"			, "noHWndActivate"
 ,		"vCentre"			, "vMovable"		, "vBorder"			, "vOnTop"
-,		"vMgnX"				, "vMgnY"			, "vImgW"			, "vImgH"
+,		"vPosX"				, "vPosY"			, "vMgnX"			, "vMgnY"
+,		""					, ""				, "vImgW"			, "vImgH"
 ,		"mainText"			, "mainBkgdColour"	, ""				, ""
 ,		"mainFontName"		, "mainFontSize"	, "mainFontWeight"	, "mainFontColour"
 ,		"mainFontQuality"	, "mainFontItalic"	, "mainFontStrike"	, "mainFontUnderline"
@@ -2173,30 +2174,32 @@ txt:=[	"initSplash"		, "release"			, "imagePath"		, "imageUrl"
 ,		"subFontName"		, "subFontSize"		, "subFontWeight"	, "subFontColour"
 ,		"subFontQuality"	, "subFontItalic"	, "subFontStrike"	, "subFontUnderline"]
 
-r:=c:=i:=0, rows:=10, cols:=4
-opt:=" 0x201 left cgray -border backgroundtrans"
+r:=c:=i:=0, rows:=11, cols:=4
+spr := " 0x201 left cgray -border backgroundtrans"
 While r++ < rows {
 	while c++ < cols { 
 	i++
-	gui, Test: add, text, % opt " h"ySep " w"3*xSep " v" "t_" c "_" r  
+	gui, Test: add, text, % spr " h"ySep " w"3*xSep " v" "t_" c "_" r  
 	. (c=1&&r=1 ? " x"5*xSep/2 " y"2*ySep " section"
 	:  c=1&&r>1 ? " xs yp+"ySep
 	: " xp+"5*xSep " yp"), % txt[i]
 	} c:=0
 } r:=0, c:=0
 Gui, Test: Font, % "w700 cRed s" . ySep/2, Verdana
-gui, Test: add, text, % "gLaunchSplashy vlaunchSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 4 * xSep . " y" . ySep * 12, Click to Launch
-gui, Test: add, text, % "gRepaintSplashy vrepaintSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 10 * xSep . " y" . ySep * 12, Click to Repaint
+gui, Test: add, text, % "gLaunchSplashy vlaunchSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 4 * xSep . " y" . ySep * 13, Click to Launch
+gui, Test: add, text, % "gRepaintSplashy vrepaintSplashy Center w" . 4 * xSep . " h" . 3 * ySep/2 . " x" . 10 * xSep . " y" . ySep * 13, Click to Repaint
 Gui, Test: Font
 
 GuiControl, Test: Disable, repaintSplashy
-GuiControlGet, spr, Test: Hwnd, t_4_10
+GuiControlGet, spr, Test: Hwnd, t_4_11
 GuiControlGet, spr, Test: Pos, %spr%
 
-GuiControl, Test: Hide, 4_5
-GuiControl, Test: Hide, 3_5
-GuiControl, Test: Hide, 3_8
-GuiControl, Test: Hide, 4_8
+GuiControl, Test: Hide, 1_5
+GuiControl, Test: Hide, 2_5
+GuiControl, Test: Hide, 3_6
+GuiControl, Test: Hide, 4_6
+GuiControl, Test: Hide, 3_9
+GuiControl, Test: Hide, 4_9
 gui, Test: Margin, 0, 0
 gui, Test: color, aqua
 gui, Test: show, % "W" . sprx + sprw . " H" . spry + ySep * 2 + sprh
@@ -2214,7 +2217,7 @@ launchStr := {}
 
 	launchStr[txt[2]] := 1
 	; reset all controls
-		loop, 40 ; number of Splashy control variables
+		loop, 44 ; number of SplashyTest control fields
 		{
 			if (ctlTogs[A_Index] || ctlTogsOld[A_Index])
 			{
@@ -2240,7 +2243,7 @@ launchStr := {}
 	GuiControl, Test:, launchSplashy, Click to Update
 		if (ctlTogs[1])
 		{
-			loop, 40 ; number of Splashy control variables
+			loop, 44
 			{
 				if (A_Index == 1)
 				{
@@ -2285,7 +2288,7 @@ launchStr := {}
 		}
 		else
 		{
-			loop, 40 ; number of Splashy control variables
+			loop, 44 ; number of Splashy control variables
 			{
 				if (ctlTogsold[A_Index] && (ctlTogs[A_Index] == 1))
 				{
@@ -2299,7 +2302,7 @@ launchStr := {}
 			}
 		}
 
-		loop, 40
+		loop, 44
 		{
 			if (ctlTogs[A_Index])
 			{
@@ -2307,7 +2310,7 @@ launchStr := {}
 				{
 					case 1:
 					Continue
-					case 3, 4, 17, 29:
+					case 3, 4, 21, 33:
 					{
 					launchStr[txt[A_Index]] := fnParms[txt[A_Index]]
 					ctlTogs[A_Index] := 1
@@ -2369,7 +2372,7 @@ return
 click:
 Gui Test: +OwnDialogs
 
-out := a_guicontrol
+out := A_Guicontrol
 
 %out% := !%out% ? 1 : 0
 c := Substr(out, 1, 1)
@@ -2393,24 +2396,24 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
 			if (spr == "Removed")
 			{
-			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 			fnParms[txt[i]] := "*"
 			ctlTogs[i] := 2
 			}
 			else
 			{
 			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			GuiControl, Test:, % "t_" A_Guicontrol, Removed
 			ctlTogs[i] := 0
 			%out% := 1
 			}
 		}
 
 	}
-	case 17, 21, 23, 29:
+	case 21, 25, 33, 37:
 	{
 		if (%out%)
 		{
@@ -2425,23 +2428,23 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
 			if (spr == "Removed")
 			{
-			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 			fnParms[txt[i]] := ""
 			ctlTogs[i] := 2
 			}
 			else
 			{
 			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			GuiControl, Test:, % "t_" A_Guicontrol, Removed
 			ctlTogs[i] := 0
 			%out% := 1
 			}
 		}		
 	}
-	case 2, 4, 15, 16, 22, 23, 34, 35:
+	case 2, 4, 15, 16, 26, 27, 38, 39:
 	{
 		if (%out%)
 		{
@@ -2451,17 +2454,17 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
 			if (spr == "Removed")
 			{
-			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 			fnParms[txt[i]] := 0
 			ctlTogs[i] := 2
 			}
 			else
 			{
 			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			GuiControl, Test:, % "t_" A_Guicontrol, Removed
 			ctlTogs[i] := 0
 			%out% := 1
 			}
@@ -2486,17 +2489,17 @@ i := c + 4 * (r - 1)
 		}
 		else
 		{
-		GuiControlGet, spr, Test:, % "t_" a_guicontrol
+		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
 			if (spr == "Removed")
 			{
-			GuiControl, Test:, % "t_" a_guicontrol, % txt[i]
+			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 			fnParms[txt[i]] := 0
 			ctlTogs[i] := 2
 			}
 			else
 			{
 			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" a_guicontrol, Removed
+			GuiControl, Test:, % "t_" A_Guicontrol, Removed
 			ctlTogs[i] := 0
 			%out% := 1
 			}
@@ -2505,12 +2508,12 @@ i := c + 4 * (r - 1)
 	}
 
 if (!ctlTogs[i] && %out%)
-GuiControl, Test:, %a_guicontrol%, %BTONSAV%
+GuiControl, Test:, %A_Guicontrol%, %BTONSAV%
 else
-GuiControl, Test:, %a_guicontrol%, % %out% ? BTON : BTOFF
+GuiControl, Test:, %A_Guicontrol%, % %out% ? BTON : BTOFF
 
-GuiControl, Test:, % (%out%) ? "+clime" : "+cgray", % "t_" a_guicontrol
-GuiControl, Test: MoveDraw, % "t_" a_guicontrol, 0
+GuiControl, Test:, % (%out%) ? "+clime" : "+cgray", % "t_" A_Guicontrol
+GuiControl, Test: MoveDraw, % "t_" A_Guicontrol, 0
 return
 
 
@@ -2584,7 +2587,7 @@ ProcFonts(thisHWnd)
 	gui, FontDlg: add, edit, ys w%xSep%
 	gui, FontDlg: add, updown, gGuiFontDlgFontSizeUD vfontSizeUD, 15
 	gui, FontDlg: add, button, ys gGuiFontDlgAccept, Accept
-	gui, FontDlg: add, edit, % "xm center gGuiFontDlgInputText vinputText w" . xSep*8, The quick brown fox jumps over the lazy dog.
+	gui, FontDlg: add, edit, % "xm center gGuiFontDlginputText vinputText w" . xSep*8, The quick brown fox jumps over the lazy dog.
 	gui, FontDlg: font, s15
 	gui, FontDlg: add, text, % "0x1000 center voutputText w" . xSep*10 . "h" . ySep, The quick brown fox jumps over the lazy dog.
 
@@ -2630,9 +2633,9 @@ ProcFonts(thisHWnd)
 	guicontrol, FontDlg: font, outputText
 	return
 
-	GuiFontDlgInputText:
+	GuiFontDlginputText:
 	gui, FontDlg: submit, nohide
-	guicontrol, FontDlg:, outputText, % InputText
+	guicontrol, FontDlg:, outputText, % inputText
 	return
 
 	GuiFontDlgSelectFont:
@@ -2676,26 +2679,26 @@ InputProc(thisHWnd, i, textIn, allowZero := 0)
 Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 	switch i
 	{
-		case 1, 2, 6, 7, 8, 9, 10, 12, 26, 27, 28, 38, 39, 40:
+		case 1, 2, 6, 7, 8, 9, 10, 12, 30, 31, 32, 42, 43, 44:
 		{
 		return 1
 		}
-		case 5, 18, 30:
+		case 5, 22, 28, 34, 40:
 		{
 		spr := ChooseColor(0x80FF, thisHWnd, , , Colors*)
 			if (spr == "")
 			return
 			else
 			{
-				GuiControl, Test:, % "t_" a_guicontrol, %spr%
+				GuiControl, Test:, % "t_" A_Guicontrol, %spr%
 				return spr
 			}
 		}
-		case 21, 33:
+		case 25, 37:
 		{
 			if (spr := ProcFonts(thisHWnd))
 			{
-			GuiControl, Test:, % "t_" a_guicontrol, %spr%
+			GuiControl, Test:, % "t_" A_Guicontrol, %spr%
 			return spr
 			}
 			else
@@ -2708,22 +2711,24 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			return "*"
 			else
 			{
-			GuiControl, Test:, % "t_" a_guicontrol, %spr%
+			GuiControl, Test:, % "t_" A_Guicontrol, %spr%
 			return spr
 			}
 		}
-		case 17, 29:
+		case 21, 33:
 		{
 		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
-			{
 			return "**Errorlevel**"
-			}
-			else
-			GuiControl, Test:, % "t_" a_guicontrol, % spr
 		}
 		Default:
 		{
+		; case 4 url
+		; case 11 Border
+		; case 13,14 vPos 15, 16 vMgn 19, 20 vImg
+		; case 26 mainFontSize, 27 mainFontWeight, 
+		; case 29 mainFontQuality
+
 		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
 			{
@@ -2735,7 +2740,10 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 	; AutoTrim On by default
 	spr := StrReplace(textIn, A_Space, "")
 		if (spr == "")
+		{
+		GuiControl, Test:, % "t_" A_Guicontrol
 		return spr
+		}
 
 		Loop
 		{
@@ -2747,16 +2755,14 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		if (allowZero)
 		{
 			if (spr != "")
-			{
-			GuiControl, Test:, % "t_" a_guicontrol, %spr%
-			}
+			GuiControl, Test:, % "t_" A_Guicontrol, %spr%
 		return spr
 		}
 		else
 		{
 			if (spr)
 			{
-			GuiControl, Test:, % "t_" a_guicontrol, %spr%
+			GuiControl, Test:, % "t_" A_Guicontrol, %spr%
 			return spr
 			}
 		}
