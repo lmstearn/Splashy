@@ -397,8 +397,6 @@ Class Splashy
 						else
 						mainFontNameOut := Value
 					}
-					else
-					This.mainFontName := "Verdana"
 				}
 				Case "mainFontSize":
 				{
@@ -492,8 +490,6 @@ Class Splashy
 						else
 						subFontNameOut := Value
 					}
-					else
-					This.subFontName := "Verdana"
 				}
 				Case "subFontSize":
 				{
@@ -2356,11 +2352,20 @@ return
 
 Testguiclose:
 DetectHiddenWindows, On
+#if winactive("ahk_class #32770") and (winactive("Please enter") || winactive("Colour") || winactive("Open an Image"))
+esc::
+WinGet, spr, Id, A
+WinClose, ahk_ID %spr%
+WinActivate ahk_id %thisHWnd%
+DetectHiddenWindows, Off
+return
+#ifWinActive
 #ifWinActive AHK Fonts ahk_class AutoHotkeyGUI
 esc::
 gui, FontDlg: destroy
 WinActivate ahk_id %thisHWnd%
 WinSet, Enable, , ahk_id %thisHWnd%
+DetectHiddenWindows, Off
 return
 #ifWinActive
 esc::
@@ -2448,8 +2453,11 @@ i := c + 4 * (r - 1)
 	{
 		if (%out%)
 		{
-			if (!(fnParms[txt[i]] := InputProc(thisHWnd,i,txt[i])))
+			spr := InputProc(thisHWnd,i,txt[i])
+			if (spr == "**Errorlevel**" || !spr)
 			%out% := 0
+			else
+			fnParms[txt[i]] := spr
 		ctlTogs[i] := 2
 		}
 		else
@@ -2476,7 +2484,7 @@ i := c + 4 * (r - 1)
 		if (%out%)
 		{
 		spr := InputProc(thisHWnd, i, txt[i], 1)
-			if (spr == "")
+			if (spr == "**Errorlevel**" || spr == "")
 			{
 			%out% := 0
 			ctlTogs[i] := 0
@@ -2715,20 +2723,49 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			return spr
 			}
 		}
+		case 11:
+		{
+		InputBox, textIn, Please enter %textIn%,If zero/empty`, No border`,`nelse `"B`" for thin border`, any other value WS_DLGFRAME.
+			if (Errorlevel)
+			return "**Errorlevel**"
+		}
+		case 4:
+		{
+		InputBox, textIn, Please enter %textIn%
+			if (textIn == "" || Errorlevel)
+			return "**Errorlevel**"
+		}
+		case 13, 14:
+		{
+		InputBox, textIn, Please enter %textIn%,Left`, top`, screen co-ordinates for Splashy.`n"D" for default (screen centre).
+			if (textIn == "" || Errorlevel)
+			return "**Errorlevel**"
+		}
 		case 21, 33:
 		{
 		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
 			return "**Errorlevel**"
 		}
+		case 26, 38:
+		{
+		InputBox, textIn, Please enter %textIn%.,The font size is a positive integer`, usually under ~200.
+			if (Errorlevel)
+			return "**Errorlevel**"
+		}
+		case 27, 39:
+		{
+		InputBox, textIn, Please enter %textIn%.,The font weight is an integer between 1 and 1000.`nFor example`, 400 is normal and 700 is bold.
+			if (Errorlevel)
+			return "**Errorlevel**"
+		}
 		Default:
 		{
-		; case 4 url
-		; case 11 Border
-		; case 13,14 vPos 15, 16 vMgn 19, 20 vImg
-		; case 26 mainFontSize, 27 mainFontWeight, 
-		; case 29 mainFontQuality
-
+		; case 11 Border 
+		; case 13, 14 vPos  
+		; case 15, 16 vMgn Horizontal and vertical margins. "D" for defaults.
+		; case 19, 20 vImg Width and height for Splashy. If zero or negative, image dimensions assumed, else, if less than one, proportionate of screen width/height.
+		; case 29 mainFontQuality Either 0, 1, 2, 3, 4, 5. Refer docs for details
 		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
 			{
@@ -2826,10 +2863,10 @@ ChooseColor(pRGB := 0, hOwner := 0, DlgX := 0, DlgY := 0, Palette*)
 	return
 	else
 	{
-			Loop 16
-			Palette[A_Index] := BGR2RGB(NumGet(CustColors, (A_Index - 1) * 4, "UInt"))
-        
-		return BGR2RGB(NumGet(ChooseColor, 3 * A_PtrSize, "UINT"))
+		Loop 16
+		Palette[A_Index] := BGR2RGB(NumGet(CustColors, (A_Index - 1) * 4, "UInt"))
+	
+	return BGR2RGB(NumGet(ChooseColor, 3 * A_PtrSize, "UINT"))
 	}
 }
 
