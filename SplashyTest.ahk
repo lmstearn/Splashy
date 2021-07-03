@@ -1,4 +1,3 @@
-
 Class Splashy
 {
 
@@ -1476,7 +1475,7 @@ Class Splashy
 
 	vToggle := !vToggle
 	; If the image is the same between calls, this routine is never called, 
-	; so vToggle doesn't change.
+	; so vToggle will not update.
 
 	This.vImgW := (This.inputVImgW)? This.inputVImgW: This.actualVImgW
 	This.vImgH := (This.inputVImgH)? This.inputVImgH: This.actualVImgH
@@ -2089,8 +2088,8 @@ Class Splashy
 
 #SingleInstance, force
 #NoEnv  ; Performance and compatibility with future AHK releases.
-;#Warn, All, OutputDebug ; Enable warnings for a debugger to display to assist with detecting common errors.
-;#Warn UseUnsetLocal, OutputDebug  ; Warn when a local variable is used before it's set; send to OutputDebug
+#Warn, All, OutputDebug ; Enable warnings for a debugger to display to assist with detecting common errors.
+#Warn UseUnsetLocal, OutputDebug  ; Warn when a local variable is used before it's set; send to OutputDebug
 #MaxMem 256
 #MaxThreads 3
 #Persistent
@@ -2449,11 +2448,11 @@ i := c + 4 * (r - 1)
 			}
 		}		
 	}
-	case 2, 4, 15, 16, 26, 27, 38, 39:
+	case 2, 4, 26, 27, 38, 39:
 	{
 		if (%out%)
 		{
-			spr := InputProc(thisHWnd,i,txt[i])
+			spr := InputProc(thisHWnd, i, txt[i])
 			if (spr == "**Errorlevel**" || !spr)
 			%out% := 0
 			else
@@ -2688,9 +2687,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 	switch i
 	{
 		case 1, 2, 6, 7, 8, 9, 10, 12, 30, 31, 32, 42, 43, 44:
-		{
 		return 1
-		}
 		case 5, 22, 28, 34, 40:
 		{
 		spr := ChooseColor(0x80FF, thisHWnd, , , Colors*)
@@ -2725,8 +2722,8 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 11:
 		{
-		InputBox, textIn, Please enter %textIn%,If zero/empty`, No border`,`nelse `"B`" for thin border`, any other value WS_DLGFRAME.
-			if (Errorlevel)
+		InputBox, textIn, Please enter %textIn%,If zero`, No border`,`nelse `"B`" for thin border`, any other value WS_DLGFRAME.
+			if (textIn == "" || Errorlevel)
 			return "**Errorlevel**"
 		}
 		case 4:
@@ -2741,6 +2738,18 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 			if (textIn == "" || Errorlevel)
 			return "**Errorlevel**"
 		}
+		case 15, 16:
+		{
+		InputBox, textIn, Please enter %textIn%, Horizontal and vertical margins. "D" for defaults.
+			if (textIn == "" || Errorlevel)
+			return "**Errorlevel**"
+		}
+		case 19, 20:
+		{
+		InputBox, textIn, Please enter %textIn%, Width and height for Splashy.`n`nIf zero or negative`, image dimensions assumed`, else`,`nif less than one`, proportionate of screen width/height.
+			if (textIn == "" || Errorlevel)
+			return "**Errorlevel**"
+		}
 		case 21, 33:
 		{
 		InputBox, textIn, Please enter %textIn%
@@ -2749,23 +2758,24 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 26, 38:
 		{
-		InputBox, textIn, Please enter %textIn%.,The font size is a positive integer`, usually under ~200.
-			if (Errorlevel)
+		InputBox, textIn, Please enter %textIn%.,The font size is a positive integer`, usually under 200.
+			if (textIn == "" || Errorlevel)
 			return "**Errorlevel**"
 		}
 		case 27, 39:
 		{
 		InputBox, textIn, Please enter %textIn%.,The font weight is an integer between 1 and 1000.`nFor example`, 400 is normal and 700 is bold.
-			if (Errorlevel)
+			if (textIn == "" || Errorlevel)
+			return "**Errorlevel**"
+		}
+		case 29, 41:
+		{
+		InputBox, textIn, Please enter %textIn%.,FontQuality is either 0`, 1`, 2`, 3`, 4 or 5. Refer docs for details.
+			if (textIn == "" || Errorlevel)
 			return "**Errorlevel**"
 		}
 		Default:
 		{
-		; case 11 Border 
-		; case 13, 14 vPos  
-		; case 15, 16 vMgn Horizontal and vertical margins. "D" for defaults.
-		; case 19, 20 vImg Width and height for Splashy. If zero or negative, image dimensions assumed, else, if less than one, proportionate of screen width/height.
-		; case 29 mainFontQuality Either 0, 1, 2, 3, 4, 5. Refer docs for details
 		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
 			{
