@@ -127,8 +127,8 @@ Class Splashy
 	vMovableOut := 0
 	vBorderOut := ""
 	vOnTopOut := 0
-	vPosXOut := "D"
-	vPosYOut := "D"
+	vPosXOut := ""
+	vPosYOut := ""
 	vMgnXOut := -1
 	vMgnYOut := -1
 	vImgWOut := 0
@@ -274,18 +274,20 @@ Class Splashy
 				}
 				Case "vPosX":
 				{
+				spr := (Value == "")? Value: Floor(Value)
 					if (This.updateFlag > 0)
-					This.vPosX := (Value == "D")? Value: Floor(Value)
+					This.vPosX := spr
 					else
-					vPosXOut := (Value == "D")? Value: Floor(Value)
+					vPosXOut := spr
 				}
 
 				Case "vPosY":
 				{
+				spr := (Value == "")? Value: Floor(Value)
 					if (This.updateFlag > 0)
-					This.vPosY := (Value == "D")? Value: Floor(Value)
+					This.vPosY := spr
 					else
-					vPosYOut := Value
+					vPosYOut := spr
 				}
 
 				Case "vMgnX":
@@ -588,7 +590,7 @@ Class Splashy
 	; also consider transparency
 	*/
 	{
-	vWinW := 0, vWinH := 0
+	vWinW := 0, vWinH := 0, diffPicOrDiffDims := 0
 	This.userWorkingDir := A_WorkingDir
 	SetWorkingDir %A_ScriptDir% ; else use full path for 
 
@@ -636,8 +638,8 @@ Class Splashy
 		This.vMovable := vMovableIn
 		This.vBorder := vBorderIn
 
-		This.vPosX := (vPosXIn == "D")? vPosXIn: Floor(vPosXIn)
-		This.vPosY := (vPosYIn == "D")? vPosYIn: Floor(vPosYIn)
+		This.vPosX := (vPosXIn == "")? vPosXIn: Floor(vPosXIn)
+		This.vPosY := (vPosYIn == "")? vPosYIn: Floor(vPosYIn)
 
 
 			if (vMgnXIn == "D")
@@ -810,7 +812,7 @@ Class Splashy
 		}
 
 
-		if (This.GetPicWH())
+		if (diffPicOrDiffDims := This.GetPicWH())
 		This.DisplayToggle()
 
 
@@ -937,39 +939,34 @@ Class Splashy
 		spr := " "
 			if (This.vCentre)
 			{
-				if (This.vPosX == "D")
+					if (vWinW < A_ScreenWidth)
+					This.vPosX := (A_ScreenWidth - vWinW)/2
+					else
+					This.vPosX := 0
+					if (vWinH < A_ScreenHeight)
+					This.vPosY := (A_ScreenHeight - vWinH)/2
+					else
+					This.vPosY := 0
+			}
+			else
+			{
+				if (This.vPosX == "")
 				{
 					if (vWinW < A_ScreenWidth)
 					This.vPosX := (A_ScreenWidth - vWinW)/2
 					else
 					This.vPosX := 0
 				}
-				if (This.vPosY == "D")
+				if (This.vPosY == "")
 				{
 					if (vWinH < A_ScreenHeight)
 					This.vPosY := (A_ScreenHeight - vWinH)/2
 					else
 					This.vPosY := 0
 				}
-			spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
 			}
-			else
-			{
-				if (This.vPosX == "D" && This.vPosX == "D")
-				spr .= Format("W{} H{}", vWinW, vWinH)
-				else
-				{
-					if (This.vPosX != "D" && This.vPosY == "D")
-					spr .= Format(" X{} W{} H{}", This.vPosX, vWinW, vWinH)
-					else
-					{
-						if (This.vPosX == "D")
-						spr .= Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
-						else
-						spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
-					}
-				}
-			}
+		spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+
 
 		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
@@ -2417,7 +2414,7 @@ i := c + 4 * (r - 1)
 		}
 
 	}
-	case 21, 25, 33, 37:
+	case 13, 14, 21, 25, 33, 37:
 	{
 		if (%out%)
 		{
@@ -2734,8 +2731,8 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 13, 14:
 		{
-		InputBox, textIn, Please enter %textIn%,Left`, top`, screen co-ordinates for Splashy.`n"D" for default (screen centre).
-			if (textIn == "" || Errorlevel)
+		InputBox, textIn, Please enter %textIn%,Left`, top`, screen co-ordinates for Splashy.`n`nIgnored if vCentre is set`, if vCentre is not set`,`na null value `(`"`"`) applied to either value`nwill centre Splashy on the appropriate axis.
+			if (Errorlevel)
 			return "**Errorlevel**"
 		}
 		case 15, 16:
