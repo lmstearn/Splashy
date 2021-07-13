@@ -1,4 +1,4 @@
-Class Splashy
+﻿Class Splashy
 {
 
 	spr := 0
@@ -604,9 +604,10 @@ Class Splashy
 			This.imagePath := imagePathIn
 			else
 			{
-				if (!This.imagePath)
+				if (!This.imagePath && !StrLen(imageUrlIn))
 				This.imagePath := A_AhkPath ; default icon. Ist of 5
 			}
+
 			if (StrLen(imageUrlIn))
 			This.imageUrl := imageUrlIn
 			else
@@ -690,6 +691,8 @@ Class Splashy
 
 			if (StrLen(mainTextIn))
 			This.mainText := This.ValidateText(mainTextIn)
+			else
+			This.mainText := ""
 
 			if (mainBkgdColourIn == -1)
 			{
@@ -751,6 +754,8 @@ Class Splashy
 
 			if (StrLen(subTextIn))
 			This.subText :=  This.ValidateText(subTextIn)
+			else
+			This.subText := ""
 
 			if (subBkgdColourIn == -1)
 			{
@@ -2085,8 +2090,8 @@ Class Splashy
 
 #SingleInstance, force
 #NoEnv  ; Performance and compatibility with future AHK releases.
-#Warn, All, OutputDebug ; Enable warnings for a debugger to display to assist with detecting common errors.
-#Warn UseUnsetLocal, OutputDebug  ; Warn when a local variable is used before it's set; send to OutputDebug
+;#Warn, All, OutputDebug ; Enable warnings for a debugger to display to assist with detecting common errors.
+;#Warn UseUnsetLocal, OutputDebug  ; Warn when a local variable is used before it's set; send to OutputDebug
 #MaxMem 256
 #MaxThreads 3
 #Persistent
@@ -2356,9 +2361,10 @@ WinActivate ahk_id %thisHWnd%
 DetectHiddenWindows, Off
 return
 #ifWinActive
-#ifWinActive AHK Fonts ahk_class AutoHotkeyGUI
+#if winActive("ahk_class AutoHotkeyGUI") and (winactive("AHK Fonts") || winactive("Image Source"))
 esc::
 gui, FontDlg: destroy
+gui, ImageSourceDlg: destroy
 WinActivate ahk_id %thisHWnd%
 WinSet, Enable, , ahk_id %thisHWnd%
 DetectHiddenWindows, Off
@@ -2381,40 +2387,7 @@ r := Substr(out, 3, 2)
 i := c + 4 * (r - 1)
 	switch i
 	{
-	case 3:
-	{
-		if (%out%)
-		{
-		spr := InputProc(thisHWnd, i, txt[i])
-			if (spr == "*")
-			{
-			%out% := 0
-			ctlTogs[i] := 0
-			}
-			else
-			ctlTogs[i] := 2
-		fnParms[txt[i]] := spr
-		}
-		else
-		{
-		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-			if (spr == "Removed")
-			{
-			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
-			fnParms[txt[i]] := "*"
-			ctlTogs[i] := 2
-			}
-			else
-			{
-			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" A_Guicontrol, Removed
-			ctlTogs[i] := 0
-			%out% := 1
-			}
-		}
-
-	}
-	case 13, 14, 21, 25, 33, 37:
+	case 3, 13, 14, 21, 25, 33, 37:
 	{
 		if (%out%)
 		{
@@ -2567,7 +2540,7 @@ ProcFonts(thisHWnd)
 	;https://autohotkey.com/board/topic/72109-ahk-fonts/
 	; gui variables in function must be global
 	Global GuiFontDlg_fontType, fontSizeUD, inputText, outputText
-	static recFontList, fontList, recFontCount, fontCount, acceptDlg := 0, recFontTog := 0
+	static thisFont, recFontList, fontList, recFontCount, fontCount, acceptDlg := 0, recFontTog := 0
 	recFontList =
 	(
 	Aharoni|Andalus|Angsana New|AngsanaUPC|Arial|Arial Black|Batang|Comic Sans MS|Cordia New|CordiaUPC|Courier|Courier New|David|DFKai-SB|DilleniaUPC|Estrangelo Edessa|EucrosiaUPC|Fixedsys|Franklin Gothic Medium|FrankRuehl|FreesiaUPC|Gautami|Georgia|Gulim|Impact|IrisUPC|JasmineUPC|KaiTi|Kartika|KodchiangUPC|Latha|Levenim MT|LilyUPC|Lucida Console|Lucida Sans|Lucida Sans Unicode|Mangal|Microsoft Sans Serif|Miriam|Miriam Fixed|Modern|MS Gothic|MS Mincho|MS Sans Serif|MS Serif|Mv Boli|Narkisim|Palatino Linotype|PMingLiU|Raavi|Rod|Roman|Script|Shruti|SimHei|Simplified Arabic|Simplified Arabic Fixed|SimSun|Small Fonts|Sylfaen|System|Tahoma|Terminal|Times New Roman|Traditional Arabic|Trebuchet MS|Tunga|Verdana|Vrinda
@@ -2614,6 +2587,7 @@ ProcFonts(thisHWnd)
 	WinSet, Enable, , ahk_id %thisHWnd%
 
 	return 0
+
 	GuiFontDlgAccept:
 	acceptDlg := 1
 	GuiControlGet thisFont, FontDlg:, GuiFontDlg_fontType
@@ -2676,6 +2650,59 @@ ProcFonts(thisHWnd)
 	gosub GuiFontDlgSelectFont
 	return
 }
+ImageSourceProc(thisHWnd)
+{
+	;https://autohotkey.com/board/topic/72109-ahk-fonts/
+	; gui variables in function must be global
+	Global GuiImageSourceDlgInternalImage, GuiImageSourceDlgImageRet, outputText
+	static imgRet, acceptDlg := 0, recFontTog := 0
+
+	gui, ImageSourceDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox HWNDhWndImageSourceDlg
+	gui, ImageSourceDlg: add, button, section gGuiImageSourceDlgInternalImage vGuiImageSourceDlgInternalImage, Internal Image
+	gui, ImageSourceDlg: add, button, ys gGuiImageSourceDlgImagePath, ImagePath
+	gui, ImageSourceDlg: add, button, ys gGuiImageSourceDlgAccept, Accept
+	gui, ImageSourceDlg: add, edit, ys vGuiImageSourceDlgImageRet vGuiImageSourceDlgImageRet w%xSep%
+
+	WinSet, Disable, , ahk_id %thisHWnd%
+	gui, ImageSourceDlg: show,, Image Source
+
+
+	WinWaitActive, ahk_id %thisHWnd%
+
+		if (acceptDlg)
+		return imgRet
+		else
+		return 0
+
+	ImageSourceDlgGuiClose:
+	acceptDlg := 0
+	gui, ImageSourceDlg: Destroy
+	; problem with WinWaitClose next invocation when instead of destroyed, ImageSourceDlg is hidden
+	WinActivate ahk_id %thisHWnd%
+	WinSet, Enable, , ahk_id %thisHWnd%
+
+	return 0
+
+	GuiImageSourceDlgAccept:
+	acceptDlg := 1
+	GuiControlGet imgRet, ImageSourceDlg:, GuiImageSourceDlgImageRet
+	gui, ImageSourceDlg: Destroy
+	WinActivate ahk_id %thisHWnd%
+	WinSet, Enable, , ahk_id %thisHWnd%
+	return imgRet
+
+	GuiImageSourceDlgInternalImage:
+	gui, ImageSourceDlg: submit, nohide
+	GuiControl, ImageSourceDlg:, GuiImageSourceDlgImageRet, *
+	return
+
+	GuiImageSourceDlgImagePath:
+	gui, ImageSourceDlg: submit, nohide
+		FileSelectFile, imgRet, , %A_ScriptDir%, Open an Image
+		if (!ErrorLevel)
+		GuiControl, ImageSourceDlg:, GuiImageSourceDlgImageRet, %imgRet%
+	return
+}
 
 InputProc(thisHWnd, i, textIn, allowZero := 0)
 {
@@ -2708,14 +2735,8 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 3:
 		{
-			FileSelectFile, spr, , %A_ScriptDir%, Open an Image
-			if (ErrorLevel)
-			return "*"
-			else
-			{
-			GuiControl, Test:, % "t_" A_Guicontrol, %spr%
-			return spr
-			}
+			if (!(textIn := ImageSourceProc(thisHWnd)))
+			return "**Errorlevel**"
 		}
 		case 11:
 		{
