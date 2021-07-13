@@ -127,8 +127,8 @@
 	vMovableOut := 0
 	vBorderOut := ""
 	vOnTopOut := 0
-	vPosXOut := "D"
-	vPosYOut := "D"
+	vPosXOut := ""
+	vPosYOut := ""
 	vMgnXOut := -1
 	vMgnYOut := -1
 	vImgWOut := 0
@@ -274,18 +274,20 @@
 				}
 				Case "vPosX":
 				{
+				spr := (Value == "")? Value: Floor(Value)
 					if (This.updateFlag > 0)
-					This.vPosX := (Value == "D")? Value: Floor(Value)
+					This.vPosX := spr
 					else
-					vPosXOut := (Value == "D")? Value: Floor(Value)
+					vPosXOut := spr
 				}
 
 				Case "vPosY":
 				{
+				spr := (Value == "")? Value: Floor(Value)
 					if (This.updateFlag > 0)
-					This.vPosY := (Value == "D")? Value: Floor(Value)
+					This.vPosY := spr
 					else
-					vPosYOut := Value
+					vPosYOut := spr
 				}
 
 				Case "vMgnX":
@@ -588,7 +590,7 @@
 	; also consider transparency
 	*/
 	{
-	vWinW := 0, vWinH := 0
+	vWinW := 0, vWinH := 0, diffPicOrDiffDims := 0
 	This.userWorkingDir := A_WorkingDir
 	SetWorkingDir %A_ScriptDir% ; else use full path for 
 
@@ -602,9 +604,10 @@
 			This.imagePath := imagePathIn
 			else
 			{
-				if (!This.imagePath)
+				if (!This.imagePath && !StrLen(imageUrlIn))
 				This.imagePath := A_AhkPath ; default icon. Ist of 5
 			}
+
 			if (StrLen(imageUrlIn))
 			This.imageUrl := imageUrlIn
 			else
@@ -636,8 +639,8 @@
 		This.vMovable := vMovableIn
 		This.vBorder := vBorderIn
 
-		This.vPosX := (vPosXIn == "D")? vPosXIn: Floor(vPosXIn)
-		This.vPosY := (vPosYIn == "D")? vPosYIn: Floor(vPosYIn)
+		This.vPosX := (vPosXIn == "")? vPosXIn: Floor(vPosXIn)
+		This.vPosY := (vPosYIn == "")? vPosYIn: Floor(vPosYIn)
 
 
 			if (vMgnXIn == "D")
@@ -688,6 +691,8 @@
 
 			if (StrLen(mainTextIn))
 			This.mainText := This.ValidateText(mainTextIn)
+			else
+			This.mainText := ""
 
 			if (mainBkgdColourIn == -1)
 			{
@@ -749,6 +754,8 @@
 
 			if (StrLen(subTextIn))
 			This.subText :=  This.ValidateText(subTextIn)
+			else
+			This.subText := ""
 
 			if (subBkgdColourIn == -1)
 			{
@@ -810,7 +817,7 @@
 		}
 
 
-		if (This.GetPicWH())
+		if (diffPicOrDiffDims := This.GetPicWH())
 		This.DisplayToggle()
 
 
@@ -937,39 +944,34 @@
 		spr := " "
 			if (This.vCentre)
 			{
-				if (This.vPosX == "D")
+					if (vWinW < A_ScreenWidth)
+					This.vPosX := (A_ScreenWidth - vWinW)/2
+					else
+					This.vPosX := 0
+					if (vWinH < A_ScreenHeight)
+					This.vPosY := (A_ScreenHeight - vWinH)/2
+					else
+					This.vPosY := 0
+			}
+			else
+			{
+				if (This.vPosX == "")
 				{
 					if (vWinW < A_ScreenWidth)
 					This.vPosX := (A_ScreenWidth - vWinW)/2
 					else
 					This.vPosX := 0
 				}
-				if (This.vPosY == "D")
+				if (This.vPosY == "")
 				{
 					if (vWinH < A_ScreenHeight)
 					This.vPosY := (A_ScreenHeight - vWinH)/2
 					else
 					This.vPosY := 0
 				}
-			spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
 			}
-			else
-			{
-				if (This.vPosX == "D" && This.vPosX == "D")
-				spr .= Format("W{} H{}", vWinW, vWinH)
-				else
-				{
-					if (This.vPosX != "D" && This.vPosY == "D")
-					spr .= Format(" X{} W{} H{}", This.vPosX, vWinW, vWinH)
-					else
-					{
-						if (This.vPosX == "D")
-						spr .= Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
-						else
-						spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
-					}
-				}
-			}
+		spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+
 
 		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
