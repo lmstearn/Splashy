@@ -835,10 +835,12 @@
 			msgbox, 8208, LoadLibrary, Critical GDIPLUS error!
 
 		;WS_DLGFRAME := 0x400000
-		Gui, Splashy: New, % "+OwnDialogs +ToolWindow -Caption " . ((This.vBorder)? ((This.vBorder == "B")? "+Border ": "+0x400000 "): "")
+		Gui, Splashy: New, +OwnDialogs +ToolWindow -Caption
 		This.BindWndProc()
 		}
 
+	; Set borders: -0x800000 is not sufficient to remove them.
+	Gui, % "Splashy: " . ((This.vBorder)? ((This.vBorder == "B")? "+Border ": "+0x400000 "): "-0xC00000")
 	Gui, Splashy: Color, % This.bkgdColour
 
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
@@ -1014,7 +1016,7 @@
 		This.hWndSaved := spr
 		DetectHiddenWindows, Off
 		}
-	Return This.hWndSaved
+	return This.hWndSaved
 	}
 
 	vMovable
@@ -2328,9 +2330,9 @@ launchStr := {}
 				}
 			}
 		}
-	if (fnParms["ImagePath"] == "*")
-	launchStr["ImagePath"] := "*"
 	}
+
+spr := launchStr["vBorder"]
 
 %SplashyRef%(Splashy, launchStr*)
 
