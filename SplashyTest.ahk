@@ -43,6 +43,7 @@
 	Static vImgY := 0
 	Static inputVImgW := 0
 	Static inputVImgH := 0
+	Static voldBorder := 0
 	Static vImgW := 0
 	Static vImgH := 0
 	Static oldVImgW := 0
@@ -590,7 +591,19 @@
 	; also consider transparency
 	*/
 	{
-	vWinW := 0, vWinH := 0, diffPicOrDiffDims := 0
+	vWinW := 0, vWinH := 0
+
+	; Determines redraw of Splashy window
+	diffPicOrDiffDims := 0
+	; Border constants
+	WS_DLGFRAME := 0x400000
+	WS_CAPTION := 0xC00000
+	WS_EX_WINDOWEDGE := 0x100
+	WS_EX_STATICEDGE := 0x20000
+	WS_EX_CLIENTEDGE := 0x200
+	WS_EX_DLGMODALFRAME := 0x1
+
+
 	This.userWorkingDir := A_WorkingDir
 	SetWorkingDir %A_ScriptDir% ; else use full path for 
 
@@ -839,10 +852,31 @@
 		This.BindWndProc()
 		}
 
-	; Set borders: -0x800000 is not sufficient to remove them.
-	Gui, % "Splashy: " . ((This.vBorder)? ((This.vBorder == "B")? "+Border ": "+0x400000 "): "-0xC00000")
-	Gui, Splashy: Color, % This.bkgdColour
+		; Set borders:
+		if (This.voldBorder != This.vBorder && (This.voldBorder || This.vBorder)) ; null or zero
+		{
+		; -0x800000 is not sufficient to remove the standard borders.
+		Gui, Splashy: -%WS_CAPTION% -E%WS_EX_WINDOWEDGE% -E%WS_EX_STATICEDGE% -E%WS_EX_CLIENTEDGE% -E%WS_EX_DLGMODALFRAME%
+			if (This.vBorder)
+			{
+				if (InStr(This.vBorder, "W") || InStr(This.vBorder, "S") || InStr(This.vBorder, "C") || InStr(This.vBorder, "D"))
+				{
+				if (InStr(This.vBorder, "W"))
+				Gui, Splashy: +E%WS_EX_WINDOWEDGE%
+				if (InStr(This.vBorder, "S"))
+				Gui, Splashy: +E%WS_EX_STATICEDGE%
+				if (InStr(This.vBorder, "C"))
+				Gui, Splashy: +E%WS_EX_CLIENTEDGE%
+				if (InStr(This.vBorder, "D"))
+				Gui, Splashy: +E%WS_EX_DLGMODALFRAME%
+				}
+				else
+				Gui, % "Splashy: " . ((This.vBorder == "B" || This.vBorder == "b")? "+Border": "+" . WS_DLGFRAME)
+			}
+		This.voldBorder := This.vBorder
+		}
 
+	Gui, Splashy: Color, % This.bkgdColour
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
 	vWinW := This.vImgW + 2 * This.vMgnX
 	vWinH := This.vImgH + 2 * This.vMgnY
@@ -2331,8 +2365,6 @@ launchStr := {}
 			}
 		}
 	}
-
-spr := launchStr["vBorder"]
 
 %SplashyRef%(Splashy, launchStr*)
 
