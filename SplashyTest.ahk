@@ -847,7 +847,7 @@
 			else
 			msgbox, 8208, LoadLibrary, Critical GDIPLUS error!
 
-		;WS_DLGFRAME := 0x400000
+		;Create Splashy window
 		Gui, Splashy: New, +OwnDialogs +ToolWindow -Caption
 		This.BindWndProc()
 		}
@@ -980,14 +980,15 @@
 		spr := " "
 			if (This.vCentre)
 			{
-					if (vWinW < A_ScreenWidth)
-					This.vPosX := (A_ScreenWidth - vWinW)/2
-					else
-					This.vPosX := 0
-					if (vWinH < A_ScreenHeight)
-					This.vPosY := (A_ScreenHeight - vWinH)/2
-					else
-					This.vPosY := 0
+				if (vWinW < A_ScreenWidth)
+				This.vPosX := (A_ScreenWidth - vWinW)/2
+				else
+				This.vPosX := 0
+
+				if (vWinH < A_ScreenHeight)
+				This.vPosY := (A_ScreenHeight - vWinH)/2
+				else
+				This.vPosY := 0
 			}
 			else
 			{
@@ -1557,11 +1558,7 @@
 
 			if (InStr(This.imagePath, "*"))
 			{
-				;if (!This.hIcon)
-				{
-				; This.hBitmap := This.Create_Lily_jpg()
-				This.vImgType := 1
-				}
+			This.vImgType := 1
 			return
 			}
 			else
@@ -1603,6 +1600,8 @@
 		SplitPath % This.imagePath, spr
 		This.ImageName := spr
 		}
+		else
+		This.oldImagePath := ""
 
 		; Fail, so download
 
@@ -1685,7 +1684,6 @@
 	spr1 := Format("W{} H{}", This.inputVImgW, This.inputVImgH)
 	else
 	spr1 := ""
-msgbox % " spr " spr " spr1 " spr1 " This.imageUrl " This.imageUrl " This.ImageName " This.ImageName "`nThis.imagePath " This.imagePath " This.oldImagePath " This.oldImagePath
 
 	if (This.imagePath)
 	{
@@ -2406,8 +2404,7 @@ DetectHiddenWindows, Off
 return
 #ifWinActive
 esc::
-%SplashyRef%(Splashy, {release: 1}*)
-exitapp 
+exit()
 return
 
 
@@ -2567,6 +2564,8 @@ move()
 }
 exit()
 {
+	Global
+	%SplashyRef%(Splashy, {release: 1}*)
 	exitapp	
 }
 
