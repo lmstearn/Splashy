@@ -1685,6 +1685,7 @@
 	spr1 := Format("W{} H{}", This.inputVImgW, This.inputVImgH)
 	else
 	spr1 := ""
+msgbox % " spr " spr " spr1 " spr1 " This.imageUrl " This.imageUrl " This.ImageName " This.ImageName "`nThis.imagePath " This.imagePath " This.oldImagePath " This.oldImagePath
 
 	if (This.imagePath)
 	{
@@ -2774,7 +2775,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 11:
 		{
-		InputBox, textIn, Please enter %textIn%,If zero`, No border`,`nelse `"B`" for thin border`, any other value WS_DLGFRAME.
+		InputBox, textIn, Please enter %textIn%,If zero`, No border`, else any combo of extended styles `n`"w`" (WS_EX_WINDOWEDGE)`, `"s`" (WS_EX_STATICEDGE)`,`n`"c`"` (WS_EX_CLIENTEDGE)`, `"d`" (WS_EX_DLGMODALFRAME)`nor for standard styles a `"b`" for a thin border`, else`,`nany other value not mentioned`, WS_DLGFRAME.
 			if (textIn == "" || Errorlevel)
 			return "**Errorlevel**"
 		}
