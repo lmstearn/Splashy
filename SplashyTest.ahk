@@ -2756,7 +2756,6 @@ ImageSourceProc(thisHWnd)
 
 InputProc(thisHWnd, i, textIn, allowZero := 0)
 {
-;spr, ct
 Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 	switch i
 	{
@@ -3012,13 +3011,13 @@ BGR2RGB(Color)
 
 GuiGetSize(thisHWnd, ByRef W, ByRef H)
 {
-		VarSetCapacity(rect, 16, 0)
-		;DllCall("GetWindowRect", "Ptr", thisHWnd, "Ptr", &rect)
-		DllCall("GetClientRect", "Ptr", thisHWnd, "Ptr", &rect)
-		tmp := NumGet(rect, 4, "int")
-		H := NumGet(rect, 12, "int")
-		H := H - tmp
-		tmp := NumGet(rect, 0, "int")
-		W := NumGet(rect, 8, "int")
-		W := W - tmp
+	VarSetCapacity(rect, 16, 0)
+	;DllCall("GetWindowRect", "Ptr", thisHWnd, "Ptr", &rect)
+	DllCall("GetClientRect", "Ptr", thisHWnd, "Ptr", &rect)
+	tmp := NumGet(rect, 4, "int")
+	H := NumGet(rect, 12, "int")
+	H := H - tmp
+	tmp := NumGet(rect, 0, "int")
+	W := NumGet(rect, 8, "int")
+	W := W - tmp
 }
