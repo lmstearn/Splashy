@@ -651,6 +651,7 @@
 		This.vCentre := vCentreIn
 		This.vMovable := vMovableIn
 		This.vBorder := vBorderIn
+		This.vOnTop := vOnTopIn
 
 		This.vPosX := (vPosXIn == "")? vPosXIn: Floor(vPosXIn)
 		This.vPosY := (vPosYIn == "")? vPosYIn: Floor(vPosYIn)
@@ -964,12 +965,11 @@
 			GuiControl, Splashy: Hide, % This.subTextHWnd
 		}
 
+
+
 	Gui, Splashy: Font
-
-
-		if (This.vOnTop)
-		WinSet, AlwaysOnTop, On, % "ahk_id" . This.hWnd()
-
+	; set hWndSaved
+	This.hWnd()
 
 
 
@@ -1012,8 +1012,8 @@
 
 		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
-		DllCall("GetWindowRect", "Ptr", This.hWnd(), "Ptr", &rect)
-		;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWnd() ; fail
+		DllCall("GetWindowRect", "Ptr", This.hWndSaved, "Ptr", &rect)
+		;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWndSaved; fail
 
 		; Supposed to prevent form visibility without picture while loading. Want another approach?
 		Gui, Splashy: Show, % Format("X{} Y{}", -30000, -30000)
@@ -1022,12 +1022,13 @@
 		spr := NumGet(rect, 0, "int")
 		spr1 := NumGet(rect, 4, "int")
 
-		;WinMove, % "ahk_id" . This.hWnd(),, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
+		;WinMove, % "ahk_id" . This.hWndSaved,, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
 
 
 		Gui, Splashy: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
+		WinSet, AlwaysOnTop, % (This.vOnTop)? 1 : 0, % "ahk_id" . This.hWndSaved
 			if (This.transCol && !This.vBorder)
-			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWnd()
+			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWndSaved
 		This.PaintProc(This.hWndSaved)
 		}
 
@@ -1041,68 +1042,6 @@
 	;==========================================================================================================
 	;==========================================================================================================
 
-
-	hWnd()
-	{
-		if (!This.hWndSaved)
-		{
-		DetectHiddenWindows, On
-		Gui, Splashy: +HWNDspr
-		This.hWndSaved := spr
-		DetectHiddenWindows, Off
-		}
-	return This.hWndSaved
-	}
-
-	vMovable
-	{
-		set
-		{
-		This._vMovable := value
-		}
-		get
-		{
-		return This._vMovable
-		}
-	}
-
-	Destroy()
-	{
-	SetWorkingDir %A_ScriptDir%
-		for key, value in % This.downloadedPathNames
-		{
-			if (FileExist(value))
-			FileDelete, % value
-		}
-
-	SetWorkingDir % This.userWorkingDir
-
-	if (not This.vImgType)  ; IMAGE_BITMAP (0) or the ImageType parameter was omitted.
-	DllCall("DeleteObject", "ptr", This.hBitmap)
-	else if (This.vImgType == 1)  ; IMAGE_ICON
-	DllCall("DestroyIcon", "ptr", This.hIcon)
-	else if (This.vImgType == 2)  ; IMAGE_CURSOR
-	DllCall("DestroyCursor", "ptr", This.hIcon)
-
-	This.downloadedPathNames.SetCapacity(0)
-	This.downloadedUrlNames.SetCapacity(0)
-	This.hWndSaved := 0
-	This.mainTextHWnd := 0
-	This.subTextHWnd := 0
-	This.updateFlag := 0
-	Gui, Splashy: Destroy
-	This.BindWndProc(1)
-	This.SubClassTextCtl(0, 1)
-
-	if (This.pToken)
-	DllCall("GdiPlus.dll\GdiplusShutdown", "Ptr", This.pToken)
-	if (This.hGDIPLUS)
-	DllCall("FreeLibrary", "Ptr", This.hGDIPLUS)
-
-	;This.Delete("", chr(255))
-	This.SetCapacity(0)
-	This.base := ""
-	}
 
 	ValidateText(string)
 	{
@@ -1529,8 +1468,7 @@
 
 				if (This.hBitmap)
 				{
-					DllCall("DeleteObject", "ptr", This.hBitmap)
-					This.hBitmap := 0
+					This.DeleteHandles()
 					This.oldPicInScript := 0
 				}
 				else
@@ -1540,10 +1478,7 @@
 						if (This.picInScript)
 						This.oldPicInScript := 1
 						else
-						{
-						DllCall("DestroyIcon", "ptr", This.hIcon)
-						This.hIcon := 0
-						}
+						This.DeleteHandles()
 					}
 				}
 			}
@@ -1719,21 +1654,7 @@
 					}
 				}
 			}
-
-			if (This.hBitmap)
-			{
-			DllCall("DeleteObject", "ptr", This.hBitmap)
-			This.hBitmap := 0
-			}
-			else
-			{
-				if (This.hIcon)
-				{
-				DllCall("DestroyIcon", "ptr", This.hIcon)
-				This.hIcon := 0
-				}
-			}
-
+			This.DeleteHandles()
 		}
 
 	SplitPath % This.imagePath,,, spr
@@ -1790,6 +1711,9 @@
 			This.imagePath := ""
 		}
 	}
+	else
+	This.DeleteHandles()
+
 
 	if (!(This.hBitmap || This.hIcon))
 	{
@@ -1864,89 +1788,89 @@
 	}
 
 	Switch This.vImgType
+	{
+		case 0:
 		{
-			case 0:
-			{
-			VarSetCapacity(bm, ((A_PtrSize == 8)? 32: 24), 0) ;tagBitmap (24: 20) PLUS pointer ref to pBitmap 
-			if (!(DllCall("GetObject", "Ptr", This.hBitmap, "uInt", (A_PtrSize == 8)? 32: 24, "Ptr", &bm)))
-			msgbox, 8208, GetObject hBitmap, Object could not be retrieved!
+		VarSetCapacity(bm, ((A_PtrSize == 8)? 32: 24), 0) ;tagBitmap (24: 20) PLUS pointer ref to pBitmap 
+		if (!(DllCall("GetObject", "Ptr", This.hBitmap, "uInt", (A_PtrSize == 8)? 32: 24, "Ptr", &bm)))
+		msgbox, 8208, GetObject hBitmap, Object could not be retrieved!
 
-			spr := NumGet(bm, 4, "Int")
-			spr1 := NumGet(bm, 8, "Int")
-			VarSetCapacity(bm, 0)
+		spr := NumGet(bm, 4, "Int")
+		spr1 := NumGet(bm, 8, "Int")
+		VarSetCapacity(bm, 0)
+		}
+		case 1, 2:
+		{
+			if (InStr(This.imagePath, "*"))
+			{
+			; Just get header info
+			spr3 := subStr(This.PicInScript, 1, 100)
+			;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=36455&p=168124#p168124
+
+			; CRYPT_STRING_BASE64 := 0x01
+				if !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &spr3, "UInt", 0, "UInt", 0x01, "Ptr", 0, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
+				Return False
+			VarSetCapacity(spr1, 128), VarSetCapacity(spr1, 0), VarSetCapacity(spr1, DecLen, 0)
+				If !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &spr3, "UInt", 0, "UInt", 0x01, "Ptr", &spr1, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
+				Return False
+
+			FileAppend , , spr.bin
+			tmp := FileOpen("spr.bin", "w")
+				if (tmp == 0)
+				return False
+				if (!tmp.RawWrite(&spr1, Declen))
+				return False
+			tmp.Close
+			tmp := FileOpen("spr.bin", "r")
+			VarSetCapacity(spr3, 24)
+				if (!tmp.RawRead(spr3, 24))
+				return False
+
+			tmp.Close
+			FileDelete, spr.bin
+
+			spr := This.BinToHex(&spr3 + 16, 4, "0x")
+			spr1 := This.BinToHex(&spr3 + 20, 4, "0x")
+
+			spr := This.ToBase(spr, 10)
+			spr1 := This.ToBase(spr1, 10)
 			}
-			case 1, 2:
+			else
 			{
-				if (InStr(This.imagePath, "*"))
+			; https://www.autohotkey.com/boards/viewtopic.php?t=36733
+			; easier way to get icon dimensions is use default SM_CXICON, SM_CYICON
+			VarSetCapacity(bm, (A_PtrSize == 8)? 104: 84, 0) ; ICONINFO Structure
+				If (DllCall("GetIconInfo", "Ptr", This.hIcon, "Ptr", &bm))
 				{
-				; Just get header info
-				spr3 := subStr(This.PicInScript, 1, 100)
-				;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=36455&p=168124#p168124
+					ICONINFO.hbmColor := NumGet(bm, (A_PtrSize == 8)? 24: 16, "UPtr")
+					ICONINFO.hbmMask := NumGet(bm, (A_PtrSize == 8)? 16: 12, "UPtr")
 
-				; CRYPT_STRING_BASE64 := 0x01
-					if !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &spr3, "UInt", 0, "UInt", 0x01, "Ptr", 0, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
-					Return False
-				VarSetCapacity(spr1, 128), VarSetCapacity(spr1, 0), VarSetCapacity(spr1, DecLen, 0)
-					If !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &spr3, "UInt", 0, "UInt", 0x01, "Ptr", &spr1, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
-					Return False
-
-				FileAppend , , spr.bin
-				tmp := FileOpen("spr.bin", "w")
-					if (tmp == 0)
-					return False
-					if (!tmp.RawWrite(&spr1, Declen))
-					return False
-				tmp.Close
-				tmp := FileOpen("spr.bin", "r")
-				VarSetCapacity(spr3, 24)
-					if (!tmp.RawRead(spr3, 24))
-					return False
-
-				tmp.Close
-				FileDelete, spr.bin
-
-				spr := This.BinToHex(&spr3 + 16, 4, "0x")
-				spr1 := This.BinToHex(&spr3 + 20, 4, "0x")
-
-				spr := This.ToBase(spr, 10)
-				spr1 := This.ToBase(spr1, 10)
-				}
-				else
-				{
-				; https://www.autohotkey.com/boards/viewtopic.php?t=36733
-				; easier way to get icon dimensions is use default SM_CXICON, SM_CYICON
-				VarSetCapacity(bm, (A_PtrSize == 8)? 104: 84, 0) ; ICONINFO Structure
-					If (DllCall("GetIconInfo", "Ptr", This.hIcon, "Ptr", &bm))
+					if (ICONINFO.hbmColor)
 					{
-						ICONINFO.hbmColor := NumGet(bm, (A_PtrSize == 8)? 24: 16, "UPtr")
-						ICONINFO.hbmMask := NumGet(bm, (A_PtrSize == 8)? 16: 12, "UPtr")
-
-						if (ICONINFO.hbmColor)
-						{
-						DllCall("GetObject", "Ptr", ICONINFO.hbmColor, "Int", (A_PtrSize == 8)? 104: 84, "Ptr",&bm)
-						spr := NumGet(bm, 4, "UInt")
-						spr1 := NumGet(bm, 8, "UInt")
-						This.deleteObject(ICONINFO.hbmColor)
-						}
-						else
-						{
-							if (ICONINFO.hbmMask) ; Colour plane absent
-							{
-							DllCall("GetObject", "Ptr", ICONINFO.hbmMask, "Int", (A_PtrSize == 8)? 104: 84, "Ptr", &bm)
-							spr := NumGet(bm, 4, "UInt")
-							spr1 := NumGet(bm, 8, "UInt")
-							This.deleteObject(ICONINFO.hbmMask)
-							}
-
-						}
+					DllCall("GetObject", "Ptr", ICONINFO.hbmColor, "Int", (A_PtrSize == 8)? 104: 84, "Ptr",&bm)
+					spr := NumGet(bm, 4, "UInt")
+					spr1 := NumGet(bm, 8, "UInt")
+					This.deleteObject(ICONINFO.hbmColor)
 					}
 					else
-					; The fastest way to convert a hBITMAP to hICON is to add it to a hIML and retrieve it back as a hICON with COMCTL32\ImageList_GetIcon()
-					msgbox, 8208, GetIconInfo, Icon info could not be retrieved!
-				VarSetCapacity(bm, 0)
+					{
+						if (ICONINFO.hbmMask) ; Colour plane absent
+						{
+						DllCall("GetObject", "Ptr", ICONINFO.hbmMask, "Int", (A_PtrSize == 8)? 104: 84, "Ptr", &bm)
+						spr := NumGet(bm, 4, "UInt")
+						spr1 := NumGet(bm, 8, "UInt")
+						This.deleteObject(ICONINFO.hbmMask)
+						}
+
+					}
 				}
+				else
+				; The fastest way to convert a hBITMAP to hICON is to add it to a hIML and retrieve it back as a hICON with COMCTL32\ImageList_GetIcon()
+				msgbox, 8208, GetIconInfo, Icon info could not be retrieved!
+			VarSetCapacity(bm, 0)
 			}
 		}
+	}
 
 	This.actualVImgW := spr
 	This.actualVImgH := spr1
@@ -2078,6 +2002,29 @@
 	Return hICON
 	}
 
+	vMovable
+	{
+		set
+		{
+		This._vMovable := value
+		}
+		get
+		{
+		return This._vMovable
+		}
+	}
+	hWnd()
+	{
+		if (!This.hWndSaved)
+		{
+		DetectHiddenWindows, On
+		Gui, Splashy: +HWNDspr
+		This.hWndSaved := spr
+		DetectHiddenWindows, Off
+		}
+	return This.hWndSaved
+	}
+
 	selectObject(hDC, hgdiobj)
 	{
 	static HGDI_ERROR := 0xFFFFFFFF
@@ -2101,6 +2048,61 @@
 	{
 		if !DllCall("ReleaseDC", "UPtr", hWnd, "UPtr", hDC)
 		msgbox, 8208, Device Context, % "Release failed `nError code is: " . "ErrorLevel " ErrorLevel ": " . A_LastError
+	}
+
+	Destroy()
+	{
+	SetWorkingDir %A_ScriptDir%
+		for key, value in % This.downloadedPathNames
+		{
+			if (FileExist(value))
+			FileDelete, % value
+		}
+
+	SetWorkingDir % This.userWorkingDir
+
+	if (not This.vImgType)  ; IMAGE_BITMAP (0) or the ImageType parameter was omitted.
+	DllCall("DeleteObject", "ptr", This.hBitmap)
+	else if (This.vImgType == 1)  ; IMAGE_ICON
+	DllCall("DestroyIcon", "ptr", This.hIcon)
+	else if (This.vImgType == 2)  ; IMAGE_CURSOR
+	DllCall("DestroyCursor", "ptr", This.hIcon)
+
+	This.downloadedPathNames.SetCapacity(0)
+	This.downloadedUrlNames.SetCapacity(0)
+	This.hWndSaved := 0
+	This.mainTextHWnd := 0
+	This.subTextHWnd := 0
+	This.updateFlag := 0
+	Gui, Splashy: Destroy
+	This.BindWndProc(1)
+	This.SubClassTextCtl(0, 1)
+
+	if (This.pToken)
+	DllCall("GdiPlus.dll\GdiplusShutdown", "Ptr", This.pToken)
+	if (This.hGDIPLUS)
+	DllCall("FreeLibrary", "Ptr", This.hGDIPLUS)
+
+	;This.Delete("", chr(255))
+	This.SetCapacity(0)
+	This.base := ""
+	}
+
+	DeleteHandles()
+	{
+		if (This.hBitmap)
+		{
+		DllCall("DeleteObject", "ptr", This.hBitmap)
+		This.hBitmap := 0
+		}
+		else
+		{
+			if (This.hIcon)
+			{
+			DllCall("DestroyIcon", "ptr", This.hIcon)
+			This.hIcon := 0
+			}
+		}
 	}
 	; ##################################################################################
 }
@@ -2238,7 +2240,7 @@ gui, Test: show, % "W" . sprx + sprw . " H" . spry + ySep * 2 + sprh
 return
 
 LaunchSplashy:
-
+vRepaintSplashy := 0
 launchStr := {}
 
 
@@ -2370,18 +2372,22 @@ launchStr := {}
 return
 RepaintSplashy:
 Gui Test: +OwnDialogs
-	if (Splashy.vHide)
-	WinShow % "ahk_id" Splashy.hWndSaved
-	else ; This probably posts a WM_PAINT- will we get there first?
-	WinSet, Top, , % "ahk_id" Splashy.hWndSaved
-
-; Possible use for compilations or Splashy in separate script
-WinGet, spr, ID, A
-WinGetClass, vWinClass, % "ahk_id " spr
-	if (vWinClass != "AutoHotkeyGUI")
-	return
-Splashy.PaintProc()
-
+vRepaintSplashy := 1
+	if (!(Splashy.vHide))
+	{
+	; Possible use for compilations or Splashy in separate script
+	WinGet, spr, ID, A
+	WinGetClass, vWinClass, % "ahk_id " spr
+		if (vWinClass != "AutoHotkeyGUI")
+		return
+	; This probably posts a WM_PAINT- will we get there first?
+		if (!(Splashy.vOnTop))
+		{
+		WinSet, AlwaysOnTop, 1, % "ahk_id" . Splashy.hWndSaved
+		WinSet, AlwaysOnTop, 0, % "ahk_id" . Splashy.hWndSaved
+		}
+	Splashy.PaintProc()
+	}
 return
 
 Testguiclose:
@@ -2546,7 +2552,17 @@ WM_LBUTTONDOWN()
 {
 Global
 WinGet, spr, ID, A
-	if (spr != thisHWnd)
+	if (spr == thisHWnd)
+	{
+		if (vRepaintSplashy)
+		{
+		WinSet, AlwaysOnTop, 1, % "ahk_id" . thisHWnd
+		WinSet, AlwaysOnTop, 0, % "ahk_id" . thisHWnd
+		vRepaintSplashy := 0
+		return
+		}
+	}
+	else
 	return
 
 	if (WinExist(, Splashy Sandbox))
