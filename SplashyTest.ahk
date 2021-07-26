@@ -60,7 +60,7 @@
 	Static bkgdColour := ""
 	Static transCol := 0
 	Static noHWndActivate := ""
-	Static vCentre := 1
+	Static vCentre := 0
 	Static vBorder := 0
 	Static vOnTop := 0
 
@@ -124,7 +124,7 @@
 	transColOut := ""
 	vHideOut := 0
 	noHWndActivateOut := ""
-	vCentreOut := 1
+	vCentreOut := 0
 	vMovableOut := 0
 	vBorderOut := ""
 	vOnTopOut := 0
@@ -248,7 +248,7 @@
 				Case "vCentre":
 				{
 					if (This.updateFlag > 0)
-					This.Centre := Value
+					This.vCentre := Value
 					else
 					vCentreOut := Value
 				}
@@ -1010,6 +1010,7 @@
 		spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
 
 
+		Gui, Splashy: +DPIScale
 		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
 		DllCall("GetWindowRect", "Ptr", This.hWndSaved, "Ptr", &rect)
@@ -1021,7 +1022,7 @@
 
 		spr := NumGet(rect, 0, "int")
 		spr1 := NumGet(rect, 4, "int")
-
+		Gui, Splashy: -DPIScale
 		;WinMove, % "ahk_id" . This.hWndSaved,, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
 
 
