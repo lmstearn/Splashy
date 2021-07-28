@@ -1010,7 +1010,7 @@
 		spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
 
 
-		Gui, Splashy: +DPIScale
+		Gui, Splashy: -DPIScale
 		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
 		DllCall("GetWindowRect", "Ptr", This.hWndSaved, "Ptr", &rect)
@@ -1022,7 +1022,7 @@
 
 		spr := NumGet(rect, 0, "int")
 		spr1 := NumGet(rect, 4, "int")
-		Gui, Splashy: -DPIScale
+		Gui, Splashy: +DPIScale
 		;WinMove, % "ahk_id" . This.hWndSaved,, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
 
 
@@ -2709,7 +2709,7 @@ ImageSourceProc(thisHWnd)
 	static imgRet, acceptDlg := 0, recFontTog := 0
 
 	gui, ImageSourceDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox HWNDhWndImageSourceDlg
-	gui, ImageSourceDlg: add, button, section gGuiImageSourceDlgInternalImage vGuiImageSourceDlgInternalImage, Internal Image
+	gui, ImageSourceDlg: add, button, section gGuiImageSourceDlgInternalImage vGuiImageSourceDlgInternalImage, Embedded Image
 	gui, ImageSourceDlg: add, button, ys gGuiImageSourceDlgImagePath, ImagePath
 	gui, ImageSourceDlg: add, button, ys gGuiImageSourceDlgAccept, Accept
 	gui, ImageSourceDlg: add, edit, ys vGuiImageSourceDlgImageRet vGuiImageSourceDlgImageRet w%xSep%
