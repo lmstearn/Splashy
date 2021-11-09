@@ -592,16 +592,12 @@
 	*/
 	{
 	vWinW := 0, vWinH := 0
-
-	; Determines redraw of Splashy window
-	diffPicOrDiffDims := 0
 	; Border constants
-	WS_DLGFRAME := 0x400000
-	WS_CAPTION := 0xC00000
-	WS_EX_WINDOWEDGE := 0x100
-	WS_EX_STATICEDGE := 0x20000
-	WS_EX_CLIENTEDGE := 0x200
-	WS_EX_DLGMODALFRAME := 0x1
+	Static WS_DLGFRAME := 0x400000, WS_CAPTION := 0xC00000
+	Static WS_EX_WINDOWEDGE := 0x100, WS_EX_STATICEDGE := 0x20000, WS_EX_CLIENTEDGE := 0x200, 	WS_EX_DLGMODALFRAME := 0x1
+
+	; Determines redraw of Splashy window (placeholder)
+	diffPicOrDiffDims := 0
 
 
 	This.userWorkingDir := A_WorkingDir
@@ -836,19 +832,25 @@
 
 
 	DetectHiddenWindows On
+
 		if (!This.hWndSaved)
 		{
-			if (This.hGDIPLUS := DllCall("LoadLibrary", "Str", "GdiPlus.dll", "Ptr"))
+			if (!This.hGDIPLUS)
 			{
-			VarSetCapacity(SI, 24, 0), Numput(1, SI, 0, "Int")
-			DllCall("GdiPlus.dll\GdiplusStartup", "UPtr*", spr, "Ptr", &SI, "Ptr", 0)
-			; for return value see status enumeration in  gdiplustypes.h 
-			This.pToken := spr
+				if (This.hGDIPLUS := DllCall("LoadLibrary", "Str", "GdiPlus.dll", "Ptr"))
+				{
+				VarSetCapacity(SI, 24, 0), Numput(1, SI, 0, "Int")
+				DllCall("GdiPlus.dll\GdiplusStartup", "UPtr*", spr, "Ptr", &SI, "Ptr", 0)
+				; for return value see status enumeration in  gdiplustypes.h 
+				This.pToken := spr
+				}
+				else
+				msgbox, 8208, LoadLibrary, Critical GDIPLUS error!
 			}
-			else
-			msgbox, 8208, LoadLibrary, Critical GDIPLUS error!
 
 		;Create Splashy window
+
+		This.BindWndProc(1)
 		Gui, Splashy: New, +OwnDialogs +ToolWindow -Caption
 		This.BindWndProc()
 		}
@@ -887,12 +889,12 @@
 		{
 		Gui, Splashy: Font, % "norm s" . This.mainFontSize . " w" . This.mainFontWeight . " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
 
-		if (This.mainTextHWnd)
+			if (spr := This.mainTextHWnd)
 			{
-			GuiControl, Splashy: Text, % This.mainTextHWnd, % This.mainText
-			GuiControl, Splashy: Font, % This.mainTextHWnd
-			This.mainTextSize := This.Text_height(This.mainText, This.mainTextHWnd)
-			GuiControl, Splashy: Move, % This.mainTextHWnd, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . This.mainTextSize[2]
+			GuiControl, Splashy: Text, %spr%, % This.mainText
+			GuiControl, Splashy: Font, %spr%
+			This.mainTextSize := This.Text_height(This.mainText, spr)
+			GuiControl, Splashy: Move, %spr%, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . This.mainTextSize[2]
 			This.vImgY += This.mainTextSize[2]
 			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
 			; This sends more paint messages to parent
@@ -903,17 +905,18 @@
 			Gui, Splashy: Add, Text, % "Center W" . This.vImgW . " Y" . This.vMgnY . " HWND" . "spr", % This.mainText
 			This.mainTextHWnd := spr
 			; initial pos can be a bit off 
-			ControlGetPos, , , spr, , , % "ahk_id" . This.mainTextHWnd
-			spr := This.vImgX + This.vImgW/2 - spr/2
-			GuiControl, Splashy: Move, % This.mainTextHWnd, x%spr%
-			GuiControl, Splashy: Font, % This.mainTextHWnd
-			This.mainTextSize := This.Text_height(This.mainText, This.mainTextHWnd)
+			ControlGetPos, , , spr1, , , % "ahk_id" . spr
+			spr1 := This.vImgX + This.vImgW/2 - spr1/2
+			GuiControl, Splashy: Move, %spr%, x%spr1%
+			GuiControl, Splashy: Font, %spr%
+
+			This.mainTextSize := This.Text_height(This.mainText, spr)
 			This.vImgY += This.mainTextSize[2]
 			}
 
 			if (This.transCol)
 			This.mainBkgdColour := This.ValidateColour(This.bkgdColour, 1)
-		This.SubClassTextCtl(This.mainTextHWnd)
+		This.SubClassTextCtl(spr)
 
 		vWinH += This.vImgY
 
@@ -932,23 +935,23 @@
 		spr := This.vImgH + This.vImgY + This.vMgnY
 
 
-			if (This.subTextHWnd)
+			if (spr1 := This.subTextHWnd)
 			{
-			GuiControl, Splashy: Text, % This.subTextHWnd, % This.subText
+			GuiControl, Splashy: Text, %spr1%, % This.subText
 
-			This.subTextSize := This.Text_height(This.subText, This.subTextHWnd)
+			This.subTextSize := This.Text_height(This.subText, spr1)
 			vWinH += This.subTextSize[2]
 			
-			GuiControl, Splashy: Font, % This.subTextHWnd
-			GuiControl, Splashy: Move, % This.subTextHWnd, % "X" . This.vMgnX . " Y" . spr . " W" . This.vImgW . " H" . This.subTextSize[2]
+			GuiControl, Splashy: Font, %spr1%
+			GuiControl, Splashy: Move, %spr1%, % "X" . This.vMgnX . " Y" . spr . " W" . This.vImgW . " H" . This.subTextSize[2]
 			
 			}
 			else
 			{
 			Gui, Splashy: Add, Text, % "xp Center W" . This.vImgW . " Y" . spr . " HWND" . "spr1", % This.subText
 			This.subTextHWnd := spr1
-			This.subTextSize := This.Text_height(This.subText, This.subTextHWnd)
-			ControlGetPos, , , spr1, , , % "ahk_id" . This.subTextHWnd
+			This.subTextSize := This.Text_height(This.subText, spr1)
+			ControlGetPos, , , spr1, , , % "ahk_id" . spr
 			spr1 := This.vImgX + This.vImgW/2 - spr1/2
 			GuiControl, Splashy: Move, % This.subTextHWnd, % "X" . spr1 . " H" . This.subTextSize[2]
 			GuiControl, Splashy: Font, % This.subTextHWnd
@@ -968,13 +971,11 @@
 
 
 	Gui, Splashy: Font
-	; set hWndSaved
-	This.hWnd()
 
 
-
+		; now set hWndSaved in hWnd()
 		if (This.vHide)
-		WinHide % "ahk_id" This.hWndSaved
+		WinHide % "ahk_id" This.hWnd()
 		else
 		{
 		spr := " "
@@ -1013,8 +1014,8 @@
 		Gui, Splashy: -DPIScale
 		Gui, Splashy: Show, Hide %spr%
 		VarSetCapacity(rect, 16, 0)
-		DllCall("GetWindowRect", "Ptr", This.hWndSaved, "Ptr", &rect)
-		;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWndSaved; fail
+		DllCall("GetWindowRect", "Ptr", This.hWnd(), "Ptr", &rect)
+		;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWnd(); fail
 
 		; Supposed to prevent form visibility without picture while loading. Want another approach?
 		Gui, Splashy: Show, % Format("X{} Y{}", -30000, -30000)
@@ -1023,14 +1024,14 @@
 		spr := NumGet(rect, 0, "int")
 		spr1 := NumGet(rect, 4, "int")
 		Gui, Splashy: +DPIScale
-		;WinMove, % "ahk_id" . This.hWndSaved,, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
+		;WinMove, % "ahk_id" . This.hWnd(),, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
 
 
 		Gui, Splashy: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
-		WinSet, AlwaysOnTop, % (This.vOnTop)? 1 : 0, % "ahk_id" . This.hWndSaved
+		WinSet, AlwaysOnTop, % (This.vOnTop)? 1 : 0, % "ahk_id" . This.hWnd()
 			if (This.transCol && !This.vBorder)
-			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWndSaved
-		This.PaintProc(This.hWndSaved)
+			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWnd()
+		This.PaintProc(This.hWnd())
 		}
 
 
@@ -1348,7 +1349,7 @@
 			DllCall("User32.dll\EndPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr")
 		}
 		else
-		msgbox, 8208, PAINSTRUCT, Cannot paint!
+		msgbox, 8208, PAINTSTRUCT, Cannot paint!
 
 	}
 
@@ -1946,7 +1947,8 @@
 
 	Text_height(Text, hWnd)
 	{
-	FontSize := 0, hDCScreen := 0, outSize := [0, 0]
+	Static WM_GETFONT := 0x0031
+	FontSize := [], hDCScreen := 0, outSize := [0, 0]
 	;https://www.autohotkey.com/boards/viewtopic.php?f=76&t=9130&p=50713#p50713
 
 	StrReplace(Text, "`r`n", "`r`n", spr1)
@@ -1960,8 +1962,9 @@
 		spr2 := A_Loopfield
 		}
 
-	HFONT := DllCall("User32.dll\SendMessage", "Ptr", hWnd, "Int", 0x31, "Ptr", 0, "Ptr", 0) ; WM_GETFONT := 0x31
+	HFONT := DllCall("User32.dll\SendMessage", "Ptr", hWnd, "Int", WM_GETFONT, "Ptr", 0, "Ptr", 0)
 	hDCScreen := DllCall("user32\GetDC", "Ptr", 0, "Ptr")
+
 		if (HFONT_OLD := This.selectObject(hDCScreen, HFONT))
 		{
 
@@ -1977,6 +1980,7 @@
 		; If not created, DeleteObject NOT required for This HFONT
 
 		This.releaseDC(0, hDCScreen)
+		VarSetCapacity(FontSize, 0)
 		return outSize
 		}
 		else
@@ -2016,14 +2020,15 @@
 	}
 	hWnd()
 	{
-		if (!This.hWndSaved)
+
+		if (!(spr := This.hWndSaved))
 		{
 		DetectHiddenWindows, On
 		Gui, Splashy: +HWNDspr
 		This.hWndSaved := spr
 		DetectHiddenWindows, Off
 		}
-	return This.hWndSaved
+	return spr
 	}
 
 	selectObject(hDC, hgdiobj)
@@ -2107,3 +2112,4 @@
 	}
 	; ##################################################################################
 }
+;=====================================================================================
