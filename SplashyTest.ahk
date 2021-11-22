@@ -233,9 +233,7 @@
 						;return ;uncomment This line and the window will be blank
 
 							if (vDoDrawImg)
-							{
 							Splashy.PaintDC()
-							}
 							else
 							Sleep, -1
 
@@ -391,54 +389,56 @@
 		if (argList.HasKey("instance"))
 		{
 			key := argList["instance"]
-			key := (key)? Floor(key): 1
-
-			if (This.hWndSaved[key])
-			This.instance := key
-			else
+			if ((key := Floor(key)))
 			{
-				if (key < 0)
-				{
-				key := -key
-					if (!This.hWndSaved[key])
-					return
-				;WinClose, % "ahk_id " This.hWndSaved[This.instance]
-				This.hWndSaved[key] := 0
-				This.mainTextHWnd[key] := 0
-				This.subTextHWnd[key] := 0
-				spr := "Splashy" . key
-				Gui, %spr%: Destroy
-				Splashy.NewWndProc.clbk[key] := ""
-				;Now reset This.instance for next call
-					if (This.hWndSaved.Length() == 1)
-					This.instance := 0
-					else
-					{
-						if (This.hWndSaved.Length() == key)
-						This.instance -= 1
-						else
-						This.instance := This.hWndSaved.MaxIndex()
-					}
-				return
-				}
+				if (This.hWndSaved[key])
+				This.instance := key
 				else
 				{
-				;find spare slot
-				spr := 0
-					for key in This.hWndSaved
+					if (key < 0)
 					{
+					key := -key
 						if (This.hWndSaved[key])
-						Continue
-						else
 						{
-						; found spare slot
-						This.instance := spr := key
-						Break
+						;WinClose, % "ahk_id " This.hWndSaved[This.instance]
+						This.hWndSaved[key] := 0
+						This.mainTextHWnd[key] := 0
+						This.subTextHWnd[key] := 0
+						spr := "Splashy" . key
+						Gui, %spr%: Destroy
+						Splashy.NewWndProc.clbk[key] := ""
+						;Now reset This.instance for next call
+							if (This.hWndSaved.Length() == 1)
+							This.instance := 0
+							else
+							{
+								if (This.hWndSaved.Length() == key)
+								This.instance -= 1
+								else
+								This.instance := This.hWndSaved.MaxIndex()
+							}
+						return
 						}
 					}
-				; else it's a packed array
-				if (!spr)
-				This.instance := This.hWndSaved.Length() + 1
+					else
+					{
+					;find spare slot
+					spr := 0
+						for key in This.hWndSaved
+						{
+							if (This.hWndSaved[key])
+							Continue
+							else
+							{
+							; found spare slot
+							This.instance := spr := key
+							Break
+							}
+						}
+					; else it's a packed array
+					if (!spr)
+					This.instance := This.hWndSaved.Length() + 1
+					}
 				}
 			}
 		}
@@ -2264,7 +2264,7 @@ While r++ < rows {
 
 gui, Test: font, s12 bold
 
-txt:=[	"initSplash"		, "release"			, "instance"		, ""
+txt:=[	"initSplash"		, "instance"			, "release"		, ""
 ,		"imagePath"			, "imageUrl"		, "bkgdColour"		, "transCol"
 ,		"vHide"				, "noHWndActivate"	, "vCentre"			, "vMovable"
 ,		"vBorder"			, "vOnTop"			, "vPosX"			, "vPosY"
@@ -2312,11 +2312,11 @@ vRepaintSplashy := 0
 launchStr := {}
 
 
-	if (ctlTogs[2] && fnParms[txt[2]])
+	if (ctlTogs[3] && fnParms[txt[3]])
 	{
 	GuiControl, Test: Disable, repaintSplashy
 	GuiControl, Test:, launchSplashy, Click to Launch
-	launchStr[txt[2]] := 1
+	launchStr[txt[3]] := 1
 	; reset all controls
 		loop, 44 ; number of SplashyTest control fields
 		{
@@ -2358,7 +2358,7 @@ launchStr := {}
 				GuiControl, Test:, %spr%, % txt[1]
 				GuiControl, Test:+cgray, %spr%
 				}
-				case 3:
+				case 2:
 				{
 				spr := "1_3"
 				GuiControl, Test:, %spr%, %BTOFF%
@@ -2411,7 +2411,7 @@ launchStr := {}
 					if (!c)
 					c := 4
 				spr := c . "_" . r
-					if (A_Index == 3)
+					if (A_Index == 2)
 					{
 					GuiControl, Test:, %spr%, %BTOFF%
 					GuiControl, Test: movedraw, %spr%, 0
@@ -2433,14 +2433,14 @@ launchStr := {}
 				{
 					case 1:
 					Continue
-					case 3:
+					case 2:
 					{
-						if (fnParms[txt[3]])
+						if (fnParms[txt[2]])
 						{
-						launchStr[txt[3]] := fnParms[txt[3]]
-						ctlTogsOld[3] := 1
-						ctlTogs[3] := 1
-						fnParms[txt[3]] := ""
+						launchStr[txt[2]] := fnParms[txt[2]]
+						ctlTogsOld[2] := 1
+						ctlTogs[2] := 1
+						fnParms[txt[2]] := ""
 						}
 					}
 					case 5, 6, 21, 33:
@@ -2471,7 +2471,7 @@ launchStr := {}
 
 sleep, 1
 
-	if (ctlTogs[2] && fnParms[txt[2]])
+	if (ctlTogs[3] && fnParms[txt[3]])
 	{
 		for spr in ctlTogs
 		{
@@ -2568,7 +2568,7 @@ i := c + 4 * (r - 1)
 			}
 		}		
 	}
-	case 2, 6, 26, 27, 38, 39:
+	case 3, 6, 26, 27, 38, 39:
 	{
 		if (%out%)
 		{
@@ -2612,18 +2612,18 @@ i := c + 4 * (r - 1)
 			{
 			fnParms[txt[i]] := spr
 			ctlTogs[i] := 2
-				if (i == 3) ; instance
-				ctlTogsOld[3] := 1			
+				if (i == 2) ; instance
+				ctlTogsOld[2] := 1			
 			}
 		}
 		else
 		{
 		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-			if (i == 3) ; instance
+			if (i == 2) ; instance
 			{
-			GuiControl, Test:, % "t_" A_Guicontrol, % txt[3]
-			fnParms[txt[3]] := 0
-			ctlTogs[3] := 2			
+			GuiControl, Test:, % "t_" A_Guicontrol, % txt[2]
+			fnParms[txt[2]] := 0
+			ctlTogs[2] := 2			
 			}
 			else
 			{
@@ -2886,7 +2886,7 @@ InputProc(thisHWnd, i, textIn, allowZero := 0)
 Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 	switch i
 	{
-		case 1, 2, 8, 9, 10, 11, 12, 14, 30, 31, 32, 42, 43, 44:
+		case 1, 3, 8, 9, 10, 11, 12, 14, 30, 31, 32, 42, 43, 44:
 		return 1
 		case 7, 22, 28, 34, 40:
 		{
@@ -2912,6 +2912,12 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		case 5:
 		{
 			if (!(textIn := ImageSourceProc(thisHWnd)))
+			return "**Errorlevel**"
+		}
+		case 2:
+		{
+		InputBox, textIn, Please enter %textIn%,If parameter corresponds to a current active instance`,`nparameter updates will be directed toward that image.`nIf that parameter is negative`, the image is destroyed.`nElse a new image is created.
+			if (!textIn || Errorlevel)
 			return "**Errorlevel**"
 		}
 		case 13:
