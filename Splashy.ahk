@@ -641,9 +641,9 @@
 							{
 							This.oldVImgH := This.vImgH
 								if (This.updateFlag > 0)
-								This.inputVImgH := A_ScreenWidth * value
+								This.inputVImgH := A_ScreenHeight * value
 								else
-								vImgHOut := A_ScreenWidth * value
+								vImgHOut := A_ScreenHeight * value
 							}
 							else
 							This.inputVImgH := 0
