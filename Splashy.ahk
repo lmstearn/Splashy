@@ -924,7 +924,7 @@
 		{
 		;Set defaults
 
-		This.parent := parentOutIn
+		This.parent := parentIn
 
 			if (StrLen(imagePathIn))
 			This.imagePath := imagePathIn

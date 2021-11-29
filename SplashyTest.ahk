@@ -471,7 +471,7 @@
 				spr := WinExist()
 					if (!(This.parentHWnd := WinExist("ahk_class AutoHotkeyGUI")))
 					{
-						; e.g. SplashyTest launches this from a gui thread
+						; e.g. SplashyTest launches this from a gui threads
 						if (spr != This.parentHWnd)
 						msgbox, 8192 , Parent Script, Warning: Parent script is not AHK, or !
 					}
@@ -924,7 +924,7 @@
 		{
 		;Set defaults
 
-		This.parent := parentOutIn
+		This.parent := parentIn
 
 			if (StrLen(imagePathIn))
 			This.imagePath := imagePathIn
@@ -2292,8 +2292,10 @@ gui, Test: +resize -caption -DPIScale HWNDthisHWnd
 fnParms := []
 ctlTogs := [] ; 1: zero/null in list 2: removed from class
 ctlTogsOld := []
+removed := []
 	loop, 44
 	{
+	removed[A_Index] := 0
 	ctlTogs[A_Index] := 0
 	ctlTogsOld[A_Index] := 0
 	}
@@ -2392,6 +2394,7 @@ launchStr := {}
 			{
 			ctlTogs[A_Index] := 0
 			ctlTogsOld[A_Index] := 0
+			removed[A_Index] := 0
 			c := mod(A_Index, 4)
 			r := floor(A_Index/4) + (c? 1: 0)
 				if (!c)
@@ -2424,7 +2427,7 @@ launchStr := {}
 				GuiControl, Test: movedraw, %spr%, 0
 				spr := "t_" . spr
 				GuiControl, Test:, %spr%, % txt[1]
-				GuiControl, Test:+cgray, %spr%
+				GuiControl, Test: +cgray, %spr%
 				}
 				case 4:
 				{
@@ -2433,11 +2436,11 @@ launchStr := {}
 				GuiControl, Test: movedraw, %spr%, 0
 				spr := "t_" . spr
 				GuiControl, Test:, %spr%, % txt[4]
-				GuiControl, Test:+cgray, %spr%
+				GuiControl, Test: +cgray, %spr%
 				}
 				Default:
 				{
-					if (ctlTogsOld[A_Index])
+					if (ctlTogsOld[A_Index] || removed[A_Index])
 					{
 						if (ctlTogs[A_Index] == 2)
 						ctlTogs[A_Index] := 1
@@ -2449,12 +2452,14 @@ launchStr := {}
 							c := 4
 						spr := c . "_" . r
 						GuiControl, Test:, %spr%, %BTOFF%
+						%spr% := 0
 						GuiControl, Test: movedraw, %spr%, 0
 						spr := "t_" . spr
 						GuiControl, Test:, %spr%, % txt[A_Index]
 						GuiControl, Test: +cgray, %spr%
 						ctlTogsOld[A_Index] := 0
 						ctlTogs[A_Index] := 0
+						removed[A_Index] := 0
 						}
 					}
 					else
@@ -2621,7 +2626,8 @@ i := c + 4 * (r - 1)
 		else
 		{
 		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-			if (spr == "Removed")
+			;if (spr == "Removed")
+			if (removed[i])
 			{
 			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 			fnParms[txt[i]] := ""
@@ -2629,10 +2635,14 @@ i := c + 4 * (r - 1)
 			}
 			else
 			{
-			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" A_Guicontrol, Removed
-			ctlTogs[i] := 0
-			%out% := 1
+			removed[i] := 1
+				if (ctlTogs[i])
+				{
+				fnParms.delete(txt[i])
+				GuiControl, Test:, % "t_" A_Guicontrol, Removed
+				ctlTogs[i] := 0
+				%out% := 1
+				}
 			}
 		}		
 	}
@@ -2658,10 +2668,14 @@ i := c + 4 * (r - 1)
 			}
 			else
 			{
-			fnParms.delete(txt[i])
-			GuiControl, Test:, % "t_" A_Guicontrol, Removed
-			ctlTogs[i] := 0
-			%out% := 1
+			removed[i] := 1
+				if (ctlTogs[i])
+				{
+				fnParms.delete(txt[i])
+				GuiControl, Test:, % "t_" A_Guicontrol, Removed
+				ctlTogs[i] := 0
+				%out% := 1
+				}
 			}
 		}
 	}
@@ -2695,18 +2709,25 @@ i := c + 4 * (r - 1)
 			}
 			else
 			{
-				if (spr == "Removed")
+				;if (spr == "Removed")
+				if (removed[i])
 				{
+
 				GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 				fnParms[txt[i]] := 0
 				ctlTogs[i] := 2
+				removed[i] := 0
 				}
 				else
 				{
-				fnParms.delete(txt[i])
-				GuiControl, Test:, % "t_" A_Guicontrol, Removed
-				ctlTogs[i] := 0
-				%out% := 1
+				removed[i] := 1
+					if (ctlTogs[i])
+					{
+					fnParms.delete(txt[i])
+					GuiControl, Test:, % "t_" A_Guicontrol, Removed
+					ctlTogs[i] := 0
+					%out% := 1
+					}
 				}
 			}
 		}
@@ -2773,6 +2794,7 @@ exit()
 {
 	Global
 	%SplashyRef%(Splashy, {release: 1}*)
+	removed := ""
 	launchStr := ""
 	fnParms := ""
 	ctlTogs := ""
