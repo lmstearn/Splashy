@@ -13,6 +13,7 @@
 	 , PEACH: "0XFFE5B4", CORAL: "0XFF7F50", CRIMSON: "0XDC143C", VERMILION: "0XE34234", CERULEAN: "0X007BA7", TURQUOISE: "0X40E0D0", VIRIDIAN: "0X40826D", RED: "0XFF0000"
 	 , PLUM: "0X8E4585", MAGENTA: "0XF653A6", GOLD: "0XFFD700", GOLDENROD: "0XDAA520", GREEN: "0X008000", ONYX: "0X353839", KHAKIGRAU: "0X746643", FELDGRAU: "0X3D5D5D"}
 
+	Static parentHWnd := 0
 	Static updateFlag := -1
 	Static procEnd := 0
 	Static pToken := 0
@@ -24,9 +25,11 @@
 	Static NewWndObj := {}
 	Static vImgType := 0
 	Static hWndSaved := []
+	Static parent := 0
 	Static release := 0
 	Static hDCWin := 0
 	Static instance := 1
+	Static oldInstance := 1
 	Static hBitmap := 0
 	Static hIcon := 0
 	Static vHide := 0
@@ -343,6 +346,7 @@
 
 	SplashImg(argList*)
 	{
+	parentOut := ""
 	imagePathOut := ""
 	imageUrlOut := ""
 	bkgdColourOut := -1
@@ -389,10 +393,13 @@
 		if (argList.HasKey("instance"))
 		{
 			key := argList["instance"]
-			if ((key := Floor(key)))
+			if ((key := Floor(key))) ; 0 is invalid
 			{
 				if (This.hWndSaved[key])
+				{
 				This.instance := key
+				This.oldInstance := This.instance
+				}
 				else
 				{
 					if (key < 0)
@@ -417,6 +424,7 @@
 								else
 								This.instance := This.hWndSaved.MaxIndex()
 							}
+						This.oldInstance := This.instance
 						return
 						}
 					}
@@ -455,6 +463,20 @@
 			else
 			This.updateFlag := 1
 		}
+		else
+		{
+		; init the parent hWnd
+			if (!This.parentHWnd)
+			{
+				spr := WinExist()
+					if (!(This.parentHWnd := WinExist("ahk_class AutoHotkeyGUI")))
+					{
+						; e.g. SplashyTest launches this from a gui threads
+						if (spr != This.parentHWnd)
+						msgbox, 8192 , Parent Script, Warning: Parent script is not AHK, or !
+					}
+			}
+		}
 
 
 		For key, value in argList
@@ -465,6 +487,15 @@
 			{
 				Switch key
 				{
+
+				Case "parent":
+				{
+					if (This.updateFlag > 0)
+					This.parent := value
+					else
+					parentOut := value
+				}
+
 				Case "imagePath":
 				{
 					if (This.updateFlag > 0)
@@ -477,6 +508,7 @@
 					else
 					This.picInScript := 0
 				}
+
 				Case "imageUrl":
 				{
 					if (This.updateFlag > 0)
@@ -843,7 +875,7 @@
 			}
 		}
 
-	This.SplashImgInit(imagePathOut, imageUrlOut
+	This.SplashImgInit(parentOut, imagePathOut, imageUrlOut
 	, bkgdColourOut, transColOut, vHideOut, noHWndActivateOut
 	, vCentreOut, vMovableOut, vBorderOut, vOnTopOut
 	, vPosXOut, vPosYOut, vMgnXOut, vMgnYOut, vImgWOut, vImgHOut
@@ -856,7 +888,7 @@
 	
 	}
 
-	SplashImgInit(imagePathIn, imageUrlIn
+	SplashImgInit(parentIn, imagePathIn, imageUrlIn
 	, bkgdColourIn, transColIn, vHideIn, noHWndActivateIn
 	, vCentreIn, vMovableIn, vBorderIn, vOnTopIn
 	, vPosXIn, vPosYIn, vMgnXIn, vMgnYIn, vImgWIn, vImgHIn
@@ -873,7 +905,7 @@
 	; also consider transparency
 	*/
 	{
-	vWinW := 0, vWinH := 0
+	vWinW := 0, vWinH := 0, parentW := 0, parentH := 0
 	static splashyInst := ""
 	; Border constants
 	Static WS_DLGFRAME := 0x400000, WS_CAPTION := 0xC00000
@@ -891,6 +923,8 @@
 		if (This.updateFlag <= 0)
 		{
 		;Set defaults
+
+		This.parent := parentOutIn
 
 			if (StrLen(imagePathIn))
 			This.imagePath := imagePathIn
@@ -1134,36 +1168,64 @@
 
 		;Create Splashy window
 
-		Gui, %splashyInst%: New, +OwnDialogs +ToolWindow -Caption
+		Gui, %splashyInst%: New, +OwnDialogs +ToolWindow -Caption ;  WS_POPUP active since default
 
 		This.NewWndObj := new Splashy.NewWndProc(This.instance)
 		}
 
 		; Set borders:
-		if (This.voldBorder != This.vBorder && (This.voldBorder || This.vBorder)) ; null or zero
+		if (This.voldBorder || This.vBorder) ; null or zero
 		{
-		; -0x800000 is not sufficient to remove the standard borders.
-		Gui, %splashyInst%: -%WS_CAPTION% -E%WS_EX_WINDOWEDGE% -E%WS_EX_STATICEDGE% -E%WS_EX_CLIENTEDGE% -E%WS_EX_DLGMODALFRAME%
-			if (This.vBorder)
+			if (This.instance != This.oldInstance || This.voldBorder != This.vBorder)
 			{
-				if (InStr(This.vBorder, "W") || InStr(This.vBorder, "S") || InStr(This.vBorder, "C") || InStr(This.vBorder, "D"))
+			; -0x800000 is not sufficient to remove the standard borders.
+			Gui, %splashyInst%: -%WS_CAPTION% -E%WS_EX_WINDOWEDGE% -E%WS_EX_STATICEDGE% -E%WS_EX_CLIENTEDGE% -E%WS_EX_DLGMODALFRAME%
+				if (This.vBorder)
 				{
-				if (InStr(This.vBorder, "W"))
-				Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
-				if (InStr(This.vBorder, "S"))
-				Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
-				if (InStr(This.vBorder, "C"))
-				Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
-				if (InStr(This.vBorder, "D"))
-				Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
+					if (InStr(This.vBorder, "W") || InStr(This.vBorder, "S") || InStr(This.vBorder, "C") || InStr(This.vBorder, "D"))
+					{
+					if (InStr(This.vBorder, "W"))
+					Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
+					if (InStr(This.vBorder, "S"))
+					Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
+					if (InStr(This.vBorder, "C"))
+					Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
+					if (InStr(This.vBorder, "D"))
+					Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
+					}
+					else
+					Gui, % splashyInst . ": " . ((This.vBorder == "B" || This.vBorder == "b")? "+Border": "+" . WS_DLGFRAME)
 				}
-				else
-				Gui, % splashyInst . ": " . ((This.vBorder == "B" || This.vBorder == "b")? "+Border": "+" . WS_DLGFRAME)
+			This.voldBorder := This.vBorder
 			}
-		This.voldBorder := This.vBorder
 		}
 
+	if (spr := This.parentHWnd)
+	{
+		if (This.parent)
+		{
+		Gui, %splashyInst%: +parent%spr%
+		VarSetCapacity(rect, 16, 0)
+		DllCall("GetClientRect", "Ptr", spr, "Ptr", &rect)
+
+		parentW := NumGet(rect, 8, "int") - NumGet(rect, 0, "int")
+		parentH := NumGet(rect, 12, "int") - NumGet(rect, 4, "int")
+		}
+		else
+		{
+		Gui, %splashyInst%: -parent%spr%
+		parentW := A_ScreenWidth
+		parentH := A_ScreenHeight
+		}
+	}
+	else
+	{
+	parentW := A_ScreenWidth
+	parentH := A_ScreenHeight
+	}
+
 	Gui, %splashyInst%: Color, % This.bkgdColour
+
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
 	vWinW := This.vImgW + 2 * This.vMgnX
 	vWinH := This.vImgH + 2 * This.vMgnY
@@ -1264,13 +1326,13 @@
 		spr := " "
 			if (This.vCentre)
 			{
-				if (vWinW < A_ScreenWidth)
-				This.vPosX := (A_ScreenWidth - vWinW)/2
+				if (vWinW < parentW)
+				This.vPosX := (parentW - vWinW)/2
 				else
 				This.vPosX := 0
 
-				if (vWinH < A_ScreenHeight)
-				This.vPosY := (A_ScreenHeight - vWinH)/2
+				if (vWinH < parentH)
+				This.vPosY := (parentH - vWinH)/2
 				else
 				This.vPosY := 0
 			}
@@ -1278,15 +1340,15 @@
 			{
 				if (This.vPosX == "")
 				{
-					if (vWinW < A_ScreenWidth)
-					This.vPosX := (A_ScreenWidth - vWinW)/2
+					if (vWinW < parentW)
+					This.vPosX := (parentW - vWinW)/2
 					else
 					This.vPosX := 0
 				}
 				if (This.vPosY == "")
 				{
-					if (vWinH < A_ScreenHeight)
-					This.vPosY := (A_ScreenHeight - vWinH)/2
+					if (vWinH < parentH)
+					This.vPosY := (parentH - vWinH)/2
 					else
 					This.vPosY := 0
 				}
@@ -1295,22 +1357,28 @@
 
 
 		Gui, %splashyInst%: -DPIScale
-		Gui, %splashyInst%: Show, Hide %spr%
-		VarSetCapacity(rect, 16, 0)
-		DllCall("GetWindowRect", "Ptr", This.hWnd(), "Ptr", &rect)
-		;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWnd(); fail
 
-		; Supposed to prevent form visibility without picture while loading. Want another approach?
-		Gui, %splashyInst%: Show, % Format("X{} Y{}", -30000, -30000)
-		sleep 20
+			if (This.parent)
+			Gui, %splashyInst%: Show, %spr%
+			else
+			{
+			Gui, %splashyInst%: Show, Hide %spr%
+			VarSetCapacity(rect, 16, 0)
+			DllCall("GetWindowRect", "Ptr", This.hWnd(), "Ptr", &rect)
+			;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWnd(); fail
 
-		spr := NumGet(rect, 0, "int")
-		spr1 := NumGet(rect, 4, "int")
-		Gui, %splashyInst%: +DPIScale
-		;WinMove, % "ahk_id" . This.hWnd(),, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
+			; Supposed to prevent form visibility without picture while loading. Want another approach?
+			Gui, %splashyInst%: Show, % Format("X{} Y{}", -30000, -30000)
+			sleep 20
 
+			spr := NumGet(rect, 0, "int")
+			spr1 := NumGet(rect, 4, "int")
+			Gui, %splashyInst%: +DPIScale
+			;WinMove, % "ahk_id" . This.hWnd(),, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
 
-		Gui, %splashyInst%: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
+			Gui, %splashyInst%: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
+			}
+
 		WinSet, AlwaysOnTop, % (This.vOnTop)? 1 : 0, % "ahk_id" . This.hWnd()
 			if (This.transCol && !This.vBorder)
 			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWnd()
@@ -1520,7 +1588,7 @@
 
 		if (This.imagePath)
 		{
-			if (this.hWndSaved[This.instance])
+			if (This.hWndSaved[This.instance])
 			{
 				This.oldImagePath := This.imagePath
 
