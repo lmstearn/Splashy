@@ -20,6 +20,7 @@
 	Static hGDIPLUS := 0
 
 	Static userWorkingDir := ""
+	Static userStringCaseSense := ""
 	Static downloadedPathNames := []
 	Static downloadedUrlNames := []
 	Static NewWndObj := {}
@@ -148,7 +149,7 @@
 
 		WndProc(hwnd, uMsg, wParam, lParam)
 		{
-		Critical 
+		;Critical 
 			Switch uMsg
 			{
 				case % This.WM_CTLCOLORSTATIC:
@@ -190,7 +191,7 @@
 		CtlColorStaticProc(wParam, lParam)
 		{
 		static DC_BRUSH := 0x12
-
+ 
 			if (lparam == Splashy.subTextHWnd[Splashy.instance]) ; && This.hDCWin == wParam)
 			This.SetColour(wParam, Splashy.subBkgdColour, Splashy.subFontColour)
 			else
@@ -384,6 +385,11 @@
 	subFontStrikeOut := 0
 	subFontUnderlineOut := 0
 
+	This.userWorkingDir := A_WorkingDir
+	SetWorkingDir %A_ScriptDir% ; else use full path for 
+	This.userStringCaseSense := A_StringCaseSense
+	StringCaseSense, Off
+
 		if (argList["release"])
 		{
 			This.Destroy()
@@ -398,7 +404,13 @@
 				if (This.hWndSaved[key])
 				{
 				This.instance := key
-				This.oldInstance := This.instance
+
+					if (This.instance != This.oldInstance)
+					{
+					; Ensures current postion is not reset
+						This.vPosX := 0
+						This.vPosY := 0
+					}
 				}
 				else
 				{
@@ -425,6 +437,8 @@
 								This.instance := This.hWndSaved.MaxIndex()
 							}
 						This.oldInstance := This.instance
+						SetWorkingDir % This.userWorkingDir
+						StringCaseSense, % This.userStringCaseSense
 						return
 						}
 					}
@@ -589,7 +603,9 @@
 				}
 				Case "vPosX":
 				{
-				spr := (value == "")? value: Floor(value)
+					if (!(spr := (value == "c")? value: Floor(value)))
+					spr := "zero"
+				
 					if (This.updateFlag > 0)
 					This.vPosX := spr
 					else
@@ -598,7 +614,9 @@
 
 				Case "vPosY":
 				{
-				spr := (value == "")? value: Floor(value)
+					if (!(spr := (value == "c")? value: Floor(value)))
+					spr := "zero"
+
 					if (This.updateFlag > 0)
 					This.vPosY := spr
 					else
@@ -629,7 +647,7 @@
 				{
 					if value is number
 					{
-						if (value > 1)
+						if (value > 10)
 						{
 						This.oldVImgW := This.vImgW
 							if (This.updateFlag > 0)
@@ -642,49 +660,89 @@
 							if (value > 0)
 							{
 							This.oldVImgW := This.vImgW
-								if (This.updateFlag > 0)
-								This.inputVImgW := A_ScreenWidth * value
+								if (This.vImgW)
+								{
+									if (This.updateFlag > 0)
+									This.inputVImgW := Floor(value * This.vImgW)
+									else
+									vImgWOut := value * This.vImgW
+								}
 								else
-								vImgWOut := A_ScreenWidth * value
+								{
+									if (This.updateFlag > 0)
+									This.inputVImgW := Floor(value)
+									else
+									vImgWOut := value
+								}
 							}
 							else
-							This.inputVImgW := 0
+							{
+								if (value < 0 && value > -10)
+								{
+								This.oldVImgW := This.vImgW
+									if (This.updateFlag > 0)
+									This.inputVImgW := -Floor(value * A_ScreenWidth)
+									else
+									vImgWOut := -value * A_ScreenWidth
+								}
+								else
+								This.inputVImgW := 0
+							}
 						}
 					}
 					else
 					This.inputVImgW := 0
 				}
-
 				Case "vImgH":
 				{
 					if value is number
 					{
-						if (value > 1)
+						if (value > 10)
 						{
-						This.oldVImgH := This.vImgH
-							if (This.updateFlag > 0)
-							This.inputVImgH := Floor(value)
-							else
-							vImgHOut := value
+							This.oldVImgH := This.vImgH
+								if (This.updateFlag > 0)
+								This.inputVImgH := Floor(value)
+								else
+								vImgHOut := value
 						}
 						else
 						{
 							if (value > 0)
 							{
 							This.oldVImgH := This.vImgH
-								if (This.updateFlag > 0)
-								This.inputVImgH := A_ScreenHeight * value
+								if (This.vImgH)
+								{
+									if (This.updateFlag > 0)
+									This.inputVImgH := Floor(value * This.vImgH)
+									else
+									vImgHOut := value * This.vImgH
+								}
 								else
-								vImgHOut := A_ScreenHeight * value
+								{
+									if (This.updateFlag > 0)
+									This.inputVImgH := Floor(value)
+									else
+									vImgHOut := value
+								}
 							}
 							else
-							This.inputVImgH := 0
+							{
+								if (value < 0 && value > -10)
+								{
+								This.oldVImgH := This.vImgH
+									if (This.updateFlag > 0)
+									This.inputVImgH := -Floor(value * A_ScreenHeight)
+									else
+									vImgHOut := -value * A_ScreenHeight
+								}
+								else
+								This.inputVImgH := 0
+							}
 						}
 					}
 					else
 					This.inputVImgH := 0
 				}
-
 
 
 				Case "mainText":
@@ -909,14 +967,11 @@
 	static splashyInst := ""
 	; Border constants
 	Static WS_DLGFRAME := 0x400000, WS_CAPTION := 0xC00000
-	Static WS_EX_WINDOWEDGE := 0x100, WS_EX_STATICEDGE := 0x20000, WS_EX_CLIENTEDGE := 0x200, 	WS_EX_DLGMODALFRAME := 0x1
+	Static WS_EX_WINDOWEDGE := 0x100, WS_EX_STATICEDGE := 0x20000, WS_EX_CLIENTEDGE := 0x200, WS_EX_DLGMODALFRAME := 0x1
 
 	; Determines redraw of Splashy window (placeholder)
 	diffPicOrDiffDims := 0
 
-
-	This.userWorkingDir := A_WorkingDir
-	SetWorkingDir %A_ScriptDir% ; else use full path for 
 
 	This.procEnd := 0
 
@@ -966,8 +1021,8 @@
 		This.vBorder := vBorderIn
 		This.vOnTop := vOnTopIn
 
-		This.vPosX := (vPosXIn == "")? vPosXIn: Floor(vPosXIn)
-		This.vPosY := (vPosYIn == "")? vPosYIn: Floor(vPosYIn)
+		This.vPosX := (vPosXIn == "c")? vPosXIn: Floor(vPosXIn)
+		This.vPosY := (vPosYIn == "c")? vPosYIn: Floor(vPosYIn)
 
 
 			if (vMgnXIn == "D")
@@ -1184,18 +1239,19 @@
 				{
 					if (InStr(This.vBorder, "W") || InStr(This.vBorder, "S") || InStr(This.vBorder, "C") || InStr(This.vBorder, "D"))
 					{
-					if (InStr(This.vBorder, "W"))
-					Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
-					if (InStr(This.vBorder, "S"))
-					Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
-					if (InStr(This.vBorder, "C"))
-					Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
-					if (InStr(This.vBorder, "D"))
-					Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
+						if (InStr(This.vBorder, "W"))
+						Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
+						if (InStr(This.vBorder, "S"))
+						Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
+						if (InStr(This.vBorder, "C"))
+						Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
+						if (InStr(This.vBorder, "D"))
+						Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
 					}
 					else
 					Gui, % splashyInst . ": " . ((This.vBorder == "B" || This.vBorder == "b")? "+Border": "+" . WS_DLGFRAME)
 				}
+
 			This.voldBorder := This.vBorder
 			}
 		}
@@ -1324,6 +1380,7 @@
 		else
 		{
 		spr := " "
+		spr1 := 0
 			if (This.vCentre)
 			{
 				if (vWinW < parentW)
@@ -1338,23 +1395,59 @@
 			}
 			else
 			{
-				if (This.vPosX == "")
+				if (This.vPosX)
 				{
-					if (vWinW < parentW)
-					This.vPosX := (parentW - vWinW)/2
-					else
+				spr1 := -1
+					if (This.vPosX == "c")
+					{
+						if (vWinW < parentW)
+						This.vPosX := (parentW - vWinW)/2
+						else
+						This.vPosX := 0
+					}
+
+					if (This.vPosX == "zero")
 					This.vPosX := 0
 				}
-				if (This.vPosY == "")
+
+				if (This.vPosY)
 				{
-					if (vWinH < parentH)
-					This.vPosY := (parentH - vWinH)/2
+					if (spr1)
+					spr1 := 1
 					else
+					spr1 := 2
+
+					if (This.vPosY == "c")
+					{
+						if (vWinH < parentH)
+						This.vPosY := (parentH - vWinH)/2
+						else
+						This.vPosY := 0
+					}
+
+					if (This.vPosY == "zero")
 					This.vPosY := 0
 				}
 			}
-		spr .= Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+		spr := A_Space
 
+		switch (spr1)
+		{
+			case -1:
+			spr := Format(" X{} W{} H{}", This.vPosX, vWinW, vWinH)
+			case 1:
+			spr := Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+			case 2:
+			spr := Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
+			default: ; 0
+			{
+				if (This.vCentre)
+				spr := Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
+				else
+				spr := Format(" W{} H{}", vWinW, vWinH)
+			}
+		}
+		
 
 		Gui, %splashyInst%: -DPIScale
 
@@ -1386,7 +1479,7 @@
 		}
 
 	This.procEnd := 1
-
+	This.oldInstance := This.instance
 	SetWorkingDir % This.userWorkingDir
 	DetectHiddenWindows Off
 
@@ -1533,7 +1626,6 @@
 	Return ( Prefix . spr )
 	}
 
-
 	GetDefaultGUIColour(font := 0)
 	{
 		static COLOR_WINDOWTEXT := 8, COLOR_3DFACE := 15 ;(more white than grey these days)
@@ -1581,7 +1673,15 @@
 	; If the image is the same between calls, this routine is never called, 
 	; so vToggle will not update.
 
+	; The first condition is when vImgW is specified in the first call of the image
+	if (!This.vImgW && This.inputVImgW > 0 && This.inputVImgW < 10)
+	This.vImgW := Floor(This.inputVImgW * This.actualVImgW)
+	else
 	This.vImgW := (This.inputVImgW)? This.inputVImgW: This.actualVImgW
+
+	if (!This.vImgH && This.inputVImgH > 0 && This.inputVImgH < 10)
+	This.vImgH := Floor(This.inputVImgH * This.actualVImgH)
+	else
 	This.vImgH := (This.inputVImgH)? This.inputVImgH: This.actualVImgH
 
 	spr1 := Format("W{} H{}", spr, spr1)
@@ -2191,6 +2291,7 @@
 		}
 
 	SetWorkingDir % This.userWorkingDir
+	StringCaseSense, % This.userStringCaseSense
 
 	if (not This.vImgType)  ; IMAGE_BITMAP (0) or the ImageType parameter was omitted.
 	DllCall("DeleteObject", "ptr", This.hBitmap)
