@@ -33,9 +33,9 @@
 	Static oldInstance := 1
 	Static hBitmap := 0
 	Static hIcon := 0
-	Static vHide := 0
-	Static vPosX := 0
-	Static vPosY := 0
+	Static vImgTxtSize := 0
+	Static vPosX := "c"
+	Static vPosY := "c"
 	Static vMgnX := 0
 	Static vMgnY := 0
 	Static vImgX := 0
@@ -58,15 +58,14 @@
 	Static oldImageUrl := ""
 	Static bkgdColour := ""
 	Static transCol := 0
+	Static vHide := 0
 	Static noHWndActivate := ""
-	Static vCentre := 0
 	Static vBorder := 0
 	Static vOnTop := 0
 
 
 	Static mainTextHWnd := []
 	Static mainText := ""
-	Static mainTextSize := [0, 0]
 	Static mainBkgdColour := ""
 	Static mainFontName := ""
 	Static mainFontSize := 0
@@ -80,7 +79,6 @@
 
 	Static subTextHWnd := []
 	Static subText := ""
-	Static subTextSize := [0, 0]
 	Static subBkgdColour := ""
 	Static subFontName := ""
 	Static subFontSize := 0
@@ -354,7 +352,7 @@
 	transColOut := ""
 	vHideOut := 0
 	noHWndActivateOut := ""
-	vCentreOut := 0
+	vImgTxtSizeOut := 0
 	vMovableOut := 0
 	vBorderOut := ""
 	vOnTopOut := 0
@@ -439,8 +437,8 @@
 						This.oldInstance := This.instance
 						SetWorkingDir % This.userWorkingDir
 						StringCaseSense, % This.userStringCaseSense
-						return
 						}
+					return
 					}
 					else
 					{
@@ -573,12 +571,12 @@
 					else
 					noHWndActivateOut := value
 				}
-				Case "vCentre":
+				Case "vImgTxtSize":
 				{
 					if (This.updateFlag > 0)
-					This.vCentre := value
+					This.vImgTxtSize := value
 					else
-					vCentreOut := value
+					vImgTxtSizeOut := value
 				}
 				Case "vMovable":
 				{
@@ -935,7 +933,7 @@
 
 	This.SplashImgInit(parentOut, imagePathOut, imageUrlOut
 	, bkgdColourOut, transColOut, vHideOut, noHWndActivateOut
-	, vCentreOut, vMovableOut, vBorderOut, vOnTopOut
+	, vImgTxtSizeOut, vMovableOut, vBorderOut, vOnTopOut
 	, vPosXOut, vPosYOut, vMgnXOut, vMgnYOut, vImgWOut, vImgHOut
 	, mainTextOut, mainBkgdColourOut
 	, mainFontNameOut, mainFontSizeOut, mainFontWeightOut, mainFontColourOut
@@ -948,7 +946,7 @@
 
 	SplashImgInit(parentIn, imagePathIn, imageUrlIn
 	, bkgdColourIn, transColIn, vHideIn, noHWndActivateIn
-	, vCentreIn, vMovableIn, vBorderIn, vOnTopIn
+	, vImgTxtSizeIn, vMovableIn, vBorderIn, vOnTopIn
 	, vPosXIn, vPosYIn, vMgnXIn, vMgnYIn, vImgWIn, vImgHIn
 	, mainTextIn, mainBkgdColourIn
 	, mainFontNameIn, mainFontSizeIn, mainFontWeightIn, mainFontColourIn
@@ -964,6 +962,7 @@
 	*/
 	{
 	vWinW := 0, vWinH := 0, parentW := 0, parentH := 0
+	mainTextSize := [0, 0], subTextSize := [0, 0]
 	static splashyInst := ""
 	; Border constants
 	Static WS_DLGFRAME := 0x400000, WS_CAPTION := 0xC00000
@@ -1016,7 +1015,7 @@
 			else
 			This.noHWndActivate := ""
 
-		This.vCentre := vCentreIn
+		This.vImgTxtSize := vImgTxtSizeIn
 		This.vMovable := vMovableIn
 		This.vBorder := vBorderIn
 		This.vOnTop := vOnTopIn
@@ -1281,96 +1280,19 @@
 	}
 
 	Gui, %splashyInst%: Color, % This.bkgdColour
-
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
-	vWinW := This.vImgW + 2 * This.vMgnX
 	vWinH := This.vImgH + 2 * This.vMgnY
 
 
-		if (StrLen(This.mainText))
-		{
-		Gui, %splashyInst%: Font, % "norm s" . This.mainFontSize . " w" . This.mainFontWeight . " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
-
-		if (spr := This.mainTextHWnd[This.instance])
-			{
-			GuiControl, %splashyInst%: Text, %spr%, % This.mainText
-			GuiControl, %splashyInst%: Font, %spr%
-			This.mainTextSize := This.Text_height(This.mainText, spr)
-			GuiControl, %splashyInst%: Move, %spr%, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . This.mainTextSize[2]
-			This.vImgY += This.mainTextSize[2]
-			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
-			; This sends more paint messages to parent
-			;ControlMove, , % This.vMgnX, % This.vMgnY, This.vImgW , Text_height(mainText, This.mainTextHWnd), % "ahk_id" . This.mainTextHWnd
-			}
-			else
-			{
-			Gui, %splashyInst%: Add, Text, % "Center W" . This.vImgW . " Y" . This.vMgnY . " HWND" . "spr", % This.mainText
-			This.mainTextHWnd[This.instance] := spr
-
-			; initial pos can be a bit off 
-			ControlGetPos, , , spr1, , , % "ahk_id" . spr
-			spr1 := This.vImgX + This.vImgW/2 - spr1/2
-			GuiControl, %splashyInst%: Move, %spr%, x%spr1%
-			GuiControl, %splashyInst%: Font, %spr%
-			This.mainTextSize := This.Text_height(This.mainText, spr)
-			This.vImgY += This.mainTextSize[2]
-			}
-
-			if (This.transCol)
-			This.mainBkgdColour := This.ValidateColour(This.bkgdColour, 1)
-		This.SubClassTextCtl(spr)
-
+		if (This.vImgY := This.DoText(splashyInst, This.mainTextHWnd[This.instance], This.mainText))
 		vWinH += This.vImgY
 
-		}
-		else
-		{
-			if (This.mainTextHWnd[This.instance])
-			GuiControl, %splashyInst%: Hide, % This.mainTextHWnd[This.instance]
-		}
-
-		if (StrLen(This.subText))
-		{
-		Gui, %splashyInst%: Font, % "norm s" . This.subFontSize . " w" . This.subFontWeight . " q" . This.mainFontQuality . This.subFontItalic . This.subFontStrike . This.subFontUnderline, % This.subFontName
+		if (spr := This.DoText(splashyInst, This.subTextHWnd[This.instance], This.subText, vWinH - This.vMgnY))
+		vWinH += spr
 
 
-		spr := This.vImgH + This.vImgY + This.vMgnY
-
-
-			if (spr1 := This.subTextHWnd[This.instance])
-			{
-			GuiControl, %splashyInst%: Text, %spr1%, % This.subText
-
-			This.subTextSize := This.Text_height(This.subText, spr1)
-			vWinH += This.subTextSize[2]
-			
-			GuiControl, %splashyInst%: Font, %spr1%
-			GuiControl, %splashyInst%: Move, %spr1%, % "X" . This.vMgnX . " Y" . spr . " W" . This.vImgW . " H" . This.subTextSize[2]
-			
-			}
-			else
-			{
-			Gui, %splashyInst%: Add, Text, % "xp Center W" . This.vImgW . " Y" . spr . " HWND" . "spr1", % This.subText
-			This.subTextHWnd[This.instance] := spr1
-			This.subTextSize := This.Text_height(This.subText, spr1)
-			ControlGetPos, , , spr1, , , % "ahk_id" . spr
-			spr1 := This.vImgX + This.vImgW/2 - spr1/2
-			GuiControl, %splashyInst%: Move, % This.subTextHWnd[This.instance], % "X" . spr1 . " H" . This.subTextSize[2]
-			GuiControl, %splashyInst%: Font, % This.subTextHWnd[This.instance]
-			vWinH += This.subTextSize[2]
-			}
-
-			if (This.transCol)
-			This.subBkgdColour := This.ValidateColour(This.bkgdColour, 1)
-		This.SubClassTextCtl(This.subTextHWnd[This.instance])
-		}
-		else
-		{
-			if (This.subTextHWnd[This.instance])
-			GuiControl, %splashyInst%: Hide, % This.subTextHWnd[This.instance]
-		}
-
-
+	; Moved here for vImgTxtSize
+	vWinW := This.vImgW + 2 * This.vMgnX
 
 	Gui, %splashyInst%: Font
 
@@ -1381,54 +1303,41 @@
 		{
 		spr := " "
 		spr1 := 0
-			if (This.vCentre)
-			{
-				if (vWinW < parentW)
-				This.vPosX := (parentW - vWinW)/2
-				else
-				This.vPosX := 0
 
-				if (vWinH < parentH)
-				This.vPosY := (parentH - vWinH)/2
-				else
-				This.vPosY := 0
-			}
-			else
+			if (This.vPosX)
 			{
-				if (This.vPosX)
+			spr1 := -1
+				if (This.vPosX == "c")
 				{
-				spr1 := -1
-					if (This.vPosX == "c")
-					{
-						if (vWinW < parentW)
-						This.vPosX := (parentW - vWinW)/2
-						else
-						This.vPosX := 0
-					}
-
-					if (This.vPosX == "zero")
+					if (vWinW < parentW)
+					This.vPosX := (parentW - vWinW)/2
+					else
 					This.vPosX := 0
 				}
 
-				if (This.vPosY)
+				if (This.vPosX == "zero")
+				This.vPosX := 0
+			}
+
+			if (This.vPosY)
+			{
+				if (spr1)
+				spr1 := 1
+				else
+				spr1 := 2
+
+				if (This.vPosY == "c")
 				{
-					if (spr1)
-					spr1 := 1
+					if (vWinH < parentH)
+					This.vPosY := (parentH - vWinH)/2
 					else
-					spr1 := 2
-
-					if (This.vPosY == "c")
-					{
-						if (vWinH < parentH)
-						This.vPosY := (parentH - vWinH)/2
-						else
-						This.vPosY := 0
-					}
-
-					if (This.vPosY == "zero")
 					This.vPosY := 0
 				}
+
+				if (This.vPosY == "zero")
+				This.vPosY := 0
 			}
+
 		spr := A_Space
 
 		switch (spr1)
@@ -1440,12 +1349,7 @@
 			case 2:
 			spr := Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
 			default: ; 0
-			{
-				if (This.vCentre)
-				spr := Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
-				else
-				spr := Format(" W{} H{}", vWinW, vWinH)
-			}
+			spr := Format(" W{} H{}", vWinW, vWinH)
 		}
 		
 
@@ -1664,6 +1568,7 @@
 	DisplayToggle()
 	{
 	static vToggle := 1
+	spr := 0, spr1 := 0
 	; This function uses LoadPicture to populate hBitmap and hIcon
 	; and sets the image type for the painting routines accordingly
 	; Now that the image dimensions are determined from GetPicWH,
@@ -1674,12 +1579,12 @@
 	; so vToggle will not update.
 
 	; The first condition is when vImgW is specified in the first call of the image
-	if (!This.vImgW && This.inputVImgW > 0 && This.inputVImgW < 10)
+	if (!This.vImgW && (This.inputVImgW > 0) && (This.inputVImgW < 10))
 	This.vImgW := Floor(This.inputVImgW * This.actualVImgW)
 	else
 	This.vImgW := (This.inputVImgW)? This.inputVImgW: This.actualVImgW
 
-	if (!This.vImgH && This.inputVImgH > 0 && This.inputVImgH < 10)
+	if (!This.vImgH && (This.inputVImgH > 0) && (This.inputVImgH < 10))
 	This.vImgH := Floor(This.inputVImgH * This.actualVImgH)
 	else
 	This.vImgH := (This.inputVImgH)? This.inputVImgH: This.actualVImgH
@@ -2169,7 +2074,93 @@
 		This.deleteObject(hRgn)
 	}	
 
-	Text_height(Text, hWnd)
+	DoText(splashyInst, hWnd, text, sub := 0)
+	{
+	static mainTextSize := 0, subTextSize := 0
+	init := 0
+		if (StrLen(text))
+		{
+		; Note default font styles for main & sub differ
+			if (sub)
+			Gui, %splashyInst%: Font, % "norm s" . This.subFontSize . " w" . This.subFontWeight . " q" . This.subFontQuality . This.subFontItalic . This.subFontStrike . This.subFontUnderline, % This.subFontName
+			else
+			Gui, %splashyInst%: Font, % "norm s" . This.mainFontSize . " w" . This.mainFontWeight . " q" . This.mainFontQuality . This.mainFontItalic . This.mainFontStrike . This.mainFontUnderline, % This.mainFontName
+
+			if (hWnd)
+			{
+			GuiControl, %splashyInst%: Text, %hWnd%, % text
+			GuiControl, %splashyInst%: Font, %hWnd%
+			}
+			else
+			{
+			init := 1
+			Gui, %splashyInst%: Add, Text, % "Center W" . This.vImgW . " Y" . (sub?sub:This.vMgnY) . " HWND" . "hWnd", % text
+			}
+
+			if (sub)
+			{
+			This.subTextHWnd[This.instance] := hWnd
+			subTextSize := This.Text_Dims(text, hWnd)
+			}
+			else
+			{
+			This.mainTextHWnd[This.instance] := hWnd
+			mainTextSize := This.Text_Dims(text, hWnd)
+			}
+
+			if (This.vImgTxtSize)
+			{
+				; Not so precise- otherwise very fiddly
+				if (sub)
+				{
+					if (!(This.mainTextHWnd[This.instance] && mainTextSize[1] > subTextSize[1]))
+					This.vImgW := subTextSize[1]
+				}
+				else
+				{
+					if (!(This.subTextHWnd[This.instance] && subTextSize[1] > mainTextSize[1]))
+					This.vImgW := mainTextSize[1]
+				}
+			}
+
+			if (init)
+			{
+			; initial pos can be a bit off 
+			ControlGetPos, , , spr, , , % "ahk_id" . hWnd
+			spr := This.vImgX + (This.vImgW - spr)/2
+				if (sub)
+				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub
+				else
+				GuiControl, %splashyInst%: Move, %hWnd%, X%spr%
+			GuiControl, %splashyInst%: Font, %hWnd%
+			}
+			else
+			{
+				if (sub)
+				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . This.vMgnX . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
+				else
+				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
+			}
+
+			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
+			; This sends more paint messages to parent
+			;ControlMove, , % This.vMgnX, % This.vMgnY, This.vImgW , Text_Dims(mainText, This.mainTextHWnd), % "ahk_id" . This.mainTextHWnd
+
+			if (This.transCol)
+			(sub)? This.subBkgdColour := This.ValidateColour(This.bkgdColour, 1): This.mainBkgdColour := This.ValidateColour(This.bkgdColour, 1)
+
+		This.SubClassTextCtl(hWnd)
+		return % (sub)?subTextSize[2]:mainTextSize[2]
+		}
+		else
+		{
+			if (hWnd)
+			GuiControl, %splashyInst%: Hide, %hWnd%
+		return 0
+		}
+	}
+
+	Text_Dims(Text, hWnd)
 	{
 	Static WM_GETFONT := 0x0031
 	FontSize := [], hDCScreen := 0, outSize := [0, 0]
@@ -2436,8 +2427,8 @@ gui, Test: font, s12 bold
 
 txt:=[	"initSplash"		, "instance"		, "parent"			, "release"
 ,		"imagePath"			, "imageUrl"		, "bkgdColour"		, "transCol"
-,		"vHide"				, "noHWndActivate"	, "vCentre"			, "vMovable"
-,		"vBorder"			, "vOnTop"			, "vPosX"			, "vPosY"
+,		"vHide"				, "noHWndActivate"	, "vOnTop"			, "vMovable"
+,		"vBorder"			, "vImgTxtSize"		, "vPosX"			, "vPosY"
 ,		"vMgnX"				, "vMgnY"			, "vImgW"			, "vImgH"
 ,		"mainText"			, "mainBkgdColour"	, ""				, ""
 ,		"mainFontName"		, "mainFontSize"	, "mainFontWeight"	, "mainFontColour"
@@ -3123,7 +3114,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 15, 16:
 		{
-		InputBox, textIn, Please enter %textIn%,Left`, top`, screen co-ordinates for Splashy.`n`nIgnored if vCentre is set`, if vCentre is not set`,`na null value `(`"`"`) applied to either value`nwill centre Splashy on the appropriate axis.
+		InputBox, textIn, Please enter %textIn%,Left`, top`, screen co-ordinates for Splashy.`n`nA null value` `(`"`"`) applied to one or both co-ordinates`nwill centre Splashy on the appropriate axes.
 			if (Errorlevel)
 			return "**Errorlevel**"
 		}
