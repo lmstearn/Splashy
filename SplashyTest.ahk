@@ -435,9 +435,9 @@
 								This.instance := This.hWndSaved.MaxIndex()
 							}
 						This.oldInstance := This.instance
-						SetWorkingDir % This.userWorkingDir
-						StringCaseSense, % This.userStringCaseSense
 						}
+					SetWorkingDir % This.userWorkingDir
+					StringCaseSense, % This.userStringCaseSense
 					return
 					}
 					else
@@ -601,7 +601,7 @@
 				}
 				Case "vPosX":
 				{
-					if (!(spr := (value == "c")? value: Floor(value)))
+					if (!(spr := (value == "c" || value == "C")? value: Floor(value)))
 					spr := "zero"
 				
 					if (This.updateFlag > 0)
@@ -612,7 +612,7 @@
 
 				Case "vPosY":
 				{
-					if (!(spr := (value == "c")? value: Floor(value)))
+					if (!(spr := (value == "c" || value == "C")? value: Floor(value)))
 					spr := "zero"
 
 					if (This.updateFlag > 0)
@@ -626,7 +626,7 @@
 					if (value >= 0)
 					{
 						if (This.updateFlag > 0)
-						This.vMgnX := (value == "D")? value: Floor(value)
+						This.vMgnX := (value == "D" || value == "D")? value: Floor(value)
 						else
 						vMgnXOut := value
 					}
@@ -636,7 +636,7 @@
 					if (value >= 0)
 					{
 						if (This.updateFlag > 0)
-						This.vMgnY := (value == "D")? value: Floor(value)
+						This.vMgnY := (value == "D" || value == "D")? value: Floor(value)
 						else
 						vMgnYOut := value
 					}
@@ -1020,8 +1020,8 @@
 		This.vBorder := vBorderIn
 		This.vImgTxtSize := vImgTxtSizeIn
 
-		This.vPosX := (vPosXIn == "c")? vPosXIn: Floor(vPosXIn)
-		This.vPosY := (vPosYIn == "c")? vPosYIn: Floor(vPosYIn)
+		This.vPosX := (vPosXIn == "c" || value == "C")? vPosXIn: Floor(vPosXIn)
+		This.vPosY := (vPosYIn == "c" || value == "C")? vPosYIn: Floor(vPosYIn)
 
 
 			if (vMgnXIn == "D")
@@ -1307,7 +1307,7 @@
 			if (This.vPosX)
 			{
 			spr1 := -1
-				if (This.vPosX == "c")
+				if (Instr(This.vPosX, "c"))
 				{
 					if (vWinW < parentW)
 					This.vPosX := (parentW - vWinW)/2
@@ -1315,7 +1315,7 @@
 					This.vPosX := 0
 				}
 
-				if (This.vPosX == "zero")
+				if (Instr(This.vPosX, "zero"))
 				This.vPosX := 0
 			}
 
@@ -1326,7 +1326,7 @@
 				else
 				spr1 := 2
 
-				if (This.vPosY == "c")
+				if (Instr(This.vPosY, "c"))
 				{
 					if (vWinH < parentH)
 					This.vPosY := (parentH - vWinH)/2
@@ -1334,7 +1334,7 @@
 					This.vPosY := 0
 				}
 
-				if (This.vPosY == "zero")
+				if (Instr(This.vPosY, "zero"))
 				This.vPosY := 0
 			}
 
