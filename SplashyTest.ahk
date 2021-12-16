@@ -571,12 +571,12 @@
 					else
 					noHWndActivateOut := value
 				}
-				Case "vImgTxtSize":
+				Case "vOnTop":
 				{
 					if (This.updateFlag > 0)
-					This.vImgTxtSize := value
+					This.vOnTop := value
 					else
-					vImgTxtSizeOut := value
+					vOnTopOut := value
 				}
 				Case "vMovable":
 				{
@@ -592,12 +592,12 @@
 					else
 					vBorderOut := value
 				}
-				Case "vOnTop":
+				Case "vImgTxtSize":
 				{
 					if (This.updateFlag > 0)
-					This.vOnTop := value
+					This.vImgTxtSize := value
 					else
-					vOnTopOut := value
+					vImgTxtSizeOut := value
 				}
 				Case "vPosX":
 				{
@@ -933,7 +933,7 @@
 
 	This.SplashImgInit(parentOut, imagePathOut, imageUrlOut
 	, bkgdColourOut, transColOut, vHideOut, noHWndActivateOut
-	, vImgTxtSizeOut, vMovableOut, vBorderOut, vOnTopOut
+	, vOnTopOut, vMovableOut, vBorderOut, vImgTxtSizeOut
 	, vPosXOut, vPosYOut, vMgnXOut, vMgnYOut, vImgWOut, vImgHOut
 	, mainTextOut, mainBkgdColourOut
 	, mainFontNameOut, mainFontSizeOut, mainFontWeightOut, mainFontColourOut
@@ -946,7 +946,7 @@
 
 	SplashImgInit(parentIn, imagePathIn, imageUrlIn
 	, bkgdColourIn, transColIn, vHideIn, noHWndActivateIn
-	, vImgTxtSizeIn, vMovableIn, vBorderIn, vOnTopIn
+	, vOnTopIn, vMovableIn, vBorderIn, vImgTxtSizeIn
 	, vPosXIn, vPosYIn, vMgnXIn, vMgnYIn, vImgWIn, vImgHIn
 	, mainTextIn, mainBkgdColourIn
 	, mainFontNameIn, mainFontSizeIn, mainFontWeightIn, mainFontColourIn
@@ -1015,10 +1015,10 @@
 			else
 			This.noHWndActivate := ""
 
-		This.vImgTxtSize := vImgTxtSizeIn
+		This.vOnTop := vOnTopIn
 		This.vMovable := vMovableIn
 		This.vBorder := vBorderIn
-		This.vOnTop := vOnTopIn
+		This.vImgTxtSize := vImgTxtSizeIn
 
 		This.vPosX := (vPosXIn == "c")? vPosXIn: Floor(vPosXIn)
 		This.vPosY := (vPosYIn == "c")? vPosYIn: Floor(vPosYIn)
