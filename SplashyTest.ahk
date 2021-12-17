@@ -497,6 +497,7 @@
 		; An alternative: https://www.autohotkey.com/boards/viewtopic.php?f=6&t=9656
 			if (key)
 			{
+			; Validate values
 				Switch key
 				{
 
@@ -587,10 +588,26 @@
 				}
 				Case "vBorder":
 				{
-					if (This.updateFlag > 0)
-					This.vBorder := value
+					if (InStr(value, "b"))
+					spr := "b"
 					else
-					vBorderOut := value
+					{
+					spr := ""
+						if (InStr(value, "w"))
+						spr .= "w"
+						if (InStr(value, "s"))
+						spr .= "s"
+						if (InStr(value, "c"))
+						spr .= "c"
+						if (InStr(value, "d"))
+						spr .= "d"
+						if (value && !spr)
+						spr := "dlgframe"
+					}
+					if (This.updateFlag > 0)
+					This.vBorder := spr
+					else
+					vBorderOut := spr
 				}
 				Case "vImgTxtSize":
 				{
@@ -601,7 +618,7 @@
 				}
 				Case "vPosX":
 				{
-					if (!(spr := (value == "c" || value == "C")? value: Floor(value)))
+					if (!(spr := (Instr(value, "c")? "c": Floor(value))))
 					spr := "zero"
 				
 					if (This.updateFlag > 0)
@@ -612,7 +629,7 @@
 
 				Case "vPosY":
 				{
-					if (!(spr := (value == "c" || value == "C")? value: Floor(value)))
+					if (!(spr := (Instr(value, "c")? "c": Floor(value))))
 					spr := "zero"
 
 					if (This.updateFlag > 0)
@@ -625,20 +642,22 @@
 				{
 					if (value >= 0)
 					{
+					spr := Instr(value, "d")? "d": Floor(value)
 						if (This.updateFlag > 0)
-						This.vMgnX := (value == "D" || value == "D")? value: Floor(value)
+						This.vMgnX := spr
 						else
-						vMgnXOut := value
+						vMgnXOut := spr
 					}
 				}
 				Case "vMgnY":
 				{
 					if (value >= 0)
 					{
+					spr := Instr(value, "d")? "d": Floor(value)
 						if (This.updateFlag > 0)
-						This.vMgnY := (value == "D" || value == "D")? value: Floor(value)
+						This.vMgnY := spr
 						else
-						vMgnYOut := value
+						vMgnYOut := spr
 					}
 				}
 				Case "vImgW":
@@ -1020,39 +1039,11 @@
 		This.vBorder := vBorderIn
 		This.vImgTxtSize := vImgTxtSizeIn
 
-		This.vPosX := (vPosXIn == "c" || value == "C")? vPosXIn: Floor(vPosXIn)
-		This.vPosY := (vPosYIn == "c" || value == "C")? vPosYIn: Floor(vPosYIn)
+		This.vPosX := (vPosXIn == "c")? vPosXIn: Floor(vPosXIn)
+		This.vPosY := (vPosYIn == "c")? vPosYIn: Floor(vPosYIn)
 
-
-			if (vMgnXIn == "D")
-			{
-			SM_CXEDGE := 45
-			sysget, spr, %SM_CXEDGE%
-			This.vMgnX := spr
-			}
-			else
-			This.vMgnX := Floor(vMgnXIn)
-
-			if (vMgnYIn == "D")
-			{
-			SM_CYEDGE := 46
-			sysget, spr, %SM_CYEDGE%
-			This.vMgnY := spr
-			}
-			else
-			This.vMgnY := Floor(vMgnYIn)
-
-			if (vImgWIn > 0)
-			This.inputVImgW := Floor(vImgWIn)
-			else
-			{
-			; negative values ignored
-				if (This.hWndSaved[This.instance])
-				This.inputVImgW := 0
-				else
-				; At startup only
-				This.vImgW := A_ScreenWidth/5
-			}
+		This.vMgnX := (vMgnXIn == "d")? vMgnXIn: Floor(vMgnXIn)
+		This.vMgnY := (vMgnYIn == "d")? vMgnYIn: Floor(vMgnYIn)
 
 			if (vImgHIn > 0)
 			This.inputVImgH := Floor(vImgHIn)
@@ -1236,19 +1227,24 @@
 			Gui, %splashyInst%: -%WS_CAPTION% -E%WS_EX_WINDOWEDGE% -E%WS_EX_STATICEDGE% -E%WS_EX_CLIENTEDGE% -E%WS_EX_DLGMODALFRAME%
 				if (This.vBorder)
 				{
-					if (InStr(This.vBorder, "W") || InStr(This.vBorder, "S") || InStr(This.vBorder, "C") || InStr(This.vBorder, "D"))
-					{
-						if (InStr(This.vBorder, "W"))
-						Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
-						if (InStr(This.vBorder, "S"))
-						Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
-						if (InStr(This.vBorder, "C"))
-						Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
-						if (InStr(This.vBorder, "D"))
-						Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
-					}
+					if (This.vBorder == "b")
+					Gui, %splashyInst%: +Border
 					else
-					Gui, % splashyInst . ": " . ((This.vBorder == "B" || This.vBorder == "b")? "+Border": "+" . WS_DLGFRAME)
+					{
+						if (This.vBorder == "dlgframe")
+						Gui, %splashyInst%: +WS_DLGFRAME
+						else
+						{
+							if (Instr(This.vBorder, "w"))
+							Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
+							if (Instr(This.vBorder, "s"))
+							Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
+							(Instr(This.vBorder, "c"))
+							Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
+							(Instr(This.vBorder, "d"))
+							Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
+						}
+					}
 				}
 
 			This.voldBorder := This.vBorder
@@ -1280,6 +1276,22 @@
 	}
 
 	Gui, %splashyInst%: Color, % This.bkgdColour
+
+		if (This.vMgnX == "d")
+		{
+		SM_CXEDGE := 45
+		sysget, spr, %SM_CXEDGE%
+		This.vMgnX := spr
+		}
+
+		if (This.vMgnX == "d")
+		{
+		SM_CYEDGE := 46
+		sysget, spr, %SM_CYEDGE%
+		This.vMgnY := spr
+		}
+
+
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
 	vWinH := This.vImgH + 2 * This.vMgnY
 
@@ -1289,7 +1301,6 @@
 
 		if (spr := This.DoText(splashyInst, This.subTextHWnd[This.instance], This.subText, vWinH - This.vMgnY))
 		vWinH += spr
-
 
 	; Moved here for vImgTxtSize
 	vWinW := This.vImgW + 2 * This.vMgnX
@@ -1307,7 +1318,7 @@
 			if (This.vPosX)
 			{
 			spr1 := -1
-				if (Instr(This.vPosX, "c"))
+				if (This.vPosX == "c")
 				{
 					if (vWinW < parentW)
 					This.vPosX := (parentW - vWinW)/2
@@ -1315,7 +1326,7 @@
 					This.vPosX := 0
 				}
 
-				if (Instr(This.vPosX, "zero"))
+				if (This.vPosX == "zero")
 				This.vPosX := 0
 			}
 
@@ -1326,7 +1337,7 @@
 				else
 				spr1 := 2
 
-				if (Instr(This.vPosY, "c"))
+				if (This.vPosY == "c")
 				{
 					if (vWinH < parentH)
 					This.vPosY := (parentH - vWinH)/2
@@ -1334,7 +1345,7 @@
 					This.vPosY := 0
 				}
 
-				if (Instr(This.vPosY, "zero"))
+				if (This.vPosY == "zero")
 				This.vPosY := 0
 			}
 
@@ -2707,7 +2718,10 @@ i := c + 4 * (r - 1)
 		{
 		spr := InputProc(thisHWnd, i, txt[i], 1)
 			if (spr == "**Errorlevel**")
+			{
 			%out% := 0
+			ctlTogs[i] := 0
+			}
 			else
 			{
 			fnParms[txt[i]] := spr
@@ -2717,12 +2731,14 @@ i := c + 4 * (r - 1)
 		else
 		{
 		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-			;if (spr == "Removed")
+
+
 			if (removed[i])
 			{
 			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 			fnParms[txt[i]] := ""
 			ctlTogs[i] := 2
+			removed[i] := 0
 			}
 			else
 			{
@@ -2743,19 +2759,25 @@ i := c + 4 * (r - 1)
 		{
 			spr := InputProc(thisHWnd, i, txt[i])
 			if (spr == "**Errorlevel**" || !spr)
+			{
 			%out% := 0
+			ctlTogs[i] := 0
+			}
 			else
+			{
 			fnParms[txt[i]] := spr
-		ctlTogs[i] := 2
+			ctlTogs[i] := 2
+			}
 		}
 		else
 		{
 		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-			if (spr == "Removed")
+			if (removed[i])
 			{
 			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
 			fnParms[txt[i]] := 0
 			ctlTogs[i] := 2
+			removed[i] := 0
 			}
 			else
 			{
@@ -3114,13 +3136,13 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 15, 16:
 		{
-		InputBox, textIn, Please enter %textIn%,Left`, top`, screen co-ordinates for Splashy.`n`nA null value` `(`"`"`) applied to one or both co-ordinates`nwill centre Splashy on the appropriate axes.
+		InputBox, textIn, Please enter %textIn%,Left`, top`, screen co-ordinates for Splashy.`n`nA `(`"c"`) applied to one or both co-ordinates`nwill centre Splashy on the appropriate axes.
 			if (Errorlevel)
 			return "**Errorlevel**"
 		}
 		case 17, 18:
 		{
-		InputBox, textIn, Please enter %textIn%, Horizontal and vertical margins. "D" for defaults.
+		InputBox, textIn, Please enter %textIn%, Horizontal and vertical margins. "d" for defaults.
 			if (textIn == "" || Errorlevel)
 			return "**Errorlevel**"
 		}
