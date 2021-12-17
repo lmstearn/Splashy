@@ -42,7 +42,6 @@
 	Static vImgY := 0
 	Static inputVImgW := 0
 	Static inputVImgH := 0
-	Static voldBorder := 0
 	Static vImgW := 0
 	Static vImgH := 0
 	Static oldVImgW := 0
@@ -61,6 +60,7 @@
 	Static vHide := 0
 	Static noHWndActivate := ""
 	Static vBorder := 0
+	Static voldBorder := 0
 	Static vOnTop := 0
 
 
@@ -1235,14 +1235,20 @@
 						Gui, %splashyInst%: +WS_DLGFRAME
 						else
 						{
-							if (Instr(This.vBorder, "w"))
-							Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
-							if (Instr(This.vBorder, "s"))
-							Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
-							(Instr(This.vBorder, "c"))
-							Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
-							(Instr(This.vBorder, "d"))
-							Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
+							Loop, Parse, % This.vBorder
+							{
+								Switch (A_Loopfield)
+								{
+									Case "w":
+									Gui, %splashyInst%: +E%WS_EX_WINDOWEDGE%
+									Case "s":
+									Gui, %splashyInst%: +E%WS_EX_STATICEDGE%
+									Case "c":
+									Gui, %splashyInst%: +E%WS_EX_CLIENTEDGE%
+									Case "d":
+									Gui, %splashyInst%: +E%WS_EX_DLGMODALFRAME%
+								}
+							}
 						}
 					}
 				}
