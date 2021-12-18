@@ -216,19 +216,19 @@
 
 		PaintProc(hWnd := 0)
 		{
-		spr1 := 0	
+		spr := 0	
 			if (VarSetCapacity(PAINTSTRUCT, 60 + A_PtrSize, 0))
 			{
 					if (!hWnd)
 					{
 					hWnd := Splashy.hWnd()
 						if (!Splashy.procEnd)
-						spr1 := 1
+						spr := 1
 					}
 				; DC validated
 					if (DllCall("User32.dll\BeginPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr"))
 					{
-						if (!spr1)
+						if (!spr)
 						{
 						static vDoDrawImg := 1 ;set This to 0 and the image won't be redrawn
 						static vDoDrawBgd := 1 ;set This to 0 and the background won't be redrawn
@@ -1318,7 +1318,6 @@
 		WinHide % "ahk_id" This.hWnd()
 		else
 		{
-		spr := " "
 		spr1 := 0
 
 			if (This.vPosX)

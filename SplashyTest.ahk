@@ -216,19 +216,19 @@
 
 		PaintProc(hWnd := 0)
 		{
-		spr1 := 0	
+		spr := 0	
 			if (VarSetCapacity(PAINTSTRUCT, 60 + A_PtrSize, 0))
 			{
 					if (!hWnd)
 					{
 					hWnd := Splashy.hWnd()
 						if (!Splashy.procEnd)
-						spr1 := 1
+						spr := 1
 					}
 				; DC validated
 					if (DllCall("User32.dll\BeginPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr"))
 					{
-						if (!spr1)
+						if (!spr)
 						{
 						static vDoDrawImg := 1 ;set This to 0 and the image won't be redrawn
 						static vDoDrawBgd := 1 ;set This to 0 and the background won't be redrawn
@@ -1318,7 +1318,6 @@
 		WinHide % "ahk_id" This.hWnd()
 		else
 		{
-		spr := " "
 		spr1 := 0
 
 			if (This.vPosX)
@@ -2624,7 +2623,7 @@ launchStr := {}
 						fnParms[txt[2]] := ""
 						}
 					}
-					case 5, 6, 21, 33:
+					case 5, 21, 33:
 					{
 					launchStr[txt[A_Index]] := fnParms[txt[A_Index]]
 					ctlTogs[A_Index] := 1
@@ -2716,29 +2715,35 @@ out := A_Guicontrol
 c := Substr(out, 1, 1)
 r := Substr(out, 3, 2)
 i := c + 4 * (r - 1)
-	switch i
+
+
+	if (%out%)
 	{
-	case 5, 15, 16, 21, 25, 33, 37:
-	{
-		if (%out%)
+	ctrlType := GetCtrlType(i)
+	spr := InputProc(thisHWnd, i, txt[i], ctrlType)
+		if (spr == "**Errorlevel**" || (!ctrlType && !spr) || (ctrlType == 1 && spr == ""))
 		{
-		spr := InputProc(thisHWnd, i, txt[i], 1)
-			if (spr == "**Errorlevel**")
-			{
-			%out% := 0
-			ctlTogs[i] := 0
-			}
-			else
-			{
-			fnParms[txt[i]] := spr
-			ctlTogs[i] := 2
-			}
+		%out% := 0
+		ctlTogs[i] := 0
 		}
 		else
 		{
-		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-
-
+		fnParms[txt[i]] := spr
+		ctlTogs[i] := 2
+			if (i == 2) ; instance
+			ctlTogsOld[2] := 1			
+		}
+	}
+	else
+	{
+		if (i == 2) ; instance
+		{
+		GuiControl, Test:, % "t_" A_Guicontrol, % txt[2]
+		fnParms[txt[2]] := 0
+		ctlTogs[2] := 2			
+		}
+		else
+		{
 			if (removed[i])
 			{
 			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
@@ -2757,106 +2762,14 @@ i := c + 4 * (r - 1)
 				%out% := 1
 				}
 			}
-		}		
-	}
-	case 4, 6, 26, 27, 38, 39:
-	{
-		if (%out%)
-		{
-			spr := InputProc(thisHWnd, i, txt[i])
-			if (spr == "**Errorlevel**" || !spr)
-			{
-			%out% := 0
-			ctlTogs[i] := 0
-			}
-			else
-			{
-			fnParms[txt[i]] := spr
-			ctlTogs[i] := 2
-			}
-		}
-		else
-		{
-		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-			if (removed[i])
-			{
-			GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
-			fnParms[txt[i]] := 0
-			ctlTogs[i] := 2
-			removed[i] := 0
-			}
-			else
-			{
-			removed[i] := 1
-				if (ctlTogs[i])
-				{
-				fnParms.delete(txt[i])
-				GuiControl, Test:, % "t_" A_Guicontrol, Removed
-				ctlTogs[i] := 0
-				%out% := 1
-				}
-			}
 		}
 	}
 
-	Default:
-	{
-		if (%out%)
-		{
-		spr := InputProc(thisHWnd, i, txt[i], 1)
-			if (spr == "**Errorlevel**" || spr == "")
-			{
-			%out% := 0
-			ctlTogs[i] := 0
-			}
-			else
-			{
-			fnParms[txt[i]] := spr
-			ctlTogs[i] := 2
-				if (i == 2) ; instance
-				ctlTogsOld[2] := 1			
-			}
-		}
-		else
-		{
-		GuiControlGet, spr, Test:, % "t_" A_Guicontrol
-			if (i == 2) ; instance
-			{
-			GuiControl, Test:, % "t_" A_Guicontrol, % txt[2]
-			fnParms[txt[2]] := 0
-			ctlTogs[2] := 2			
-			}
-			else
-			{
-				;if (spr == "Removed")
-				if (removed[i])
-				{
 
-				GuiControl, Test:, % "t_" A_Guicontrol, % txt[i]
-				fnParms[txt[i]] := 0
-				ctlTogs[i] := 2
-				removed[i] := 0
-				}
-				else
-				{
-				removed[i] := 1
-					if (ctlTogs[i])
-					{
-					fnParms.delete(txt[i])
-					GuiControl, Test:, % "t_" A_Guicontrol, Removed
-					ctlTogs[i] := 0
-					%out% := 1
-					}
-				}
-			}
-		}
-	}
-	}
-
-if (!ctlTogs[i] && %out%)
-GuiControl, Test:, %A_Guicontrol%, %BTONSAV%
-else
-GuiControl, Test:, %A_Guicontrol%, % %out% ? BTON : BTOFF
+	if (!ctlTogs[i] && %out%)
+	GuiControl, Test:, %A_Guicontrol%, %BTONSAV%
+	else
+	GuiControl, Test:, %A_Guicontrol%, % %out% ? BTON : BTOFF
 
 GuiControl, Test:, % (%out%) ? "+clime" : "+cgray", % "t_" A_Guicontrol
 GuiControl, Test: MoveDraw, % "t_" A_Guicontrol, 0
@@ -2919,6 +2832,19 @@ exit()
 	ctlTogsOld := ""	
 	exitapp	
 }
+GetCtrlType(i)
+{
+	switch i
+	{
+	case 5, 15, 16, 21, 25, 33, 37:
+	return 0
+	case 4, 6, 26, 27, 38, 39:
+	return -1
+	Default:
+	return 1
+	}
+}
+
 
 ProcFonts(thisHWnd)
 {
@@ -3186,9 +3112,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		{
 		InputBox, textIn, Please enter %textIn%
 			if (Errorlevel)
-			{
 			return ""
-			}
 		}
 	}
 
