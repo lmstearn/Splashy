@@ -2692,10 +2692,9 @@ WinActivate ahk_id %thisHWnd%
 DetectHiddenWindows, Off
 return
 #ifWinActive
-#if winActive("ahk_class AutoHotkeyGUI") and (winactive("AHK Fonts") || winactive("Image Source"))
-esc::
-gui, FontDlg: destroy
-gui, ImageSourceDlg: destroy
+#if winActive("ahk_class AutoHotkeyGUI") and (winactive("Image Source") || winactive("AHK Fonts"))
+~esc::
+WinClose A
 WinActivate ahk_id %thisHWnd%
 WinSet, Enable, , ahk_id %thisHWnd%
 DetectHiddenWindows, Off
@@ -2881,8 +2880,12 @@ ProcFonts(thisHWnd)
 
 	WinSet, Disable, , ahk_id %thisHWnd%
 	gui, FontDlg: show,, AHK Fonts
-	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+		if (thisFont)
+		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, %thisFont%
+		else
+		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
 	gosub GuiFontDlgSelectFont
+
 	WinWaitActive, ahk_id %thisHWnd%
 
 		if (acceptDlg)
@@ -2891,21 +2894,24 @@ ProcFonts(thisHWnd)
 		return 0
 
 	FontDlgGuiClose:
+	FontDlgGuiEscape:
+	%recFontTog% := 0
 	acceptDlg := 0
 	gui, FontDlg: Destroy
 	; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
 	WinActivate ahk_id %thisHWnd%
 	WinSet, Enable, , ahk_id %thisHWnd%
-
-	return 0
+	return ""
 
 	GuiFontDlgAccept:
+	%recFontTog% := 0
 	acceptDlg := 1
 	GuiControlGet thisFont, FontDlg:, GuiFontDlg_fontType
 	gui, FontDlg: Destroy
 	WinActivate ahk_id %thisHWnd%
 	WinSet, Enable, , ahk_id %thisHWnd%
 	return thisFont
+
 
 	FontDlgGuiSize:
 
@@ -2929,7 +2935,8 @@ ProcFonts(thisHWnd)
 
 	GuiFontDlgSelectFont:
 	gui, FontDlg: submit, nohide
-		loop, parse, fontList, |
+	thisFont :=
+		loop, parse, % (%recFontTog%?recFontList:fontList), |
 		{
 		if (a_loopfield != GuiFontDlg_fontType)
 		continue
@@ -2937,13 +2944,16 @@ ProcFonts(thisHWnd)
 		gui, FontDlg: font, s%fontSizeUD%, %thisFont%
 		guicontrol, FontDlg: font, OutputText
 		guicontrol, FontDlg: movedraw, OutputText
-
 		break
 		}
+
+		if (!thisFont)
+		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
 	return
 
 	GuiFontDlgRecommended:
 	gui, FontDlg: submit, nohide
+	Sleep -1
 	recFontTog := A_GuiControl
 	%recFontTog% := !%recFontTog% ? 1 : 0
 	gui, FontDlg: font, s15
@@ -2956,7 +2966,7 @@ ProcFonts(thisHWnd)
 		else
 		{
 		guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" fontList
-		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, %thisFont%
 		}
 	gosub GuiFontDlgSelectFont
 	return
@@ -3002,6 +3012,13 @@ ImageSourceProc(thisHWnd)
 	WinSet, Enable, , ahk_id %thisHWnd%
 	return imgRet
 
+	GuiImageSourceDlgGuiClose:
+	GuiImageSourceDlgGuiEscape:
+	; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
+	WinActivate ahk_id %thisHWnd%
+	WinSet, Enable, , ahk_id %thisHWnd%
+	return ""
+
 	GuiImageSourceDlgInternalImage:
 	gui, ImageSourceDlg: submit, nohide
 	GuiControl, ImageSourceDlg:, GuiImageSourceDlgImageRet, *
@@ -3037,6 +3054,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		{
 			if (spr := ProcFonts(thisHWnd))
 			{
+			
 			GuiControl, Test:, % "t_" A_Guicontrol, %spr%
 			return spr
 			}
