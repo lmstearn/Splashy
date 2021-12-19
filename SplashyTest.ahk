@@ -2686,17 +2686,14 @@ Testguiclose:
 DetectHiddenWindows, On
 #if winactive("ahk_class #32770") and (winactive("Please enter") || winactive("Colour") || winactive("Open an Image"))
 esc::
-WinGet, spr, Id, A
-WinClose, ahk_ID %spr%
-WinActivate ahk_id %thisHWnd%
+WinClose A
 DetectHiddenWindows, Off
 return
 #ifWinActive
+; The above conditions fail when combined with the following for some reason
 #if winActive("ahk_class AutoHotkeyGUI") and (winactive("Image Source") || winactive("AHK Fonts"))
-~esc::
+esc::
 WinClose A
-WinActivate ahk_id %thisHWnd%
-WinSet, Enable, , ahk_id %thisHWnd%
 DetectHiddenWindows, Off
 return
 #ifWinActive
@@ -2867,7 +2864,7 @@ ProcFonts(thisHWnd)
 			recFontCount := a_index
 		}
 
-	gui, FontDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox HWNDhWndFontDlg
+	gui, FontDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox
 	gui, FontDlg: add, ddl, % "section gGuiFontDlgSelectFont vGuiFontDlg_fontType w" . xSep*5, % fontList
 	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended, AHK_Recommended
 	; illegal character when evaluating "AHK`nRecommended" or "AHK Recommended"
@@ -2898,9 +2895,9 @@ ProcFonts(thisHWnd)
 	%recFontTog% := 0
 	acceptDlg := 0
 	gui, FontDlg: Destroy
-	; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
-	WinActivate ahk_id %thisHWnd%
 	WinSet, Enable, , ahk_id %thisHWnd%
+	WinActivate ahk_id %thisHWnd%
+	; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
 	return ""
 
 	GuiFontDlgAccept:
@@ -2978,7 +2975,7 @@ ImageSourceProc(thisHWnd)
 	Global GuiImageSourceDlgInternalImage, GuiImageSourceDlgImageRet, outputText
 	static imgRet, acceptDlg := 0, recFontTog := 0
 
-	gui, ImageSourceDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox HWNDhWndImageSourceDlg
+	gui, ImageSourceDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox
 	gui, ImageSourceDlg: add, button, section gGuiImageSourceDlgInternalImage vGuiImageSourceDlgInternalImage, Embedded Image
 	gui, ImageSourceDlg: add, button, ys gGuiImageSourceDlgImagePath, ImagePath
 	gui, ImageSourceDlg: add, button, ys gGuiImageSourceDlgAccept, Accept
@@ -2999,25 +2996,17 @@ ImageSourceProc(thisHWnd)
 	acceptDlg := 0
 	gui, ImageSourceDlg: Destroy
 	; problem with WinWaitClose next invocation when instead of destroyed, ImageSourceDlg is hidden
-	WinActivate ahk_id %thisHWnd%
 	WinSet, Enable, , ahk_id %thisHWnd%
-
+	WinActivate ahk_id %thisHWnd%
 	return 0
 
 	GuiImageSourceDlgAccept:
 	acceptDlg := 1
 	GuiControlGet imgRet, ImageSourceDlg:, GuiImageSourceDlgImageRet
 	gui, ImageSourceDlg: Destroy
-	WinActivate ahk_id %thisHWnd%
 	WinSet, Enable, , ahk_id %thisHWnd%
+	WinActivate ahk_id %thisHWnd%
 	return imgRet
-
-	GuiImageSourceDlgGuiClose:
-	GuiImageSourceDlgGuiEscape:
-	; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
-	WinActivate ahk_id %thisHWnd%
-	WinSet, Enable, , ahk_id %thisHWnd%
-	return ""
 
 	GuiImageSourceDlgInternalImage:
 	gui, ImageSourceDlg: submit, nohide
