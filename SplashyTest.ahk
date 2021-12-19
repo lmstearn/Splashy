@@ -2884,7 +2884,7 @@ ProcFonts(thisHWnd)
 	gosub GuiFontDlgSelectFont
 
 	WinWaitActive, ahk_id %thisHWnd%
-
+	WinSet, Enable, , ahk_id %thisHWnd%
 		if (acceptDlg)
 		return thisFont
 		else
@@ -2895,7 +2895,6 @@ ProcFonts(thisHWnd)
 	%recFontTog% := 0
 	acceptDlg := 0
 	gui, FontDlg: Destroy
-	WinSet, Enable, , ahk_id %thisHWnd%
 	WinActivate ahk_id %thisHWnd%
 	; problem with WinWaitClose next invocation when instead of destroyed, FontDlg is hidden
 	return ""
@@ -2906,7 +2905,6 @@ ProcFonts(thisHWnd)
 	GuiControlGet thisFont, FontDlg:, GuiFontDlg_fontType
 	gui, FontDlg: Destroy
 	WinActivate ahk_id %thisHWnd%
-	WinSet, Enable, , ahk_id %thisHWnd%
 	return thisFont
 
 
@@ -2986,25 +2984,25 @@ ImageSourceProc(thisHWnd)
 
 
 	WinWaitActive, ahk_id %thisHWnd%
-
+	WinSet, Enable, , ahk_id %thisHWnd%
 		if (acceptDlg)
 		return imgRet
 		else
 		return 0
 
+
+	ImageSourceDlgGuiEscape:
 	ImageSourceDlgGuiClose:
 	acceptDlg := 0
 	gui, ImageSourceDlg: Destroy
-	; problem with WinWaitClose next invocation when instead of destroyed, ImageSourceDlg is hidden
-	WinSet, Enable, , ahk_id %thisHWnd%
 	WinActivate ahk_id %thisHWnd%
+	; problem with WinWaitClose next invocation when instead of destroyed, ImageSourceDlg is hidden
 	return 0
 
 	GuiImageSourceDlgAccept:
 	acceptDlg := 1
 	GuiControlGet imgRet, ImageSourceDlg:, GuiImageSourceDlgImageRet
 	gui, ImageSourceDlg: Destroy
-	WinSet, Enable, , ahk_id %thisHWnd%
 	WinActivate ahk_id %thisHWnd%
 	return imgRet
 
