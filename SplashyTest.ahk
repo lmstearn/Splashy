@@ -40,8 +40,8 @@
 	Static vMgnY := 0
 	Static vImgX := 0
 	Static vImgY := 0
-	Static inputVImgW := 0
-	Static inputVImgH := 0
+	Static inputVImgW := ""
+	Static inputVImgH := ""
 	Static vImgW := 0
 	Static vImgH := 0
 	Static oldVImgW := 0
@@ -680,9 +680,9 @@
 								if (This.vImgW)
 								{
 									if (This.updateFlag > 0)
-									This.inputVImgW := Floor(value * This.vImgW)
+									This.inputVImgW := Floor(value * This.actualVImgW)
 									else
-									vImgWOut := value * This.vImgW
+									vImgWOut := value * This.actualVImgW
 								}
 								else
 								{
@@ -730,9 +730,9 @@
 								if (This.vImgH)
 								{
 									if (This.updateFlag > 0)
-									This.inputVImgH := Floor(value * This.vImgH)
+									This.inputVImgH := Floor(value * This.actualVImgH)
 									else
-									vImgHOut := value * This.vImgH
+									vImgHOut := value * This.actualVImgH
 								}
 								else
 								{
@@ -1045,14 +1045,33 @@
 		This.vMgnX := (vMgnXIn == "d")? vMgnXIn: Floor(vMgnXIn)
 		This.vMgnY := (vMgnYIn == "d")? vMgnYIn: Floor(vMgnYIn)
 
+			if (vImgWIn > 0)
+			This.inputVImgW := Floor(vImgWIn)
+			else
+			{
+				if (vImgWin <= -10)
+				This.inputVImgW := 0
+				else
+				{
+					if (vImgWIn)
+					This.inputVImgW := Floor(vImgWIn)
+					else
+					This.inputVImgW := Floor(A_ScreenWidth/3)
+				}
+			}
 			if (vImgHIn > 0)
 			This.inputVImgH := Floor(vImgHIn)
 			else
 			{
-				if (This.hWndSaved[This.instance])
+				if (vImgHin <= -10)
 				This.inputVImgH := 0
 				else
-				This.vImgH := A_ScreenHeight/3
+				{
+					if (vImgHIn)
+					This.inputVImgH := Floor(vImgHIn)
+					else
+					This.inputVImgH := Floor(A_ScreenHeight/3)
+				}
 			}
 
 
@@ -1594,16 +1613,55 @@
 	; If the image is the same between calls, this routine is never called, 
 	; so vToggle will not update.
 
-	; The first condition is when vImgW is specified in the first call of the image
-	if (!This.vImgW && (This.inputVImgW > 0) && (This.inputVImgW < 10))
-	This.vImgW := Floor(This.inputVImgW * This.actualVImgW)
-	else
-	This.vImgW := (This.inputVImgW)? This.inputVImgW: This.actualVImgW
 
-	if (!This.vImgH && (This.inputVImgH > 0) && (This.inputVImgH < 10))
-	This.vImgH := Floor(This.inputVImgH * This.actualVImgH)
+	if (This.inputVImgW == "")
+	This.vImgW := (This.vImgW? This.vImgW: This.actualVImgW)
 	else
-	This.vImgH := (This.inputVImgH)? This.inputVImgH: This.actualVImgH
+	{
+	; The first condition is when vImgW is specified in the first call of the image
+		if (This.inputVImgW > 0)
+		{
+			if (This.inputVImgW < 10)
+			This.vImgW := Floor(This.inputVImgW * This.actualVImgW)
+			else
+			This.vImgW := This.inputVImgW
+		}
+		else
+		{
+			if (This.inputVImgW < 0 && This.inputVImgW > -10)
+			This.vImgW := -Floor(This.inputVImgW * A_ScreenWidth)
+			else
+			This.vImgW := This.actualVImgW
+		}
+	}
+
+
+	if (This.inputVImgH == "")
+	This.vImgH := (This.vImgH? This.vImgH: This.actualVImgH)
+	else
+	{
+	; The first condition is when vImgW is specified in the first call of the image
+		if (This.inputVImgH > 0)
+		{
+			if (This.inputVImgH < 10)
+			This.vImgH := Floor(This.inputVImgH * This.actualVImgH)
+			else
+			This.vImgH := This.inputVImgH
+		}
+		else
+		{
+			if (This.inputVImgH < 0 && This.inputVImgH > -10)
+			This.vImgH := -Floor(This.inputVImgH * A_ScreenHeight)
+			else
+			This.vImgH := This.actualVImgH
+		}
+	}
+
+
+
+
+
+
 
 	spr1 := Format("W{} H{}", spr, spr1)
 
@@ -1761,9 +1819,11 @@
 	  LPVOID bmBits; // FAR ptr to void
 	} BITMAP, *PBITMAP, *NPBITMAP, *LPBITMAP; ==> Extra pointer reference
 	*/
+	spr := (This.inputVImgW? This.inputVImgW: 0)
+	spr1 := (This.inputVImgH? This.inputVImgH: 0)
 	This.ImageName := ""
-	if (This.inputVImgW || This.inputVImgH)
-	spr1 := Format("W{} H{}", This.inputVImgW, This.inputVImgH)
+	if (spr || spr1)
+	spr1 := Format("W{} H{}", spr, spr1)
 	else
 	spr1 := ""
 
@@ -2040,17 +2100,15 @@
 				msgbox, 8208, Compat DC, DC could not be created!
 				if (hBitmapOld := This.selectObject(hDCCompat, This.hBitmap))
 				{
-				spr := (This.vImgW)? This.vImgW: This.actualVImgW
-				spr1 := (This.vImgH)? This.vImgH: This.actualVImgH
 
 					if (This.oldVImgW || This.oldVImgH)
 					{
-					if (!DllCall("gdi32\StretchBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", spr, "Int", spr1, "Ptr", hDCCompat, "Int", 0, "Int", 0, "Int", This.actualVImgW, "Int", This.actualVImgH, "UInt", SRCCOPY))
+					if (!DllCall("gdi32\StretchBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", This.vImgW, "Int", This.vImgH, "Ptr", hDCCompat, "Int", 0, "Int", 0, "Int", This.actualVImgW, "Int", This.actualVImgH, "UInt", SRCCOPY))
 					msgbox, 8208, PaintDC, BitBlt Failed!
 					}
 					else
 					{
-					if (!DllCall("gdi32\BitBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", spr, "Int", spr1, "Ptr", hDCCompat, "Int", 0, "Int", 0, "UInt", SRCCOPY))
+					if (!DllCall("gdi32\BitBlt", "Ptr", This.hDCWin, "Int", This.vImgX, "Int", This.vImgY, "Int", This.vImgW, "Int", This.vImgH, "Ptr", hDCCompat, "Int", 0, "Int", 0, "UInt", SRCCOPY))
 					msgbox, 8208, PaintDC, BitBlt Failed!
 					}
 				This.selectObject(hDCCompat, hBitmapOld)
@@ -2130,12 +2188,18 @@
 				if (sub)
 				{
 					if (!(This.mainTextHWnd[This.instance] && mainTextSize[1] > subTextSize[1]))
+					{
 					This.vImgW := subTextSize[1]
+					This.inputVImgW := ""
+					}
 				}
 				else
 				{
 					if (!(This.subTextHWnd[This.instance] && subTextSize[1] > mainTextSize[1]))
+					{
 					This.vImgW := mainTextSize[1]
+					This.inputVImgW := ""
+					}
 				}
 			}
 
@@ -2156,6 +2220,7 @@
 				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . This.vMgnX . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
 				else
 				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
+			GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
 			}
 
 			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
@@ -3085,7 +3150,7 @@ Static Colors := [0x00FF00, 0xFF0000, 0xFF00FF]
 		}
 		case 19, 20:
 		{
-		InputBox, textIn, Please enter %textIn%, Width and height for Splashy.`n`nIf zero or negative`, image dimensions assumed`, else`,`nif less than one`, proportionate of screen width/height.
+		InputBox, textIn, Please enter %textIn%, Width and height for Splashy.`nIf zero or less than -10`, image dimensions assumed`, else`,`nif less than zero`, proportionate of screen width/height.`nIf positive and less than 10`, proportionate of actual`nimage width`/height`, otherwise`, width`/height in pixels.
 			if (textIn == "" || Errorlevel)
 			return "**Errorlevel**"
 		}
