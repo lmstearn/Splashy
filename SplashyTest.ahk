@@ -1052,12 +1052,8 @@
 				if (vImgWin <= -10)
 				This.inputVImgW := 0
 				else
-				{
-					if (vImgWIn)
-					This.inputVImgW := Floor(vImgWIn)
-					else
-					This.inputVImgW := Floor(A_ScreenWidth/3)
-				}
+				This.inputVImgW := Floor(vImgWIn)
+				; a zero default can be Floor(A_ScreenWidth/3)
 			}
 			if (vImgHIn > 0)
 			This.inputVImgH := Floor(vImgHIn)
@@ -1066,16 +1062,9 @@
 				if (vImgHin <= -10)
 				This.inputVImgH := 0
 				else
-				{
-					if (vImgHIn)
-					This.inputVImgH := Floor(vImgHIn)
-					else
-					This.inputVImgH := Floor(A_ScreenHeight/3)
-				}
+				This.inputVImgH := Floor(vImgHIn)
+				; a zero default can be Floor(A_ScreenHeight/3)
 			}
-
-
-
 
 
 
@@ -1207,10 +1196,8 @@
 		This.updateFlag := 1 ; in case -1 at start
 		}
 
-
 		if (diffPicOrDiffDims := This.GetPicWH())
 		This.DisplayToggle()
-
 
 	DetectHiddenWindows On
 	splashyInst := "Splashy" . (This.instance)
@@ -1613,49 +1600,18 @@
 	; If the image is the same between calls, this routine is never called, 
 	; so vToggle will not update.
 
-
 	if (This.inputVImgW == "")
 	This.vImgW := (This.vImgW? This.vImgW: This.actualVImgW)
 	else
-	{
-	; The first condition is when vImgW is specified in the first call of the image
-		if (This.inputVImgW > 0)
-		{
-			if (This.inputVImgW < 10)
-			This.vImgW := Floor(This.inputVImgW * This.actualVImgW)
-			else
-			This.vImgW := This.inputVImgW
-		}
-		else
-		{
-			if (This.inputVImgW < 0 && This.inputVImgW > -10)
-			This.vImgW := -Floor(This.inputVImgW * A_ScreenWidth)
-			else
-			This.vImgW := This.actualVImgW
-		}
-	}
+	; In case vImgW is specified in the first call of the image
+	This.vImgW := (This.inputVImgW? This.inputVImgW: This.actualVImgW)
+
 
 
 	if (This.inputVImgH == "")
 	This.vImgH := (This.vImgH? This.vImgH: This.actualVImgH)
 	else
-	{
-	; The first condition is when vImgW is specified in the first call of the image
-		if (This.inputVImgH > 0)
-		{
-			if (This.inputVImgH < 10)
-			This.vImgH := Floor(This.inputVImgH * This.actualVImgH)
-			else
-			This.vImgH := This.inputVImgH
-		}
-		else
-		{
-			if (This.inputVImgH < 0 && This.inputVImgH > -10)
-			This.vImgH := -Floor(This.inputVImgH * A_ScreenHeight)
-			else
-			This.vImgH := This.actualVImgH
-		}
-	}
+	This.vImgH := (This.inputVImgH? This.inputVImgH: This.actualVImgH)
 
 
 
@@ -2150,7 +2106,7 @@
 
 	DoText(splashyInst, hWnd, text, sub := 0)
 	{
-	static mainTextSize := 0, subTextSize := 0
+	static mainTextSize := [], subTextSize := []
 	init := 0
 		if (StrLen(text))
 		{
@@ -2237,6 +2193,11 @@
 		{
 			if (hWnd)
 			GuiControl, %splashyInst%: Hide, %hWnd%
+
+			if (sub)
+			subTextSize := ""
+			else
+			mainTextSize := ""
 		return 0
 		}
 	}
