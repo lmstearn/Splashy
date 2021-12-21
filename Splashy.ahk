@@ -13,6 +13,7 @@
 	 , PEACH: "0XFFE5B4", CORAL: "0XFF7F50", CRIMSON: "0XDC143C", VERMILION: "0XE34234", CERULEAN: "0X007BA7", TURQUOISE: "0X40E0D0", VIRIDIAN: "0X40826D", RED: "0XFF0000"
 	 , PLUM: "0X8E4585", MAGENTA: "0XF653A6", GOLD: "0XFFD700", GOLDENROD: "0XDAA520", GREEN: "0X008000", ONYX: "0X353839", KHAKIGRAU: "0X746643", FELDGRAU: "0X3D5D5D"}
 
+	Static MaxGuis := 1000	; arbitrary limit
 	Static parentHWnd := 0
 	Static updateFlag := -1
 	Static procEnd := 0
@@ -424,9 +425,10 @@
 						spr := "Splashy" . key
 						Gui, %spr%: Destroy
 						Splashy.NewWndProc.clbk[key] := ""
+
 						;Now reset This.instance for next call
 							if (This.hWndSaved.Length() == 1)
-							This.instance := 0
+							This.instance := 1
 							else
 							{
 								if (This.hWndSaved.Length() == key)
@@ -442,24 +444,22 @@
 					}
 					else
 					{
-					;find spare slot
-					spr := 0
-						for key in This.hWndSaved
+						if (key > This.MaxGuis)
 						{
-							if (This.hWndSaved[key])
-							Continue
-							else
-							{
-							; found spare slot
-							This.instance := spr := key
-							Break
-							}
+						SetWorkingDir % This.userWorkingDir
+						StringCaseSense, % This.userStringCaseSense
+						return
 						}
-					; else it's a packed array
-					if (!spr)
-					This.instance := This.hWndSaved.Length() + 1
+						else
+						This.instance := key
 					}
 				}
+			}
+			else
+			{
+			SetWorkingDir % This.userWorkingDir
+			StringCaseSense, % This.userStringCaseSense
+			return
 			}
 		}
 
@@ -2277,7 +2277,6 @@
 	}
 	hWnd()
 	{
-
 		if (!(spr := This.hWndSaved[This.instance]))
 		{
 		DetectHiddenWindows, On
