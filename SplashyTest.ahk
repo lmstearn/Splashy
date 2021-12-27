@@ -992,7 +992,7 @@
 	mainTextSize := [0, 0], subTextSize := [0, 0]
 	static splashyInst := ""
 	; Border constants
-	Static WS_DLGFRAME := 0x400000, WS_CAPTION := 0xC00000, WS_EX_COMPOSITED := 0X2000000
+	Static WS_DLGFRAME := 0x400000, WS_CAPTION := 0xC00000, WS_POPUP := 0x80000000, WS_CHILD := 0x40000000, WS_EX_COMPOSITED := 0X2000000
 	Static WS_EX_WINDOWEDGE := 0x100, WS_EX_STATICEDGE := 0x20000, WS_EX_CLIENTEDGE := 0x200, WS_EX_DLGMODALFRAME := 0x1
 
 	; Determines redraw of Splashy window (placeholder)
@@ -1275,7 +1275,8 @@
 		{
 			if (This.parent)
 			{
-			Gui, %splashyInst%: +parent%spr% 
+			Gui, %splashyInst%: -%WS_POPUP% +%WS_CHILD%
+			Gui, %splashyInst%: +parent%spr%
 			VarSetCapacity(rect, 16, 0)
 			DllCall("GetClientRect", "Ptr", spr, "Ptr", &rect)
 
@@ -1288,7 +1289,8 @@
 			}
 			else
 			{
-			Gui, %splashyInst%: -parent%spr% 
+			Gui, %splashyInst%: -parent%spr%
+			Gui, %splashyInst%: +%WS_CHILD% +%WS_POPUP%
 			parentW := A_ScreenWidth
 			parentH := A_ScreenHeight
 			if (This.parentClip)
@@ -1390,7 +1392,7 @@
 		
 
 			if (This.parent)
-			Gui, %splashyInst%: Show, %spr%
+			Gui, %splashyInst%: Show, % This.noHWndActivate . A_Space . spr
 			else
 			{
 			Gui, %splashyInst%: -DPIScale
@@ -1866,7 +1868,7 @@
 				{
 					if (This.imagePath == A_AhkPath)
 					{
-						if (This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": ""), spr))
+						if (!(This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": ""), spr)))
 						msgbox, 8208, LoadPicture, Problem loading AHK icon!
 					}
 					else
@@ -1968,8 +1970,13 @@
 		{
 		bm := []
 		VarSetCapacity(bm, ((A_PtrSize == 8)? 32: 24), 0) ;tagBitmap (24: 20) PLUS pointer ref to pBitmap 
-		if (!(DllCall("GetObject", "Ptr", This.hBitmap, "uInt", (A_PtrSize == 8)? 32: 24, "Ptr", &bm)))
-		msgbox, 8208, GetObject hBitmap, Object could not be retrieved!
+
+			if (!(DllCall("GetObject", "Ptr", This.hBitmap, "uInt", (A_PtrSize == 8)? 32: 24, "Ptr", &bm)))
+			{
+			msgbox, 8208, GetObject hBitmap, Object could not be retrieved!
+			VarSetCapacity(bm, 0)
+			return 0
+			}
 
 		spr := NumGet(bm, 4, "Int")
 		spr1 := NumGet(bm, 8, "Int")
@@ -2013,36 +2020,47 @@
 			}
 			else
 			{
-			ICONINFO:= []
+			ICONINFO := []
+			Ptr := A_PtrSize ? "Ptr" : "UInt"
 			; https://www.autohotkey.com/boards/viewtopic.php?t=36733
 			; easier way to get icon dimensions is use default SM_CXICON, SM_CYICON
-			VarSetCapacity(ICONINFO, (A_PtrSize == 8)? 32: 20, 0) ; ICONINFO Structure
-				If (DllCall("GetIconInfo", "Ptr", This.hIcon, "Ptr", &ICONINFO))
+			VarSetCapacity(ICONINFO, (A_PtrSize == 8)? 28: 20, 0) ; ICONINFO Structure
+				If (DllCall("GetIconInfo", Ptr, This.hIcon, Ptr, &ICONINFO))
 				{
-					if (ICONINFO.hbmMask := NumGet(ICONINFO, (A_PtrSize == 8)? 16: 12, "UPtr"))
+					if (ICONINFOhbmMask := NumGet(ICONINFO, 12, Ptr))
 					{
 					VarSetCapacity(bm, (A_PtrSize == 8)? 104: 84, 0) ; hbmMask dibsection
 
-					DllCall("GetObject", "Ptr", ICONINFO.hbmMask, "Int", (A_PtrSize == 8)? 104: 84, "Ptr", &bm)
+					DllCall("GetObject", Ptr, ICONINFOhbmMask, "Int", (A_PtrSize == 8)? 104: 84, Ptr, &bm)
 					spr := NumGet(bm, 4, "UInt")
 
 						; Check for the hbmColor colour plane
-						if (ICONINFO.hbmColor := NumGet(ICONINFO, (A_PtrSize == 8)? 24: 16, "UPtr"))
+						if (ICONINFOhbmColor := NumGet(ICONINFO, (A_PtrSize == 8)? 20: 16, Ptr))
 						spr1 := NumGet(bm, 8, "UInt")
 						else
 						spr1 := NumGet(bm, 8, "UInt")/2
 
-					This.deleteObject(ICONINFO.hbmMask)
+					This.deleteObject(ICONINFOhbmMask)
 
-						if (ICONINFO.hbmColor)
-						This.deleteObject(ICONINFO.hbmColor)
+						if (ICONINFOhbmColor)
+						This.deleteObject(ICONINFOhbmColor)
 					}
 					else
+					{
 					msgbox, 8208, hbmMask, Icon info could not be retrieved!
+					VarSetCapacity(bm, 0)
+					return 0
+					}
+
 				}
 				else
 				; The fastest way to convert a hBITMAP to hICON is to add it to a hIML and retrieve it back as a hICON with COMCTL32\ImageList_GetIcon()
+				{
 				msgbox, 8208, GetIconInfo, Icon info could not be retrieved!
+				VarSetCapacity(bm, 0)
+				return 0
+				}
+				
 			VarSetCapacity(ICONINFO, 0)
 			}
 		VarSetCapacity(bm, 0)
@@ -2174,61 +2192,23 @@
 				}
 			}
 
-			if (init)
-			{
-				if (This.Parent)
-				{
-				
-					if (sub)
-					{
-					spr := (This.vImgTxtSize)? 0: (This.vImgW - subTextSize[1] - 2 * This.vMgnX)/2
-					GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub
-					}
-					else
-					{
-					spr := (This.vImgTxtSize)? 0 :(This.vImgW - mainTextSize[1] - 2 * This.vMgnX)/2
-					GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr
-					}
 
-				}			
-				else
-				{
-				; initial pos can be a bit off 
-				ControlGetPos, , , spr, , , % "ahk_id" . hWnd
-				spr := This.vImgX + (This.vImgW - spr)/2
-					if (sub)
-					GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub
-					else
-					GuiControl, %splashyInst%: Move, %hWnd%, X%spr%
-				}
-			GuiControl, %splashyInst%: Font, %hWnd%
+			if (sub)
+			{
+			spr := (This.vImgTxtSize)? 0: (This.vImgW - subTextSize[1] - 2 * This.vMgnX)/2
+			GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
 			}
 			else
 			{
-				if (This.Parent)
-				{
-					if (sub)
-					{
-					spr := (This.vImgTxtSize)? 0: (This.vImgW - subTextSize[1] - 2 * This.vMgnX)/2
-					GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
-					}
-					else
-					{
-					spr := (This.vImgTxtSize)? 0 :(This.vImgW - mainTextSize[1] - 2 * This.vMgnX)/2
-					GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
-					}
-				
-				}
-				else
-				{
-					if (sub)
-					GuiControl, %splashyInst%: Move, %hWnd%, % "X" . This.vMgnX . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
-					else
-					GuiControl, %splashyInst%: Move, %hWnd%, % "X" . This.vMgnX . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
-				}
-
+			spr := (This.vImgTxtSize)? 0 :(This.vImgW - mainTextSize[1] - 2 * This.vMgnX)/2
+			GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
 			}
+
+			if (init)
+			GuiControl, %splashyInst%: Font, %hWnd%
+			else
 			GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
+
 			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
 			; This sends more paint messages to parent
 			;ControlMove, , % This.vMgnX, % This.vMgnY, This.vImgW , Text_Dims(mainText, This.mainTextHWnd), % "ahk_id" . This.mainTextHWnd
