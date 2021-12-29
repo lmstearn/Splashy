@@ -27,6 +27,7 @@
 	Static vImgType := 0
 	Static hWndSaved := []
 	Static parent := 0
+	Static parentSet := 0
 	Static release := 0
 	Static hDCWin := 0
 	Static instance := 1
@@ -98,6 +99,7 @@
 	Static WM_NCHITTEST := 0x84
 	Static WM_ERASEBKGND := 0x0014
 	Static WM_CTLCOLORSTATIC := 0x0138
+	Static WM_ENTERSIZEMOVE := 0x0231
 
 		__New(instance)
 		{
@@ -160,6 +162,12 @@
 				This.PaintProc()
 				return 0
 				}
+				case % This.WM_ENTERSIZEMOVE:
+				return 0
+				{
+				This.PaintProc()
+				return 0
+				}
 				case % This.WM_NCHITTEST:
 				{
 				return This.NcHitTestProc(hWnd, uMsg, wParam, lParam)
@@ -177,6 +185,16 @@
 
 			if (Splashy.vMovable)
 			{
+				if (Splashy.parent)
+				{
+					; This is more for WM_Move: revert the parent for the window move
+					if (Splashy.parentSet)
+					{
+						if (DllCall("SetParent", "uint", Splashy.mainTextHWnd[Splashy.instance], "uint", Splashy.hWnd())) != Splashy.parentHWnd
+						msgbox, 8192, SetParent, Cannot set parent for control!
+					Splashy.parentSet := 0
+					}
+				}
 			lResult := DllCall("DefWindowProc", "Ptr", hWnd, "UInt", uMsg, "UPtr", wParam, "Ptr", lParam)
 
 				if (lResult == HTCLIENT)
@@ -478,7 +496,7 @@
 				This.parentHWnd := This.SetParent()
 				if (This.parentHWnd == "Error")
 				{
-				msgbox, 8192 , Parent Script, Warning: Parent script is not AHK, or the window handle cannot be obtained!
+				msgbox, 8192, Parent Script, Warning: Parent script is not AHK, or the window handle cannot be obtained!
 				This.parentHWnd := 0
 				}
 			}
@@ -1397,21 +1415,22 @@
 			{
 			Gui, %splashyInst%: -DPIScale
 			Gui, %splashyInst%: Show, Hide %spr%
-			VarSetCapacity(rect, 16, 0)
-			DllCall("GetWindowRect", "Ptr", This.hWnd(), "Ptr", &rect)
-			;WinGetPos, spr, spr1,,, % "ahk_id" . This.hWnd(); fail
+
+			VarSetCapacity(point, 8, 0)
+			Point := This.GuiGetPos(This.hWnd())
+
+
+			;WinGetPos, point.x, point.y,,, % "ahk_id" . This.hWnd(); fail
 
 			; Supposed to prevent form visibility without picture while loading. Want another approach?
 			Gui, %splashyInst%: Show, % Format("X{} Y{}", -30000, -30000)
 			sleep 20
 
-			spr := NumGet(rect, 0, "int")
-			spr1 := NumGet(rect, 4, "int")
-			VarSetCapacity(rect, 0)
 			Gui, %splashyInst%: +DPIScale
-			;WinMove, % "ahk_id" . This.hWnd(),, %spr%, %spr1% ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
+			;WinMove, % "ahk_id" . This.hWnd(),, % point.x, % point.y ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
 
-			Gui, %splashyInst%: Show, % This.noHWndActivate . Format("X{} Y{}", spr, spr1)
+			Gui, %splashyInst%: Show, % This.noHWndActivate . Format("X{} Y{}", point.x, point.y)
+			VarSetCapacity(point, 0)
 			}
 
 		WinSet, AlwaysOnTop, % (This.vOnTop)? 1 : 0, % "ahk_id" . This.hWnd()
@@ -2137,6 +2156,36 @@
 		This.deleteObject(hRgn)
 	}	
 
+
+GuiGetPos(thisHWnd, screenToClient := 0)
+{
+	VarSetCapacity(rect, 16, 0)
+		if (DllCall("GetWindowRect", "Ptr", thisHWnd, "Ptr", &rect))
+		{
+		Point := []
+		VarSetCapacity(Point, 8)
+		NumPut(NumGet(rect, 0, "int"), Point, 0, "Int")
+		NumPut(NumGet(rect, 4, "int"), Point, 4, "Int")
+		}
+		else
+		return 0
+
+		if (screenToClient)
+		{
+				if !DllCall("user32\ScreenToClient", "Ptr", hWnd, "Ptr", &Point, "int")
+				return 0
+		}
+	VarSetCapacity(rect, 0)
+	return {x: NumGet(Point, 0, "Int"), y: NumGet(Point, 4, "Int")}
+
+	;W := NumGet(rect, 8, "int")
+	;W := W - x
+
+	;H := NumGet(rect, 12, "int")
+	;H := H - y
+}
+
+
 	DoText(splashyInst, hWnd, text, sub := 0)
 	{
 	static mainTextSize := [], subTextSize := []
@@ -2192,22 +2241,48 @@
 				}
 			}
 
-
-			if (sub)
+			if (This.Parent)
 			{
-			spr := (This.vImgTxtSize)? 0: (This.vImgW - subTextSize[1] - 2 * This.vMgnX)/2
-			GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
+				if (!This.parentSet)
+				{
+					if (DllCall("SetParent", "uint", hWnd, "uint", This.parentHWnd) != This.hWnd())
+					msgbox, 8192, SetParent, Cannot set parent for control!
+				This.parentSet := 1
+				}
+
+			VarSetCapacity(point, 8, 0)
+			point := This.GuiGetPos(This.hWnd(), 1)
+			GuiControl, %splashyInst%: Move, %hWnd%, % "X" . point.x . " Y" . point.y - mainTextSize[2] . " W" . This.vImgW . " H" . mainTextSize[2]
+			;GuiControl, %splashyInst%: Move, % This.hWnd, % "X" . spr . " Y" . spr1 . " W" . This.vImgW . " H" . subTextSize[2]
+			VarSetCapacity(point, 0)
 			}
 			else
 			{
-			spr := (This.vImgTxtSize)? 0 :(This.vImgW - mainTextSize[1] - 2 * This.vMgnX)/2
-			GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
+				if (This.parentSet)
+				{
+					if (DllCall("SetParent", "uint", hWnd, "uint", This.hWnd())) != This.parentHWnd
+					msgbox, 8192, SetParent, Cannot set parent for control!
+				This.parentSet := 0
+				}
+
+				if (sub)
+				{
+				spr := (This.vImgTxtSize)? 0: (This.vImgW - subTextSize[1] - 2 * This.vMgnX)/2
+				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
+				}
+				else
+				{
+				spr := (This.vImgTxtSize)? 0 :(This.vImgW - mainTextSize[1] - 2 * This.vMgnX)/2
+				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
+				}
 			}
+
+
 
 			if (init)
 			GuiControl, %splashyInst%: Font, %hWnd%
-			else
-			GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
+
+		GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
 
 			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
 			; This sends more paint messages to parent
@@ -2222,12 +2297,15 @@
 		else
 		{
 			if (hWnd)
+			{
 			GuiControl, %splashyInst%: Hide, %hWnd%
 
-			if (sub)
-			subTextSize := ""
-			else
-			mainTextSize := ""
+				if (sub)
+				subTextSize := ""
+				else
+				mainTextSize := ""
+			}
+
 		return 0
 		}
 	}
@@ -3374,19 +3452,4 @@ BGR2RGB(Color)
 	| ((Color & 0xFF0000) >> 16) 
 	|  (Color & 0x00FF00) 
 	| ((Color & 0x0000FF) << 16)
-}
-
-
-GuiGetSize(thisHWnd, ByRef W, ByRef H)
-{
-	VarSetCapacity(rect, 16, 0)
-	;DllCall("GetWindowRect", "Ptr", thisHWnd, "Ptr", &rect)
-	DllCall("GetClientRect", "Ptr", thisHWnd, "Ptr", &rect)
-	tmp := NumGet(rect, 4, "int")
-	H := NumGet(rect, 12, "int")
-	H := H - tmp
-	tmp := NumGet(rect, 0, "int")
-	W := NumGet(rect, 8, "int")
-	W := W - tmp
-	VarSetCapacity(rect, 0)
 }
