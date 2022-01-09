@@ -3,7 +3,10 @@
 #Include %A_ScriptDir%
 ;EnvSet, AutGUI, Some text to put in the variable.
 #include C:\Users\New\Desktop\Splashy.ahk
+
+; Splashy requires Last Found
 Gui +LastFound
+
 SplashRef := Splashy.SplashImg
 
 SysGet, md, MonitorWorkArea, 1

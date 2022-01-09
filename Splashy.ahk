@@ -27,7 +27,6 @@
 	Static vImgType := 0
 	Static hWndSaved := []
 	Static parent := 0
-	Static parentSet := 0
 	Static release := 0
 	Static hDCWin := 0
 	Static instance := 1
@@ -37,6 +36,7 @@
 	Static vImgTxtSize := 0
 	Static vPosX := "c"
 	Static vPosY := "c"
+	Static currVPos := {x: "", y: ""}
 	Static vMgnX := 0
 	Static vMgnY := 0
 	Static vImgX := 0
@@ -163,9 +163,15 @@
 				return 0
 				}
 				case % This.WM_ENTERSIZEMOVE:
-				return 0
 				{
-				This.PaintProc()
+					; For WM_Move: revert the parent for the window move
+					if (Splashy.parent)
+					{
+						if (StrLen(Splashy.mainText))
+						Splashy.SetParent(0, 0)
+						if (StrLen(Splashy.subText))
+						Splashy.SetParent(0, , 0)
+					}
 				return 0
 				}
 				case % This.WM_NCHITTEST:
@@ -185,16 +191,7 @@
 
 			if (Splashy.vMovable)
 			{
-				if (Splashy.parent)
-				{
-					; This is more for WM_Move: revert the parent for the window move
-					if (Splashy.parentSet)
-					{
-						if (DllCall("SetParent", "uint", Splashy.mainTextHWnd[Splashy.instance], "uint", Splashy.hWnd())) != Splashy.parentHWnd
-						msgbox, 8192, SetParent, Cannot set parent for control!
-					Splashy.parentSet := 0
-					}
-				}
+
 			lResult := DllCall("DefWindowProc", "Ptr", hWnd, "UInt", uMsg, "UPtr", wParam, "Ptr", lParam)
 
 				if (lResult == HTCLIENT)
@@ -237,7 +234,7 @@
 		PaintProc(hWnd := 0)
 		{
 		spr := 0	
-			if (VarSetCapacity(PAINTSTRUCT, 60 + A_PtrSize, 0))
+			if (VarSetCapacity(PAINTSTRUCT, A_PtrSize + A_PtrSize + 56, 0)) ; hdc, rcPaint are pointers
 			{
 					if (!hWnd)
 					{
@@ -314,7 +311,7 @@
 			}
 			if (uMsg == This.WM_PAINT)
 			{
-			VarSetCapacity(PAINTSTRUCT, 60 + A_PtrSize, 0)
+			VarSetCapacity(PAINTSTRUCT, A_PtrSize + A_PtrSize + 56, 0)
 				if (!(hDC := DllCall("User32.dll\BeginPaint", "Ptr", hWnd, "Ptr", &PAINTSTRUCT, "UPtr")))
 				return 0
 			spr := This.ToBase(hWnd, 16)
@@ -375,8 +372,8 @@
 	vOnTopOut := 0
 	vPosXOut := ""
 	vPosYOut := ""
-	vMgnXOut := -1
-	vMgnYOut := -1
+	vMgnXOut := 0
+	vMgnYOut := 0
 	vImgWOut := 0
 	vImgHOut := 0
 	mainTextOut := ""
@@ -493,7 +490,7 @@
 		; init the parent hWnd
 			if (!This.parentHWnd)
 			{
-				This.parentHWnd := This.SetParent()
+				This.parentHWnd := This.SetParentFlag()
 				if (This.parentHWnd == "Error")
 				{
 				msgbox, 8192, Parent Script, Warning: Parent script is not AHK, or the window handle cannot be obtained!
@@ -632,9 +629,19 @@
 				}
 				Case "vPosX":
 				{
-					if (!(spr := (Instr(value, "c")? "c": Floor(value))))
-					spr := "zero"
-				
+					if value is number
+					{
+						if (value)
+						spr := Floor(value)
+						else
+						spr := "zero"
+					}
+					else
+					{
+						if (!Instr(value, "c"))
+						spr := ""
+					}
+
 					if (This.updateFlag > 0)
 					This.vPosX := spr
 					else
@@ -643,8 +650,18 @@
 
 				Case "vPosY":
 				{
-					if (!(spr := (Instr(value, "c")? "c": Floor(value))))
-					spr := "zero"
+					if value is number
+					{
+						if (value)
+						spr := Floor(value)
+						else
+						spr := "zero"
+					}
+					else
+					{
+						if (!Instr(value, "c"))
+						spr := ""
+					}
 
 					if (This.updateFlag > 0)
 					This.vPosY := spr
@@ -718,7 +735,10 @@
 								}
 								else
 								{
-								This.inputVImgW := 0
+									if (This.updateFlag > 0)
+									This.inputVImgW := 0
+									else
+									vImgWOut := 0
 								This.oldVImgW := 0
 								}
 							}
@@ -774,7 +794,10 @@
 								}
 								else
 								{
-								This.inputVImgH := 0
+									if (This.updateFlag > 0)
+									This.inputVImgH := 0
+									else
+									vImgHOut := 0
 								This.oldVImgH := 0
 								}
 							}
@@ -1006,7 +1029,7 @@
 	; also consider transparency
 	*/
 	{
-	vWinW := 0, vWinH := 0, parentW := 0, parentH := 0
+	vWinW := 0, vWinH := 0, parentW := 0, parentH := 0, init := 0
 	mainTextSize := [0, 0], subTextSize := [0, 0]
 	static splashyInst := ""
 	; Border constants
@@ -1065,11 +1088,10 @@
 		This.vBorder := vBorderIn
 		This.vImgTxtSize := vImgTxtSizeIn
 
-		This.vPosX := (vPosXIn == "c")? vPosXIn: Floor(vPosXIn)
-		This.vPosY := (vPosYIn == "c")? vPosYIn: Floor(vPosYIn)
-
-		This.vMgnX := (vMgnXIn == "d")? vMgnXIn: Floor(vMgnXIn)
-		This.vMgnY := (vMgnYIn == "d")? vMgnYIn: Floor(vMgnYIn)
+		This.vPosX := (vPosXIn == "")? This.vPosX: vPosXIn
+		This.vPosY := (vPosYIn == "")? This.vPosY: vPosYIn
+		This.vMgnX := (vMgnXIn == "")? This.vMgnX: vMgnXIn
+		This.vMgnY := (vMgnYIn == "")? This.vMgnY: vMgnYIn
 
 			if (vImgWIn > 0)
 			This.inputVImgW := Floor(vImgWIn)
@@ -1219,7 +1241,11 @@
 
 		This.subFontUnderline := (subFontUnderlineIn)? " Underline": ""
 
-		This.updateFlag := 1 ; in case -1 at start
+			if (This.updateFlag == -1) ; init
+			{
+			This.updateFlag := 1
+			init := 1
+			}
 		}
 
 		if (diffPicOrDiffDims := This.GetPicWH())
@@ -1234,7 +1260,7 @@
 			{
 				if (This.hGDIPLUS := DllCall("LoadLibrary", "Str", "GdiPlus.dll", "Ptr"))
 				{
-				VarSetCapacity(SI, 24, 0), Numput(1, SI, 0, "Int")
+				VarSetCapacity(SI, (A_PtrSize = 8 ? 24 : 16), 0), Numput(1, SI, 0, "Int")
 				DllCall("GdiPlus.dll\GdiplusStartup", "UPtr*", spr, "Ptr", &SI, "Ptr", 0)
 				; for return value see status enumeration in  gdiplustypes.h 
 				This.pToken := spr
@@ -1295,15 +1321,14 @@
 			{
 			Gui, %splashyInst%: -%WS_POPUP% +%WS_CHILD%
 			Gui, %splashyInst%: +parent%spr%
-			VarSetCapacity(rect, 16, 0)
-			DllCall("GetClientRect", "Ptr", spr, "Ptr", &rect)
 
-			parentW := NumGet(rect, 8, "int") - NumGet(rect, 0, "int")
-			parentH := NumGet(rect, 12, "int") - NumGet(rect, 4, "int")
-			if (This.parentClip)
-			Winset, Style, % -This.parentClip , % "ahk_id" This.parentHWnd
+			point := This.GuiGetPos(spr)
 
-			VarSetCapacity(rect, 0)
+			parentW := point.w
+			parentH := point.h
+				if (This.parentClip)
+				Winset, Style, % -This.parentClip , % "ahk_id" This.parentHWnd
+			point := ""
 			}
 			else
 			{
@@ -1311,8 +1336,8 @@
 			Gui, %splashyInst%: +%WS_CHILD% +%WS_POPUP%
 			parentW := A_ScreenWidth
 			parentH := A_ScreenHeight
-			if (This.parentClip)
-			Winset, Style, % This.parentClip , % "ahk_id" This.parentHWnd
+				if (This.parentClip)
+				Winset, Style, % This.parentClip , % "ahk_id" This.parentHWnd
 			}
 		}
 		else
@@ -1339,17 +1364,16 @@
 
 
 	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
-	vWinH := This.vImgH + 2 * This.vMgnY
-
-
-		if (This.vImgY := This.DoText(splashyInst, This.mainTextHWnd[This.instance], This.mainText))
-		vWinH += This.vImgY
-
-		if (spr := This.DoText(splashyInst, This.subTextHWnd[This.instance], This.subText, vWinH - This.vMgnY))
-		vWinH += spr
-
-	; Moved here for vImgTxtSize
 	vWinW := This.vImgW + 2 * This.vMgnX
+	vWinH := This.vImgH + This.vMgnY
+
+
+		This.vImgY := This.DoText(splashyInst, This.mainTextHWnd[This.instance], This.mainText, vWinW, vWinH, init)
+		
+
+		if (spr := This.DoText(splashyInst, This.subTextHWnd[This.instance], This.subText, vWinW, vWinH, init, 1))
+		vWinH += spr + This.vMgnY
+
 
 	Gui, %splashyInst%: Font
 
@@ -1359,78 +1383,51 @@
 		else
 		{
 		spr1 := 0
+		spr := A_Space
 
-			if (This.vPosX)
-			{
+			if (This.currVPos.x == "" || This.currVPos.y == "")
+			This.currVPos := This.GetPosVal(This.vPosX, This.vPosY, parentW, parentH, vWinW, vWinH, (This.parent?This.parentHWnd:0))
+
+			if (This.currVPos.x)
 			spr1 := -1
-				if (This.vPosX == "c")
-				{
-					if (vWinW < parentW)
-					This.vPosX := (parentW - vWinW)/2
-					else
-					This.vPosX := 0
-				}
-
-				if (This.vPosX == "zero")
-				This.vPosX := 0
-			}
-
-			if (This.vPosY)
+			if (This.currVPos.y)
 			{
 				if (spr1)
 				spr1 := 1
 				else
 				spr1 := 2
-
-				if (This.vPosY == "c")
-				{
-					if (vWinH < parentH)
-					This.vPosY := (parentH - vWinH)/2
-					else
-					This.vPosY := 0
-				}
-
-				if (This.vPosY == "zero")
-				This.vPosY := 0
 			}
 
-		spr := A_Space
 
-		switch (spr1)
-		{
-			case -1:
-			spr := Format(" X{} W{} H{}", This.vPosX, vWinW, vWinH)
-			case 1:
-			spr := Format(" X{} Y{} W{} H{}", This.vPosX, This.vPosY, vWinW, vWinH)
-			case 2:
-			spr := Format(" Y{} W{} H{}", This.vPosY, vWinW, vWinH)
-			default: ; 0
-			spr := Format(" W{} H{}", vWinW, vWinH)
-		}
-		
-
-			if (This.parent)
-			Gui, %splashyInst%: Show, % This.noHWndActivate . A_Space . spr
-			else
+			switch (spr1)
 			{
-			Gui, %splashyInst%: -DPIScale
-			Gui, %splashyInst%: Show, Hide %spr%
-
-			VarSetCapacity(point, 8, 0)
-			Point := This.GuiGetPos(This.hWnd())
-
-			;WinGetPos, point.x, point.y,,, % "ahk_id" . This.hWnd(); fail
-
-			; Supposed to prevent form visibility without picture while loading. Want another approach?
-			Gui, %splashyInst%: Show, % Format("X{} Y{}", -30000, -30000)
-			sleep 20
-
-			Gui, %splashyInst%: +DPIScale
-			;WinMove, % "ahk_id" . This.hWnd(),, % point.x, % point.y ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
-
-			Gui, %splashyInst%: Show, % This.noHWndActivate . Format("X{} Y{}", point.x, point.y)
-			VarSetCapacity(point, 0)
+				case -1:
+				spr .= Format(" X{} W{} H{}", This.currVPos.x, vWinW, vWinH)
+				case 1:
+				spr .= Format(" X{} Y{} W{} H{}", This.currVPos.x, This.currVPos.y, vWinW, vWinH)
+				case 2:
+				spr .= Format(" Y{} W{} H{}", This.currVPos.y, vWinW, vWinH)
+				default: ; 0
+				spr .= Format(" W{} H{}", vWinW, vWinH)
 			}
+
+		This.GetPosProc(splashyInst, init)
+
+		; Also consider cloaking (DWMWA_CLOAK)
+		Gui, %splashyInst%: Show, Hide %spr%
+
+		;WinGetPos, point.x, point.y,,, % "ahk_id" . This.hWnd(); fail
+
+		; Supposed to prevent form visibility without picture while loading. Want another approach?
+		Gui, %splashyInst%: Show, % "Hide " . Format("X{} Y{}", -30000, -30000)
+		sleep 20
+
+		Gui, %splashyInst%: +DPIScale
+		;WinMove, % "ahk_id" . This.hWnd(),, % point.x, % point.y ; fails here whether 30000 or 0, as well as SetWindowPos. SetWindowPlacement?
+
+		Gui, %splashyInst%: Show, % This.noHWndActivate . Format("X{} Y{}", This.currVPos.x, This.currVPos.y)
+
+
 
 		WinSet, AlwaysOnTop, % (This.vOnTop)? 1 : 0, % "ahk_id" . This.hWnd()
 			if (This.transCol && !This.vBorder)
@@ -1438,6 +1435,7 @@
 		Splashy.NewWndProc.PaintProc(This.hWnd())
 		}
 
+	This.currVPos.x := This.currVPos.y := ""
 	This.procEnd := 1
 	This.oldInstance := This.instance
 	SetWorkingDir % This.userWorkingDir
@@ -1599,6 +1597,7 @@
 
 		return spr
 	}
+
 	DownloadFile(URL, fName)
 	{
 			try
@@ -1987,9 +1986,10 @@
 		case 0:
 		{
 		bm := []
-		VarSetCapacity(bm, ((A_PtrSize == 8)? 32: 24), 0) ;tagBitmap (24: 20) PLUS pointer ref to pBitmap 
+		spr := (A_PtrSize == 8)? 32: 24
+		VarSetCapacity(bm, spr, 0) ;tagBitmap (24: 20) PLUS pointer ref to pBitmap 
 
-			if (!(DllCall("GetObject", "Ptr", This.hBitmap, "uInt", (A_PtrSize == 8)? 32: 24, "Ptr", &bm)))
+			if (!(DllCall("GetObject", "Ptr", This.hBitmap, "uInt", spr, "Ptr", &bm)))
 			{
 			msgbox, 8208, GetObject hBitmap, Object could not be retrieved!
 			VarSetCapacity(bm, 0)
@@ -2007,8 +2007,8 @@
 			bm := subStr(This.PicInScript, 1, 100)
 			;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=36455&p=168124#p168124
 
-			; CRYPT_STRING_BASE64 := 0x01
-				if !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &bm, "UInt", 0, "UInt", 0x01, "Ptr", 0, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
+			; CRYPT_STRING_BASE64 := 0x00000001
+				if !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &bm, "UInt", 0, "UInt", 0x00000001, "Ptr", 0, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
 				Return False
 			VarSetCapacity(spr1, 128), VarSetCapacity(spr1, 0), VarSetCapacity(spr1, DecLen, 0)
 				If !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &bm, "UInt", 0, "UInt", 0x01, "Ptr", &spr1, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
@@ -2027,6 +2027,7 @@
 				if (!tmp.RawRead(bm, 24))
 				return False
 
+			VarSetCapacity(spr1, 0)
 			tmp.Close
 			FileDelete, spr.bin
 
@@ -2039,23 +2040,23 @@
 			else
 			{
 			ICONINFO := []
-			Ptr := A_PtrSize ? "Ptr" : "UInt"
+			tmp := (A_PtrSize == 8)? 104: 84, 0
 			; https://www.autohotkey.com/boards/viewtopic.php?t=36733
 			; easier way to get icon dimensions is use default SM_CXICON, SM_CYICON
 			VarSetCapacity(ICONINFO, (A_PtrSize == 8)? 28: 20, 0) ; ICONINFO Structure
-				If (DllCall("GetIconInfo", Ptr, This.hIcon, Ptr, &ICONINFO))
+				If (DllCall("GetIconInfo", "Ptr", This.hIcon, "Ptr", &ICONINFO))
 				{
-					if (ICONINFOhbmMask := NumGet(ICONINFO, 12, Ptr))
+					if (ICONINFOhbmMask := NumGet(ICONINFO, (A_PtrSize == 8)? 16: 12, "Ptr"))
 					{
-					VarSetCapacity(bm, (A_PtrSize == 8)? 104: 84, 0) ; hbmMask dibsection
+					VarSetCapacity(bm, tmp, 0) ; hbmMask dibsection
 
-					DllCall("GetObject", Ptr, ICONINFOhbmMask, "Int", (A_PtrSize == 8)? 104: 84, Ptr, &bm)
+					DllCall("GetObject", "Ptr", ICONINFOhbmMask, "Int", tmp, "Ptr", &bm)
 					spr := NumGet(bm, 4, "UInt")
 
 						; Check for the hbmColor colour plane
-						if (ICONINFOhbmColor := NumGet(ICONINFO, (A_PtrSize == 8)? 20: 16, Ptr))
+						if (ICONINFOhbmColor := NumGet(ICONINFO, (A_PtrSize == 8)? 20: 16, "Ptr"))
 						spr1 := NumGet(bm, 8, "UInt")
-						else
+						else ; The following has the effect of reducing the icon size by exactly half- is that wanted?
 						spr1 := NumGet(bm, 8, "UInt")/2
 
 					This.deleteObject(ICONINFOhbmMask)
@@ -2155,37 +2156,148 @@
 		This.deleteObject(hRgn)
 	}	
 
+	GetPosProc(splashyInst, init)
+	{
+		Gui, %splashyInst%: -DPIScale
 
-GuiGetPos(thisHWnd, screenToClient := 0)
-{
+			if (init)
+			{
+			; Init only! Position is never preserved, so rely on GuiGetPos
+				if (This.vPosX == "c")
+				This.vPosX := ""
+				if (This.vPosY == "c")
+				This.vPosY := ""
+			}
+			else
+			{
+			pointGet := This.GuiGetPos(This.hWnd(), 1)
+				spr := This.vPosX
+				if spr is number
+				This.currVPos.x := This.vPosX
+				else
+				This.currVPos.x := pointGet.x
+
+				spr := This.vPosY
+				if spr is number
+				This.currVPos.y := This.vPosY
+				else
+				This.currVPos.y := pointGet.y
+
+			pointGet := ""
+			}
+	}
+
+
+	GuiGetPos(thisHWnd, hWndPos := 0)
+	{
 	VarSetCapacity(rect, 16, 0)
+
 		if (DllCall("GetWindowRect", "Ptr", thisHWnd, "Ptr", &rect))
 		{
-		Point := []
-		VarSetCapacity(Point, 8)
-		NumPut(NumGet(rect, 0, "int"), Point, 0, "Int")
-		NumPut(NumGet(rect, 4, "int"), Point, 4, "Int")
+
+		x := NumGet(rect, 0, "int")
+		y := NumGet(rect, 4, "int")
+
+			if (!hWndPos)
+			{
+			w := NumGet(rect, 8, "int")
+			w := w - x
+
+			h := NumGet(rect, 12, "int")
+			h := h - y
+
+			VarSetCapacity(rect, 0)
+			return {w: w, h: h}
+			}
+
+		VarSetCapacity(point, 8, 0)
+
+		NumPut(x, point, 0, "Int"), NumPut(y, point, 4, "Int")
+
+			if (This.parent)
+			{
+				if !DllCall("user32\ScreenToClient", "Ptr", This.parentHWnd, "Ptr", &point, "int")
+				return 0
+			}
+		x := NumGet(point, 0, "Int"), y := NumGet(point, 4, "Int")
+
+		VarSetCapacity(point, 0)
 		}
 		else
 		return 0
 
-		if (screenToClient)
-		{
-				if !DllCall("user32\ScreenToClient", "Ptr", hWnd, "Ptr", &Point, "int")
-				return 0
-		}
 	VarSetCapacity(rect, 0)
-	return {x: NumGet(Point, 0, "Int"), y: NumGet(Point, 4, "Int")}
 
-	;W := NumGet(rect, 8, "int")
-	;W := W - x
-
-	;H := NumGet(rect, 12, "int")
-	;H := H - y
-}
+	return {x: x, y: y}
+	}
 
 
-	DoText(splashyInst, hWnd, text, sub := 0)
+	TransPosVal(vPos, parentDim, winDim)
+	{
+		if (vPos == "c")
+		{
+			if (winDim < parentDim)
+			vPos := (parentDim - winDim)/2
+			else
+			vPos := 0
+		}
+		else
+		{
+		if (vPos == "zero")
+		vPos := 0
+		}
+	return vPos
+	}
+
+	GetPosVal(vPosX, vPosY, parentDimW, parentDimH, winDimW, winDimH, parentHWnd)
+	{
+	static parentStat := 0
+	vPosXIn := vPosX
+	vPosYIn := vPosY
+
+	vPosX := This.TransPosVal(vPosX, parentDimW, winDimW)
+	vPosY := This.TransPosVal(vPosY, parentDimH, winDimH)
+
+		if (parentStat == parentHWnd)
+		return {x: vPosX, y: vPosY}
+		else
+		{
+		VarSetCapacity(point, 8, 0)
+
+			if (vPosX == "")
+			{
+				if (vPosY == "")
+				return {x: "", y: ""}
+				else
+				vPosX := 0
+			}
+
+			if (vPosY == "")
+			vPosY := 0
+		
+		NumPut(vPosX, point, 0, "Int")
+		NumPut(vPosY, point, 4, "Int")
+
+			if (parentHWnd)
+			{
+				if !DllCall("user32\ScreenToClient", "Ptr", parentHWnd, "Ptr", &point, "int")
+				return 0
+			}
+			else
+			{
+				if !DllCall("user32\ClientToScreen", "Ptr", parentStat, "Ptr", &point, "int")
+				return 0
+			}
+
+		parentStat := parentHWnd
+
+		return {x: (vPosXIn == "")? "": NumGet(point, 0, "Int"), y: (vPosYIn == "")? "": NumGet(point, 4, "Int")}
+		}
+	}
+
+
+
+	DoText(splashyInst, hWnd, text, currSplashyInstW, currSplashyInstH, init, sub := 0)
 	{
 	static mainTextSize := [], subTextSize := []
 	init := 0
@@ -2205,7 +2317,7 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 			else
 			{
 			init := 1
-			Gui, %splashyInst%: Add, Text, % "X0 W" . This.vImgW . " Y" . (sub?sub:This.vMgnY) . " HWND" . "hWnd", % text
+			Gui, %splashyInst%: Add, Text, % "X0 W" . This.vImgW . " Y" . (sub?currSplashyInstH:This.vMgnY) . " HWND" . "hWnd", % text
 			}
 
 			if (sub)
@@ -2226,6 +2338,7 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 				{
 					if (!(This.mainTextHWnd[This.instance] && mainTextSize[1] > subTextSize[1]))
 					{
+					currSplashyInstW += subTextSize[1] - This.vImgW
 					This.vImgW := subTextSize[1]
 					This.inputVImgW := ""
 					}
@@ -2234,6 +2347,7 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 				{
 					if (!(This.subTextHWnd[This.instance] && subTextSize[1] > mainTextSize[1]))
 					{
+					currSplashyInstW += mainTextSize[1] - This.vImgW
 					This.vImgW := mainTextSize[1]
 					This.inputVImgW := ""
 					}
@@ -2242,46 +2356,51 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 
 			if (This.Parent)
 			{
-				if (!This.parentSet)
+			; vMgnx, vMgnY not applicable here
+ 			This.Setparent(1, !sub?hWnd:0, sub?hWnd:0)
+
+			;SysGet, spr, MonitorWorkArea
+
+				if (This.currVPos.x == "" || This.currVPos.y == "")
 				{
-					if (DllCall("SetParent", "uint", hWnd, "uint", This.parentHWnd) != This.hWnd())
-					msgbox, 8192, SetParent, Cannot set parent for control!
-				This.parentSet := 1
+				This.currVPos := This.GetPosVal(This.vPosX, This.vPosY, A_ScreenWidth, A_ScreenHeight, currSplashyInstW, currSplashyInstH, This.parentHWnd)
+				This.GetPosProc(splashyInst, init)
 				}
 
-			VarSetCapacity(point, 8, 0)
-			point := This.GuiGetPos(This.hWnd(), 1)
-			GuiControl, %splashyInst%: Move, %hWnd%, % "X" . point.x . " Y" . point.y - mainTextSize[2] . " W" . This.vImgW . " H" . mainTextSize[2]
-			;GuiControl, %splashyInst%: Move, % This.hWnd, % "X" . spr . " Y" . spr1 . " W" . This.vImgW . " H" . subTextSize[2]
-			VarSetCapacity(point, 0)
+			WinMove ahk_id %hWnd%, , % This.currVPos.x, % This.currVPos.y, % This.vImgW, % mainTextSize[2]
+			;DllCall("SetWindowPos", "UInt", hWnd, "UInt", 0, "Int", This.currVPos.x, "Int", This.currVPos.y, "Int", This.vImgW, "Int", mainTextSize[2], "UInt", 0x0004)
+
+			cliPoint := ""
+			winPoint := ""
+			WinSet, AlwaysOnTop, 1, ahk_id %hWnd%
+			WinShow, ahk_id %hWnd%
 			}
 			else
 			{
-				if (This.parentSet)
-				{
-					if (DllCall("SetParent", "uint", hWnd, "uint", This.hWnd())) != This.parentHWnd
-					msgbox, 8192, SetParent, Cannot set parent for control!
-				This.parentSet := 0
-				}
-
 				if (sub)
 				{
-				spr := (This.vImgTxtSize)? 0: (This.vImgW - subTextSize[1] - 2 * This.vMgnX)/2
-				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . sub . " W" . This.vImgW . " H" . subTextSize[2]
+				This.Setparent(0, , hWnd)
+				; This works, why?
+				;spr := (This.vImgTxtSize)? 0: (This.vImgW - subTextSize[1] - 2 * This.vMgnX)/2
+				spr := This.vImgW - subTextSize[1] + 2 * This.vMgnX
+				spr := (spr > 0)?((This.vImgTxtSize)? 0: spr)/2: 0
+				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . currSplashyInstH . " W" . This.vImgW . " H" . subTextSize[2]
 				}
 				else
 				{
-				spr := (This.vImgTxtSize)? 0 :(This.vImgW - mainTextSize[1] - 2 * This.vMgnX)/2
+				This.Setparent(0, hWnd)
+				; This works, why?
+				;spr := (This.vImgTxtSize)? 0 :(This.vImgW - mainTextSize[1] - 2 * This.vMgnX)/2
+				spr := This.vImgW - mainTextSize[1] + 2 * This.vMgnX
+				spr := (spr > 0)?((This.vImgTxtSize)? 0: spr/2): 0
 				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
 				}
+			GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
 			}
 
-
-
-			if (init)
 			GuiControl, %splashyInst%: Font, %hWnd%
 
-		GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
+			
 
 			;ControlSetText, , %mainText%, % "ahk_id" . This.mainTextHWnd
 			; This sends more paint messages to parent
@@ -2309,7 +2428,42 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 		}
 	}
 
-	SetParent()
+	SetParent(parentSetStatus, mainHWndIn := "", subHWndIn := "")
+	{
+	Static lastParentStatus := 0, mainHWnd := 0, subHWnd := 0
+
+		if (lastParentStatus == parentSetStatus)
+		return
+
+		if (mainHWndIn)
+		hWnd := mainHWnd := mainHWndIn
+		else
+		{
+			if (subHWndIn)
+			hWnd := subHWnd := subHWndIn
+			else
+			{
+				if (mainHWndIn == 0)
+				hWnd := mainHWnd
+				else
+				hWnd := subHWnd
+			}
+		}
+
+		if (parentSetStatus)
+		{
+			if (DllCall("SetParent", "Ptr", hWnd, "Ptr", This.parentHWnd) != This.hWnd())
+			msgbox, 8192, SetParent, Cannot set parent for control!
+		}
+		else
+		{
+			if (DllCall("SetParent", "Ptr", hWnd, "Ptr", This.hWnd()) != This.parentHWnd)
+			msgbox, 8192, SetParent, Cannot set parent for control!
+		}
+	lastParentStatus := parentSetStatus
+	}
+
+	SetParentFlag()
 	{
 	Static WS_CLIPCHILDREN := 0x02000000
 	DetectHiddenWindows, On
@@ -2381,8 +2535,6 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 	B64Decode(B64, nBytes := "", W := "", H := "")
 	{
 	Bin = {}, BLen := 0, hICON := 0  
-	Ptr := A_PtrSize ? "Ptr" : "UInt"
-	UPtr := A_PtrSize ? "UPtr" : "UInt"
 
 		if !nBytes
 		nBytes := ceil(StrLen(StrReplace( B64, "=", "=", e))/4*3) - e
@@ -2407,6 +2559,7 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 		return This._vMovable
 		}
 	}
+
 	hWnd()
 	{
 		if (!(spr := This.hWndSaved[This.instance]))
@@ -2440,7 +2593,7 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 	}
 		releaseDC(hWnd, hDC)
 	{
-		if !DllCall("ReleaseDC", "UPtr", hWnd, "UPtr", hDC)
+		if !DllCall("ReleaseDC", "Ptr", hWnd, "UPtr", hDC)
 		msgbox, 8208, Device Context, % "Release failed `nError code is: " . "ErrorLevel " ErrorLevel ": " . A_LastError
 	}
 
@@ -2474,11 +2627,11 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 	This.SaveRestoreUserParms(1)
 
 	if (not This.vImgType)  ; IMAGE_BITMAP (0) or the ImageType parameter was omitted.
-	DllCall("DeleteObject", "ptr", This.hBitmap)
+	DllCall("DeleteObject", "Ptr", This.hBitmap)
 	else if (This.vImgType == 1)  ; IMAGE_ICON
-	DllCall("DestroyIcon", "ptr", This.hIcon)
+	DllCall("DestroyIcon", "Ptr", This.hIcon)
 	else if (This.vImgType == 2)  ; IMAGE_CURSOR
-	DllCall("DestroyCursor", "ptr", This.hIcon)
+	DllCall("DestroyCursor", "Ptr", This.hIcon)
 
 	This.SetCapacity(downloadedPathNames, 0)
 	This.SetCapacity(downloadedUrlNames, 0)
@@ -2509,14 +2662,14 @@ GuiGetPos(thisHWnd, screenToClient := 0)
 	{
 		if (This.hBitmap)
 		{
-		DllCall("DeleteObject", "ptr", This.hBitmap)
+		DllCall("DeleteObject", "Ptr", This.hBitmap)
 		This.hBitmap := 0
 		}
 		else
 		{
 			if (This.hIcon)
 			{
-			DllCall("DestroyIcon", "ptr", This.hIcon)
+			DllCall("DestroyIcon", "Ptr", This.hIcon)
 			This.hIcon := 0
 			}
 		}
