@@ -1249,7 +1249,15 @@
 		}
 
 		if (diffPicOrDiffDims := This.GetPicWH())
-		This.DisplayToggle()
+		{
+			if (diffPicOrDiffDims) == "error"
+			return
+			else
+			{
+				if (This.DisplayToggle() == "error")
+				return
+			}
+		}
 
 	DetectHiddenWindows On
 	splashyInst := "Splashy" . (This.instance)
@@ -1586,6 +1594,9 @@
 	{
 			try
 			{
+;https://webapps.stackexchange.com/questions/162310/url-image-filtering-url-suffixes-and-wikimedia
+			;SplitPath,d,name
+			;UrlDownloadToFile,%d%,%name%
 				UrlDownloadToFile, %URL%, %fName%
 			}
 			catch spr
@@ -1710,7 +1721,7 @@
 					if (!fileExist(This.ImageName) && !This.hIcon)
 					{
 					msgbox, 8208, DisplayToggle, Unknown Error!
-					return
+					return "error"
 					}
 				}
 			}
@@ -1754,7 +1765,7 @@
 				if (!fileExist(This.ImageName))
 				{
 					if (!(This.DownloadFile(This.imageUrl, This.ImageName)))
-					return
+					return "error"
 				}
 
 				if (This.hBitmap := LoadPicture(This.ImageName, spr1))
@@ -1768,7 +1779,11 @@
 				return
 				}
 				else
+				{
 				msgbox, 8208, LoadPicture, Format not recognized!
+				FileDelete, % This.ImageName
+				return "error"
+				}
 
 			}
 			else
@@ -1870,18 +1885,27 @@
 					if (This.imagePath == A_AhkPath)
 					{
 						if (!(This.hIcon := LoadPicture(A_AhkPath, ((vToggle)? "Icon2 ": ""), spr)))
+						{
 						msgbox, 8208, LoadPicture, Problem loading AHK icon!
+						return "error"
+						}
 					}
 					else
 					{
 						if (!(This.hIcon := LoadPicture(spr, , spr))) ; must use 3rd parm or bitmap handle returned!
+						{
 						msgbox, 8208, LoadPicture, Problem loading icon!
+						return "error"
+						}
 					}
 				}
 				else
 				{
 					if (!(This.hBitmap := LoadPicture(spr)))
+					{
 					msgbox, 8208, LoadPicture, Problem loading picture!
+					return "error"
+					}
 				}
 			}
 			else
@@ -1906,7 +1930,13 @@
 			if (!(This.ImageName))
 			{
 			SplitPath % This.imageUrl, spr
-			This.ImageName := spr
+				if (InStr(spr, ":"))
+				{
+				msgbox, 8208, Image Url, Name contains a colon, thus not a valid image target!
+				return "error"
+				}
+				else
+				This.ImageName := spr
 			}
 			;  check if file D/L'd previously
 			for key, value in % This.downloadedUrlNames
@@ -1924,6 +1954,7 @@
 						Catch e
 						{
 						msgbox, 8208, FileCopy, % key . " could not be copied with error: " . e
+						return "error"
 						}
 					}
 				}
@@ -1931,7 +1962,10 @@
 
 		; Proceed to download
 			if (!fileExist(This.ImageName))
-			This.DownloadFile(This.imageUrl, This.ImageName)
+			{
+				if (!(This.DownloadFile(This.imageUrl, This.ImageName)))
+				return "error"
+			}
 
 			if (This.hBitmap := LoadPicture(This.ImageName))
 			{
@@ -1944,7 +1978,8 @@
 			else
 			{
 			msgbox, 8208, LoadPicture, Format of bitmap not recognized!
-			return 0
+			FileDelete, % This.ImageName
+			return "error"
 			}
 
 		}
@@ -1960,7 +1995,7 @@
 			else
 			{
 			msgbox, 8208, LoadPicture, Format of icon/cursor not recognized!
-			return 0
+			return "error"
 			}
 		}
 	}
@@ -1977,7 +2012,7 @@
 			{
 			msgbox, 8208, GetObject hBitmap, Object could not be retrieved!
 			VarSetCapacity(bm, 0)
-			return 0
+			return "error"
 			}
 
 		spr := NumGet(bm, 4, "Int")
@@ -1993,23 +2028,23 @@
 
 			; CRYPT_STRING_BASE64 := 0x00000001
 				if !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &bm, "UInt", 0, "UInt", 0x00000001, "Ptr", 0, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
-				Return False
+				return "error"
 			VarSetCapacity(spr1, 128), VarSetCapacity(spr1, 0), VarSetCapacity(spr1, DecLen, 0)
 				If !DllCall("Crypt32.dll\CryptStringToBinary", "Ptr", &bm, "UInt", 0, "UInt", 0x01, "Ptr", &spr1, "UInt*", DecLen, "Ptr", 0, "Ptr", 0)
-				Return False
+				return "error"
 
 			FileAppend , , spr.bin
 			tmp := FileOpen("spr.bin", "w")
 				if (tmp == 0)
-				return False
+				return "error"
 				if (!tmp.RawWrite(&spr1, Declen))
-				return False
+				return "error"
 			tmp.Close
 			tmp := FileOpen("spr.bin", "r")
 			bm := ""
 			VarSetCapacity(bm, 24)
 				if (!tmp.RawRead(bm, 24))
-				return False
+				return "error"
 
 			VarSetCapacity(spr1, 0)
 			tmp.Close
@@ -2052,7 +2087,7 @@
 					{
 					msgbox, 8208, hbmMask, Icon info could not be retrieved!
 					VarSetCapacity(bm, 0)
-					return 0
+					return "error"
 					}
 
 				}
@@ -2061,7 +2096,7 @@
 				{
 				msgbox, 8208, GetIconInfo, Icon info could not be retrieved!
 				VarSetCapacity(bm, 0)
-				return 0
+				return "error"
 				}
 				
 			VarSetCapacity(ICONINFO, 0)
@@ -2318,7 +2353,7 @@
 	}
 
 
-	DoText(splashyInst, hWnd, text, ByRef currVPos, currSplashyInstW, currSplashyInstH, init, sub := 0)
+	DoText(splashyInst, hWnd, text, ByRef currVPos, ByRef currSplashyInstW, currSplashyInstH, init, sub := 0)
 	{
 	static SS_Center := 0X1, SWP_SHOWWINDOW := 0x0040, mainTextSize := [], subTextSize := []
 	init := 0
@@ -2705,8 +2740,7 @@
 
 
 
-
-
+ 
 
 
 
