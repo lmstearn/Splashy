@@ -636,10 +636,7 @@
 						spr := "zero"
 					}
 					else
-					{
-						if (!Instr(value, "c"))
-						spr := ""
-					}
+					spr := (Instr(value, "c"))? "c": ""
 
 					if (This.updateFlag > 0)
 					This.vPosX := spr
@@ -657,10 +654,7 @@
 						spr := "zero"
 					}
 					else
-					{
-						if (!Instr(value, "c"))
-						spr := ""
-					}
+					spr := (Instr(value, "c"))? "c": ""
 
 					if (This.updateFlag > 0)
 					This.vPosY := spr
@@ -690,123 +684,25 @@
 						vMgnYOut := spr
 					}
 				}
+
 				Case "vImgW":
 				{
-					if value is number
-					{
-						if (value > 10)
-						{
-						This.oldVImgW := This.vImgW
-							if (This.updateFlag > 0)
-							This.inputVImgW := Floor(value)
-							else
-							vImgWOut := value
-						}
-						else
-						{
-							if (value > 0)
-							{
-							This.oldVImgW := This.vImgW
-								if (This.vImgW)
-								{
-									if (This.updateFlag > 0)
-									This.inputVImgW := Floor(value * This.actualVImgW)
-									else
-									vImgWOut := value * This.actualVImgW
-								}
-								else
-								{
-									if (This.updateFlag > 0)
-									This.inputVImgW := Floor(value)
-									else
-									vImgWOut := value
-								}
-							}
-							else
-							{
-								if (value < 0 && value > -10)
-								{
-								This.oldVImgW := This.vImgW
-									if (This.updateFlag > 0)
-									This.inputVImgW := -Floor(value * A_ScreenWidth)
-									else
-									vImgWOut := -value * A_ScreenWidth
-								}
-								else
-								{
-									if (This.updateFlag > 0)
-									This.inputVImgW := 0
-									else
-									vImgWOut := 0
-								This.oldVImgW := 0
-								}
-							}
-						}
-					}
+				spr := (This.actualVImgW)?This.ProcImgWHVal(value):value
+
+					if (This.updateFlag > 0)
+					This.inputVImgW := spr
 					else
-					{
-					This.inputVImgW := 0
-					This.oldVImgW := 0
-					}
+					vImgWOut := spr
 				}
+
 				Case "vImgH":
 				{
-					if value is number
-					{
-						if (value > 10)
-						{
-							This.oldVImgH := This.vImgH
-								if (This.updateFlag > 0)
-								This.inputVImgH := Floor(value)
-								else
-								vImgHOut := value
-						}
-						else
-						{
-							if (value > 0)
-							{
-							This.oldVImgH := This.vImgH
-								if (This.vImgH)
-								{
-									if (This.updateFlag > 0)
-									This.inputVImgH := Floor(value * This.actualVImgH)
-									else
-									vImgHOut := value * This.actualVImgH
-								}
-								else
-								{
-									if (This.updateFlag > 0)
-									This.inputVImgH := Floor(value)
-									else
-									vImgHOut := value
-								}
-							}
-							else
-							{
-								if (value < 0 && value > -10)
-								{
-								This.oldVImgH := This.vImgH
-									if (This.updateFlag > 0)
-									This.inputVImgH := -Floor(value * A_ScreenHeight)
-									else
-									vImgHOut := -value * A_ScreenHeight
-								}
-								else
-								{
-									if (This.updateFlag > 0)
-									This.inputVImgH := 0
-									else
-									vImgHOut := 0
-								This.oldVImgH := 0
-								}
-							}
-						}
-					}
+				spr := (This.actualVImgH)?This.ProcImgWHVal(value, 1):value
+
+					if (This.updateFlag > 0)
+					This.inputVImgH := spr
 					else
-					{
-					This.inputVImgH := 0
-					This.oldVImgH := 0
-					}
+					vImgHOut := spr
 				}
 
 
@@ -1094,23 +990,23 @@
 		This.vMgnY := (vMgnYIn == "")? This.vMgnY: vMgnYIn
 
 			if (vImgWIn > 0)
-			This.inputVImgW := Floor(vImgWIn)
+			This.inputVImgW := vImgWIn
 			else
 			{
 				if (vImgWin <= -10)
 				This.inputVImgW := 0
 				else
-				This.inputVImgW := Floor(vImgWIn)
+				This.inputVImgW := vImgWIn
 				; a zero default can be Floor(A_ScreenWidth/3)
 			}
 			if (vImgHIn > 0)
-			This.inputVImgH := Floor(vImgHIn)
+			This.inputVImgH := vImgHIn
 			else
 			{
 				if (vImgHin <= -10)
 				This.inputVImgH := 0
 				else
-				This.inputVImgH := Floor(vImgHIn)
+				This.inputVImgH := vImgHIn
 				; a zero default can be Floor(A_ScreenHeight/3)
 			}
 
@@ -1635,15 +1531,24 @@
 	if (This.inputVImgW == "")
 	This.vImgW := (This.vImgW? This.vImgW: This.actualVImgW)
 	else
-	; In case vImgW is specified in the first call of the image,
-	This.vImgW := (This.inputVImgW? This.inputVImgW: This.actualVImgW)
-
-
+	{
+		; In case vImgW is specified in the first call of the image,
+		if (This.vImgW)
+		This.vImgW := (This.inputVImgW? This.inputVImgW: This.actualVImgW)
+		else
+		This.vImgW := This.ProcImgWHVal((This.inputVImgW)?This.inputVImgW:This.actualVImgW)
+	}
 
 	if (This.inputVImgH == "")
 	This.vImgH := (This.vImgH? This.vImgH: This.actualVImgH)
 	else
-	This.vImgH := (This.inputVImgH? This.inputVImgH: This.actualVImgH)
+	{
+		if (This.vImgH)
+		This.vImgH := (This.inputVImgH? This.inputVImgH: This.actualVImgH)
+		else
+		This.vImgH := This.ProcImgWHVal((This.inputVImgH)?This.inputVImgH:This.actualVImgH, 1)
+	}
+
 
 
 
@@ -1828,20 +1733,38 @@
 				{
 					if ((This.picInScript && This.oldPicInScript) || (!This.picInScript && !This.oldPicInScript))
 					{
-						if (This.inputVImgW)
+						if (This.inputVImgW == "") ;vImgTxtSizeIn option
 						{
-							if (This.oldVImgW == This.inputVImgW)
-							return 0
+							if (This.oldVImgW == This.vImgW)
+							{
+								; check for height
+								if (This.oldVImgH == This.inputVImgH)
+								return 0
+								else
+								This.oldVImgH := This.inputVImgH
+							}
+							else
+							This.oldVImgW := This.vImgW
 						}
 						else
 						{
-							if (This.inputVImgH)
-							{
-								if (This.oldVImgH == This.inputVImgH)
-								return 0
-							}
-							else
+							if (This.oldVImgW == This.inputVImgW) && (This.oldVImgH == This.inputVImgH)
 							return 0
+							else
+							{
+								if (This.oldVImgW != This.inputVImgW && This.oldVImgH == This.inputVImgH)
+								{
+								This.oldVImgW := This.inputVImgW
+								This.oldVImgH := This.inputVImgH
+								}
+								else
+								{
+									if (This.oldVImgW != This.inputVImgW)
+									This.oldVImgW := This.inputVImgW
+									else
+									This.oldVImgH := This.inputVImgH
+								}
+							}
 						}
 					}
 				}
@@ -2175,6 +2098,59 @@
 		This.deleteObject(hRgn)
 	}	
 
+	ProcImgWHVal(value, height := 0)
+	{
+	retval := 0
+		if (height)
+		{
+		dim := This.vImgH
+		screenDim := A_ScreenHeight
+		actualDim := This.actualVImgH
+		}
+		else
+		{
+		dim := This.vImgW
+		screenDim := A_ScreenWidth
+		actualDim := This.actualVImgW
+		}
+
+		if value is number
+		{
+			if (value > 10)
+			{
+			oldDim := dim
+			retval := Floor(value)
+			}
+			else
+			{
+
+				if (value > 0)
+				{
+				oldDim := dim
+				retval := Floor(value * actualDim)
+				}
+				else
+				{
+					if (value < 0 && value > -10)
+					{
+					oldDim := dim
+					retval := -Floor(value * screenDim)
+					}
+					else
+					retval := 0
+				}
+			}
+		}
+
+		if (height)
+		This.oldVImgH := oldDim
+		else
+		This.oldVImgW := oldDim
+
+	return retVal
+	}
+
+
 	GetPosProc(splashyInst, currVPos, init)
 	{
 		if (init)
@@ -2302,6 +2278,8 @@
 	GetPosVal(vPosX, vPosY, currVPos, parentDimW, parentDimH, winDimW, winDimH, parentHWnd)
 	{
 
+	vPosXIn := vPosX
+	vPosYIn := vPosY
 	vPosX := This.TransPosVal(vPosX, parentDimW, winDimW)
 	vPosY := This.TransPosVal(vPosY, parentDimH, winDimH)
 
@@ -2310,45 +2288,61 @@
 			if (vPosY == "")
 			return {x: currVPos.x, y: currVPos.y}
 			else
-			vPosXIn := (currVPos.x)?currVPos.x:0
+			vPosXNew := (currVPos.x)?currVPos.x:0
 		}
 		else
-		vPosXIn := vPosX
+		vPosXNew := vPosX
 
 		if (vPosY == "")
-		vPosYIn := (currVPos.y)?currVPos.y:0
+		vPosYNew := (currVPos.y)?currVPos.y:0
 		else
-		vPosYIn := vPosY
+		vPosYNew := vPosY
 	
 		if (parentHWnd)
 		{
 		VarSetCapacity(point, 8, 0)
-		NumPut(vPosXIn, point, 0, "Int")
-		NumPut(vPosYIn, point, 4, "Int")
+		NumPut(vPosXNew, point, 0, "Int")
+		NumPut(vPosYNew, point, 4, "Int")
 
 			if !DllCall("user32\ScreenToClient", "Ptr", parentHWnd, "Ptr", &point, "int")
 			return 0
 
-		vPosXIn := NumGet(point, 0, "Int"), vPosYIn := NumGet(point, 4, "Int")
+			if (vPosXIn == "c")
+			{
+			parentPoint := This.GuiGetPos(parentHWnd, 1)
+			vPosXNew := vPosX + parentPoint.x
+			}
+			else
+			vPosXNew := NumGet(point, 0, "Int")
+
+			if (vPosYIn == "c")
+			{
+				if (parentPoint.x == "")
+				parentPoint := This.GuiGetPos(parentHWnd, 1)
+			vPosYNew := vPosY + parentPoint.y
+			}
+			else
+			vPosYNew := NumGet(point, 4, "Int")
+
 		VarSetCapacity(point, 0)
 
-			if (vPosXIn < 0)
-			vPosXIn := 0
+			if (vPosXNew < 0)
+			vPosXNew := 0
 			else
 			{
-				if (vPosXIn > parentDimW)
-				vPosXIn := parentDimW - winDimW
+				if (vPosXNew > parentDimW)
+				vPosXNew := parentDimW - winDimW
 			}
-			if (vPosYIn < 0)
-			vPosYIn := 0
+			if (vPosYNew < 0)
+			vPosYNew := 0
 			else
 			{
-				if (vPosYIn > parentDimH)
-				vPosYIn := parentDimH - winDimH
+				if (vPosYNew > parentDimH)
+				vPosYNew := parentDimH - winDimH
 			}
 		}
 
-	return {x: (vPosX == "")? currVPos.x: vPosXIn, y: (vPosY == "")? currVPos.y : vPosYIn}
+	return {x: (vPosX == "")? currVPos.x: vPosXNew, y: (vPosY == "")? currVPos.y : vPosYNew}
 
 	}
 
