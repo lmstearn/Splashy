@@ -1278,9 +1278,9 @@
 	vWinH := This.vImgH + This.vMgnY
 
 
-		This.vImgY := This.DoText(splashyInst, This.mainTextHWnd[This.instance], This.mainText, currVPos, vWinW, vWinH, init)
+		This.vImgY := This.DoText(splashyInst, This.mainTextHWnd[This.instance], This.mainText, currVPos, parentW, parentH, vWinW, vWinH, init)
 
-		if (spr := This.DoText(splashyInst, This.subTextHWnd[This.instance], This.subText, currVPos, vWinW, vWinH, init, 1))
+		if (spr := This.DoText(splashyInst, This.subTextHWnd[This.instance], This.subText, currVPos, parentW, parentH, vWinW, vWinH, init, 1))
 		vWinH += spr + This.vMgnY
 
 
@@ -1320,8 +1320,8 @@
 
 		WinSet, AlwaysOnTop, % (This.vOnTop)? 1 : 0, % "ahk_id" . This.hWnd()
 			if (This.transCol && !This.vBorder)
-			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWnd()
-		Splashy.NewWndProc.PaintProc(This.hWnd())
+			WinSet, TransColor, % This.bkgdColour, % "ahk_id" . This.hWndSaved[This.instance]
+		Splashy.NewWndProc.PaintProc(This.hWndSaved[This.instance])
 		}
 
 	This.procEnd := 1
@@ -1702,7 +1702,7 @@
 
 	GetPicWH()
 	{
-	Static ICONINFO := [], vToggle := 1
+	Static oldParent := This.Parent, ICONINFO := [], vToggle := 1
 
 	vToggle := !vToggle
 	/*
@@ -1723,51 +1723,59 @@
 		{
 			if (This.oldImagePath == This.imagePath)
 			{
-			; No need to reload
-				if (This.inputVImgW && This.inputVImgH)
+			; No need to reload if the parent has not changed
+				if (oldParent == This.Parent)
 				{
-					if (This.oldVImgW == This.inputVImgW && This.oldVImgH == This.inputVImgH)
-					return 0
-				}
-				else
-				{
-					if ((This.picInScript && This.oldPicInScript) || (!This.picInScript && !This.oldPicInScript))
+					if (This.inputVImgW && This.inputVImgH)
 					{
-						if (This.inputVImgW == "") ;vImgTxtSizeIn option
+						if (This.oldVImgW == This.inputVImgW && This.oldVImgH == This.inputVImgH)
+						return 0
+					}
+					else
+					{
+						if ((This.picInScript && This.oldPicInScript) || (!This.picInScript && !This.oldPicInScript))
 						{
-							if (This.oldVImgW == This.vImgW)
+							if (This.vImgTxtSize)
 							{
-								; check for height
-								if (This.oldVImgH == This.inputVImgH)
-								return 0
-								else
-								This.oldVImgH := This.inputVImgH
-							}
-							else
-							This.oldVImgW := This.vImgW
-						}
-						else
-						{
-							if (This.oldVImgW == This.inputVImgW) && (This.oldVImgH == This.inputVImgH)
-							return 0
-							else
-							{
-								if (This.oldVImgW != This.inputVImgW && This.oldVImgH == This.inputVImgH)
+								if (This.oldVImgW == This.vImgW)
 								{
-								This.oldVImgW := This.inputVImgW
-								This.oldVImgH := This.inputVImgH
-								}
-								else
-								{
-									if (This.oldVImgW != This.inputVImgW)
-									This.oldVImgW := This.inputVImgW
+									; check for height
+									if (This.oldVImgH == This.inputVImgH)
+									return 0
 									else
 									This.oldVImgH := This.inputVImgH
+								}
+								else
+								This.oldVImgW := This.vImgW
+							}
+							else
+							{
+								if (This.inputVImgW != "") ; else just switched off vImgTxtSize
+								{
+									if (This.oldVImgW == This.inputVImgW) && (This.oldVImgH == This.inputVImgH)
+									return 0
+									else
+									{
+										if (This.oldVImgW != This.inputVImgW && This.oldVImgH == This.inputVImgH)
+										{
+										This.oldVImgW := This.inputVImgW
+										This.oldVImgH := This.inputVImgH
+										}
+										else
+										{
+											if (This.oldVImgW != This.inputVImgW)
+											This.oldVImgW := This.inputVImgW
+											else
+											This.oldVImgH := This.inputVImgH
+										}
+									}
 								}
 							}
 						}
 					}
 				}
+				else
+				oldParent := This.Parent
 			}
 			This.DeleteHandles()
 		}
@@ -2347,7 +2355,7 @@
 	}
 
 
-	DoText(splashyInst, hWnd, text, ByRef currVPos, ByRef currSplashyInstW, currSplashyInstH, init, sub := 0)
+	DoText(splashyInst, hWnd, text, ByRef currVPos, parentW, parentH, ByRef currSplashyInstW, currSplashyInstH, init, sub := 0)
 	{
 	static SS_Center := 0X1, SWP_SHOWWINDOW := 0x0040, mainTextSize := [], subTextSize := []
 	init := 0
@@ -2409,7 +2417,8 @@
 			; vMgnx, vMgnY not applicable here
  			This.Setparent(1, !sub?hWnd:0, sub?hWnd:0)
 
-			currVPos := This.GetPosVal(This.vPosX, This.vPosY, currVPos, A_ScreenWidth, A_ScreenHeight, currSplashyInstW, currSplashyInstH, This.parentHWnd)
+			currVPos := This.GetPosVal(This.vPosX, This.vPosY, currVPos, parentW, parentH, currSplashyInstW, currSplashyInstH, This.parentHWnd)
+
 			; Init only! Position is never preserved, so rely on GuiGetPos
 			if (init)
 			currVPos := This.GetPosProc(splashyInst, currVPos, 1)

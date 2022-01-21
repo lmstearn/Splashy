@@ -39,7 +39,13 @@ triVertLength := floor (sqrt((scrWd - ahkWd) * (scrWd - ahkWd)/4 + (scrHt - ahkH
 
 
 pi := 4 * ATan(1)
-s := 18
+s := round(2 * scrHt/100)
+; s doesn't want to be less than 10 or it falls victim to SplaWshy's proportion rule.
+; s must be even for the ellipse routine
+	if (mod(s, 2))
+	s += 1
+
+; arbitrary tolerance
 XY_TOL := s/(scrWd + scrHt)
 
 minIndexTop := 0
@@ -80,9 +86,8 @@ spr := 1
 
 		if (abs(ellVertInterval[A_Index]) <= spr)
 		{
-		;msgbox % ellVertInterval[A_Index]
 		spr := ellVertInterval[A_Index]
-		minIndexBot := A_Index
+		minIndexBot := A_Index - 1
 		}
 	}
 
@@ -101,7 +106,7 @@ spr := 1
 			if (abs(ellVertInterval[A_Index]) <= spr)
 			{
 			spr := ellVertInterval[A_Index]
-			minIndexTop := A_Index
+			minIndexTop := A_Index - 1
 			}
 		}
 	}
@@ -120,7 +125,8 @@ spr := 1
 
 ; ideas
 ;vImgTxtSize
-
+%SplashRef%(Splashy, {vHide: 1, vImgW: 0, vImgH: 0}*)
+%SplashRef%(Splashy, {vHide: 0}*)
 
 
 
@@ -130,19 +136,35 @@ spr := 0
 
 Loop %s%
 {
-spr := 7 + (1 - (A_Index - 1)/s) * ahkHt ; works around proportion rule
-%SplashRef%(Splashy, {vHide: 0, vImgW: (1 - (A_Index - 1)/s) * ahkWd, vImgH: spr}*)
+spr := (A_Index - 1)/s
+%SplashRef%(Splashy, {vHide: 0, vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
 sleep 5
 }
-msgbox
+
 Loop %s%
 {
-AIndex := s - A_Index + 1
-spr := ahkHt/AIndex + 7
-%SplashRef%(Splashy, {vHide: 0, vImgW: ahkWd/AIndex, vImgH: spr}*)
+spr := (s - A_Index)/s
+%SplashRef%(Splashy, {vHide: 0, vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
 sleep 5
 }
-%SplashRef%(Splashy, {vHide: 1, vImgW: "", vImgH: ""}*)
+
+Loop %s%
+{
+spr := (A_Index - 1)/s
+%SplashRef%(Splashy, {vHide: 0, vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
+sleep 5
+}
+
+Loop
+{
+spr := ahkWd + s * A_Index
+spr1 := ahkHt + s * A_Index
+%SplashRef%(Splashy, {vHide: 0, vImgW: spr, vImgH: spr1}*)
+sleep 5
+} Until (spr > scrWd || spr1 > scrHt)
+
+msgbox
+%SplashRef%(Splashy, {vHide: 1, vImgW: 0, vImgH: 0}*)
 %SplashRef%(Splashy, {vHide: 0}*)
 
 
@@ -150,7 +172,7 @@ sleep 5
 
 
 
-msgbox
+
 
 
 
