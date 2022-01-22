@@ -125,12 +125,71 @@ spr := 1
 
 ; ideas
 ;vImgTxtSize
-%SplashRef%(Splashy, {vHide: 1, vImgW: 0, vImgH: 0}*)
-%SplashRef%(Splashy, {vHide: 0}*)
+%SplashRef%(Splashy, {vHide: 1, mainText: "", subText: "", noHWndActivate: 1, vOnTop: 1, vImgW: 0, vImgH: 0}*)
+
+
+/*
+	SplashImgInit(parent, imagePath, imageUrl
+	, bkgdColour, transCol, vHide, noHWndActivate
+	, vOnTop, vMovable, vBorder, vImgTxtSize
+	, vPosX, vPosY, vMgnX, vMgnY, vImgW, vImgH
+	, mainText, mainBkgdColour
+	, mainFontName, mainFontSize, mainFontWeight, mainFontColour
+	, mainFontQuality, mainFontItalic, mainFontStrike, mainFontUnderline
+	, subText, subBkgdColour
+	, subFontName, subFontSize, subFontWeight, subFontColour
+	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
+*/
+ASpace := ""
+Loop % 3 * s
+{
+ASpace .= A_Space
+spr := "Text to " . ASpace . "fit "
+%SplashRef%(Splashy, {vHide: 0, mainText: spr, vImgTxtSize: 1}*)
+sleep 10
+}
+Loop % 3 * s
+{
+ASpace := subStr(ASpace, 2)
+spr := "Text to " . ASpace . "fit "
+%SplashRef%(Splashy, {mainText: spr, vImgTxtSize: 1}*)
+sleep 10
+}
+
+ASpace := ""
+
+
+%SplashRef%(Splashy, {vHide: 1, mainText: "", vImgTxtSize: 0}*)
+
+
+
+Loop % 3 * s
+{
+ASpace .= A_Space
+spr := "Text to " . ASpace . "fit "
+%SplashRef%(Splashy, {vHide: 0, subText: spr, vImgTxtSize: 1}*)
+sleep 10
+}
+Loop % 3 * s
+{
+ASpace := subStr(ASpace, 2)
+spr := "Text to " . ASpace . "fit "
+%SplashRef%(Splashy, {subText: spr, vImgTxtSize: 1}*)
+sleep 10
+}
+
+msgbox
+; end vImgTxtSize
+
+
+%SplashRef%(Splashy, {vHide: 1, mainText: "", subText: "", vImgTxtSize: 0}*)
 
 
 
 
+
+
+; begin size
 spr := 0
 
 
@@ -144,14 +203,14 @@ sleep 5
 Loop %s%
 {
 spr := (s - A_Index)/s
-%SplashRef%(Splashy, {vHide: 0, vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
+%SplashRef%(Splashy, {vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
 sleep 5
 }
 
 Loop %s%
 {
 spr := (A_Index - 1)/s
-%SplashRef%(Splashy, {vHide: 0, vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
+%SplashRef%(Splashy, {vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
 sleep 5
 }
 
@@ -159,7 +218,7 @@ Loop
 {
 spr := ahkWd + s * A_Index
 spr1 := ahkHt + s * A_Index
-%SplashRef%(Splashy, {vHide: 0, vImgW: spr, vImgH: spr1}*)
+%SplashRef%(Splashy, {vImgW: spr, vImgH: spr1}*)
 sleep 5
 } Until (spr > scrWd || spr1 > scrHt)
 
