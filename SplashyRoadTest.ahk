@@ -140,6 +140,24 @@ spr := 1
 	, subFontName, subFontSize, subFontWeight, subFontColour
 	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
 */
+
+
+Loop % 3 * s
+{
+ASpace .= A_Space
+spr := "Text to " . ASpace . "fit "
+%SplashRef%(Splashy, {vHide: 0, mainText: spr, vImgTxtSize: 1}*)
+sleep 10
+}
+
+
+
+
+
+
+
+; Begin vImgTxtSize
+
 ASpace := ""
 Loop % 3 * s
 {
@@ -572,10 +590,6 @@ AIndex := s
 msgbox
 
 
-;%SplashRef%(Splashy, {instance: 2, imagePath: "", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/AutoHotkey_logo.png/220px-AutoHotkey_logo.png"}*)
-;%SplashRef%(Splashy, {instance: value, imagePath: pathString, imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/AutoHotkey_logo.png/220px-AutoHotkey_logo.png"}*)
-
-EnvGet, AutGUI, AutoHotkey
 return
 Esc::
 %SplashRef%(Splashy, {release: 1}*)

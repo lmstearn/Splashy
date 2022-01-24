@@ -166,9 +166,9 @@
 					; For WM_Move: revert the parent for the window move
 					if (Splashy.parent)
 					{
-						if (StrLen(Splashy.mainText))
+						if (Splashy.mainText != "")
 						Splashy.SetParent(0, 0)
-						if (StrLen(Splashy.subText))
+						if (Splashy.subText != "")
 						Splashy.SetParent(0, , 0)
 					}
 				return 0
@@ -361,7 +361,7 @@
 	parentOut := ""
 	imagePathOut := ""
 	imageUrlOut := ""
-	bkgdColourOut := -1
+	4Out := ""
 	transColOut := ""
 	vHideOut := 0
 	noHWndActivateOut := ""
@@ -376,7 +376,7 @@
 	vImgWOut := 0
 	vImgHOut := 0
 	mainTextOut := ""
-	mainBkgdColourOut := -1
+	mainBkgdColourOut := ""
 	mainFontNameOut := ""
 	mainFontSizeOut := 0
 	mainFontWeightOut := 0
@@ -386,7 +386,7 @@
 	mainFontStrikeOut := 0
 	mainFontUnderlineOut := 0
 	subTextOut := ""
-	subBkgdColourOut := -1
+	subBkgdColourOut := ""
 	subFontNameOut := ""
 	subFontSizeOut := 0
 	subFontWeightOut := 0
@@ -541,13 +541,10 @@
 				}
 				Case "bkgdColour":
 				{
-					if (value != -1)
-					{
-						if (This.updateFlag > 0)
-						This.bkgdColour := This.ValidateColour(value)
-						else
-						bkgdColourOut := value
-					}
+					if (This.updateFlag > 0)
+					This.bkgdColour := (value == "")?This.GetDefaultGUIColour():This.ValidateColour(value)
+					else
+					bkgdColourOut := value
 				}
 				Case "transCol":
 				{
@@ -715,13 +712,10 @@
 				}
 				Case "mainBkgdColour":
 				{
-					if (value != -1)
-					{
-						if (This.updateFlag > 0)
-						This.mainBkgdColour := This.ValidateColour(value, 1)
-						else
-						mainBkgdColourOut := value
-					}
+					if (This.updateFlag > 0)
+					This.mainBkgdColour := (value == "")?This.GetDefaultGUIColour():This.ValidateColour(value, 1)
+					else
+					mainBkgdColourOut := value
 				}
 				Case "mainFontName":
 				{
@@ -807,13 +801,10 @@
 				}
 				Case "subBkgdColour":
 				{
-					if (value != -1)
-					{
-						if (This.updateFlag > 0)
-						This.subBkgdColour := This.ValidateColour(value, 1)
-						else
-						subBkgdColourOut := value
-					}
+					if (This.updateFlag > 0)
+					This.subBkgdColour := (value == "")?This.GetDefaultGUIColour():This.ValidateColour(value, 1)
+					else
+					subBkgdColourOut := value
 				}
 
 				Case "subFontName":
@@ -960,15 +951,10 @@
 				This.imageUrl := "https://www.autohotkey.com/assets/images/features-why.png"
 			}
 
-
-			if (bkgdColourIn == -1)
-			{
-				if (This.bkgdColour == "")
-				This.bkgdColour := This.GetDefaultGUIColour()
-			}
+			if (bkgdColourIn == "")
+			This.bkgdColour := This.GetDefaultGUIColour()
 			else
 			This.bkgdColour := This.ValidateColour(bkgdColourIn)
-
 
 		This.transCol := transColIn
 
@@ -1018,11 +1004,8 @@
 			else
 			This.mainText := ""
 
-			if (mainBkgdColourIn == -1)
-			{
-				if (This.mainBkgdColour == "")
-				This.mainBkgdColour := This.GetDefaultGUIColour()
-			}
+			if (mainBkgdColourIn == "")
+			This.mainBkgdColour := This.GetDefaultGUIColour()
 			else
 			This.mainBkgdColour := This.ValidateColour(mainBkgdColourIn, 1)
 
@@ -1081,11 +1064,8 @@
 			else
 			This.subText := ""
 
-			if (subBkgdColourIn == -1)
-			{
-				if (This.subBkgdColour == "")
-				This.subBkgdColour := This.GetDefaultGUIColour()
-			}
+			if (subBkgdColourIn == "")
+			This.subBkgdColour := This.GetDefaultGUIColour()
 			else
 			This.subBkgdColour := This.ValidateColour(subBkgdColourIn, 1)
 
@@ -1702,7 +1682,7 @@
 
 	GetPicWH()
 	{
-	Static oldParent := This.Parent, ICONINFO := [], vToggle := 1
+	Static oldParent := This.Parent, vToggle := 1
 
 	vToggle := !vToggle
 	/*
@@ -1989,22 +1969,25 @@
 			}
 			else
 			{
-			ICONINFO := []
 			tmp := (A_PtrSize == 8)? 104: 84, 0
+			Ptr := A_PtrSize ? "Ptr" : "UInt"
 			; https://www.autohotkey.com/boards/viewtopic.php?t=36733
 			; easier way to get icon dimensions is use default SM_CXICON, SM_CYICON
-			VarSetCapacity(ICONINFO, (A_PtrSize == 8)? 28: 20, 0) ; ICONINFO Structure
-				If (DllCall("GetIconInfo", "Ptr", This.hIcon, "Ptr", &ICONINFO))
+
+			; 16 NOT 12 because of the 64 bit boundaries- thus there is padding.
+			VarSetCapacity(ICONINFO, 16 + 2 * A_PtrSize, 0) ; ICONINFO Structure
+
+				if (DllCall("GetIconInfo", Ptr, This.hIcon, Ptr, &ICONINFO))
 				{
-					if (ICONINFOhbmMask := NumGet(ICONINFO, (A_PtrSize == 8)? 16: 12, "Ptr"))
+					if (ICONINFOhbmMask := NumGet(ICONINFO, 8 + A_PtrSize, Ptr))
 					{
 					VarSetCapacity(bm, tmp, 0) ; hbmMask dibsection
 
-					DllCall("GetObject", "Ptr", ICONINFOhbmMask, "Int", tmp, "Ptr", &bm)
+					DllCall("GetObject", Ptr, ICONINFOhbmMask, "Int", tmp, Ptr, &bm)
 					spr := NumGet(bm, 4, "UInt")
 
 						; Check for the hbmColor colour plane
-						if (ICONINFOhbmColor := NumGet(ICONINFO, (A_PtrSize == 8)? 20: 16, "Ptr"))
+						if (ICONINFOhbmColor := NumGet(ICONINFO, 8 + 2 * A_PtrSize, Ptr))
 						spr1 := NumGet(bm, 8, "UInt")
 						else ; The following has the effect of reducing the icon size by exactly half- is that wanted?
 						spr1 := NumGet(bm, 8, "UInt")/2
@@ -2359,7 +2342,7 @@
 	{
 	static SS_Center := 0X1, SWP_SHOWWINDOW := 0x0040, mainTextSize := [], subTextSize := []
 	init := 0
-		if (StrLen(text))
+		if (text != "")
 		{
 		; Note default font styles for main & sub differ
 			if (sub)
@@ -2376,18 +2359,20 @@
 			{
 			init := 1
 			Gui, %splashyInst%: Add, Text, % "X0 W" . This.vImgW . " Y" . (sub?currSplashyInstH:This.vMgnY) . " HWND" . "hWnd", % text
+
+				if (sub)
+				This.subTextHWnd[This.instance] := hWnd
+				else
+				This.mainTextHWnd[This.instance] := hWnd
 			}
 
+
 			if (sub)
-			{
-			This.subTextHWnd[This.instance] := hWnd
 			subTextSize := This.Text_Dims(text, hWnd)
-			}
 			else
-			{
-			This.mainTextHWnd[This.instance] := hWnd
 			mainTextSize := This.Text_Dims(text, hWnd)
-			}
+
+
 
 			if (This.vImgTxtSize)
 			{
@@ -2415,21 +2400,25 @@
 			if (This.Parent)
 			{
 			; vMgnx, vMgnY not applicable here
- 			This.Setparent(1, !sub?hWnd:0, sub?hWnd:0)
+ 			This.Setparent(1, (sub?"":hWnd), (sub?hWnd:""))
 
-			currVPos := This.GetPosVal(This.vPosX, This.vPosY, currVPos, parentW, parentH, currSplashyInstW, currSplashyInstH, This.parentHWnd)
+				if (currVPos.x == "")
+				{
+				currVPos := This.GetPosVal(This.vPosX, This.vPosY, currVPos, parentW, parentH, currSplashyInstW, currSplashyInstH, This.parentHWnd)
 
-			; Init only! Position is never preserved, so rely on GuiGetPos
-			if (init)
-			currVPos := This.GetPosProc(splashyInst, currVPos, 1)
+				; Init only! Position is never preserved, so rely on GuiGetPos
+					if (init)
+					currVPos := This.GetPosProc(splashyInst, currVPos, 1)
+				}
 
 ;			;Margins not required!
 			WinSet, Style, +%SS_Center%, ahk_id %hWnd%
+
 			WinMove ahk_id %hWnd%, , % currVPos.x, % currVPos.y + (sub?This.vImgH:0), % This.vImgW, % sub?subTextSize[2]:mainTextSize[2]
 			;DllCall("SetWindowPos", "UInt", hWnd, "UInt", 0, "Int", This.currVPos.x, "Int", This.currVPos.y, "Int", This.vImgW, "Int", mainTextSize[2], "UInt", 0x0004)
 
-
 			WinSet, AlwaysOnTop, 1, ahk_id %hWnd%
+
 			WinShow, ahk_id %hWnd%
 			}
 			else
@@ -2441,15 +2430,28 @@
 				if (sub)
 				{
 				This.Setparent(0, , hWnd)
-				spr := This.vImgW - subTextSize[1] + 2 * This.vMgnX
-				spr := (spr > 0)?((This.vImgTxtSize)? 0: spr)/2: 0
+					if (This.subBkgdColour == This.bkgdColour)
+					{
+					spr := This.vImgW - subTextSize[1] + 2 * This.vMgnX
+					spr := (spr > 0)?((This.vImgTxtSize)? 0: spr)/2: 0
+					}
+					else	; colours won't cover all the region after the move
+					spr := 0
+
 				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . currSplashyInstH . " W" . This.vImgW . " H" . subTextSize[2]
 				}
 				else
 				{
 				This.Setparent(0, hWnd)
-				spr := This.vImgW - mainTextSize[1] + 2 * This.vMgnX
-				spr := (spr > 0)?((This.vImgTxtSize)? 0: spr/2): 0
+
+					if (This.mainBkgdColour == This.bkgdColour)
+					{
+					spr := This.vImgW - mainTextSize[1] + 2 * This.vMgnX
+					spr := (spr > 0)?((This.vImgTxtSize)? 0: spr/2): 0
+					}
+					else
+					spr := 0
+
 				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
 				}
 			GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
@@ -2487,10 +2489,21 @@
 
 	SetParent(parentSetStatus, mainHWndIn := "", subHWndIn := "")
 	{
-	Static lastParentStatus := 0, mainHWnd := 0, subHWnd := 0
+	Static lastParentStatusMain := 0, lastParentStatusSub := 0, mainHWnd := 0, subHWnd := 0
 
-		if (lastParentStatus == parentSetStatus)
-		return
+		if (mainHWndIn != "")
+		{
+			if (lastParentStatusMain == parentSetStatus)
+			return
+		}
+		else
+		{
+			if (subHWndIn != "")
+			{
+				if (lastParentStatusSub == parentSetStatus)
+				return
+			}
+		}
 
 		if (mainHWndIn)
 		hWnd := mainHWnd := mainHWndIn
@@ -2515,9 +2528,17 @@
 		else
 		{
 			if (DllCall("SetParent", "Ptr", hWnd, "Ptr", This.hWnd()) != This.parentHWnd)
-			msgbox, 8192, SetParent, Cannot set parent for control!
+			msgbox, 8192, SetParent, Cannot set Splashy as parent for control!
 		}
-	lastParentStatus := parentSetStatus
+
+		if (mainHWndIn != "")
+		lastParentStatusMain := parentSetStatus
+		else
+		{
+			if (subHWndIn != "")
+			lastParentStatusSub := parentSetStatus
+		}
+
 	}
 
 	SetParentFlag()
