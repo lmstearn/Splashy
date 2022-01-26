@@ -3,7 +3,7 @@
 #Include %A_ScriptDir%
 ;EnvSet, AutGUI, Some text to put in the variable.
 #include C:\Users\New\Desktop\Splashy.ahk
-
+SetBatchLines, 50ms
 ; Splashy requires Last Found
 Gui +LastFound
 
@@ -123,8 +123,8 @@ spr := 1
 %SplashRef%(Splashy, {vBorder: "wscd", vHide: 1, imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/AutoHotkey_logo.png/220px-AutoHotkey_logo.png"}*)
 
 
-; ideas
-;vImgTxtSize
+
+
 %SplashRef%(Splashy, {vHide: 1, mainText: "", subText: "", noHWndActivate: 1, vOnTop: 1, vImgW: 0, vImgH: 0}*)
 
 
@@ -142,16 +142,105 @@ spr := 1
 */
 
 
-Loop % 3 * s
+;
+; begin subBkgdColour, effects
+%SplashRef%(Splashy, {subText: "Testing text colours and FontName", vHide: 1, vImgTxtSize: 1, vImgH: 2}*)
+AIndex := 1
+Loop
 {
-ASpace .= A_Space
-spr := "Text to " . ASpace . "fit "
-%SplashRef%(Splashy, {vHide: 0, mainText: spr, vImgTxtSize: 1}*)
-sleep 10
+	Loop %s%
+	{
+		if (!(mod(A_Index, 3)))
+		spr := "purple"
+		else
+		{
+			if (!(mod(A_Index, 2)))
+			spr := "cyan"
+			else
+			spr := "orange"
+		}
+	Switch (AIndex)
+	{
+	Case 1:
+	%SplashRef%(Splashy, {subFontName: "Courier New", vMgnY: A_Index, vHide: 0, subBkgdColour: spr}*)
+	Case 2:
+	{
+	if (A_Index > s/2)
+	%SplashRef%(Splashy, {subFontName: "", subFontSize: 20, subFontWeight: 700, vMgnY: A_Index}*)
+	else
+	%SplashRef%(Splashy, {subText: "Testing FontSize and FontWeight", subFontName:  "Courier New", subFontSize: 15, subFontWeight: 500, vMgnY: A_Index, subBkgdColour: ""}*)
+	}
+	Case 3:
+	{
+		if (!(mod(A_Index, 3)))
+		spr1 := "gold"
+		else
+		{
+			if (!(mod(A_Index, 2)))
+			spr1 := "plum"
+			else
+			spr1 := "khakigrau"
+		}
+	%SplashRef%(Splashy, {subText: "Testing text colours", subFontColour: spr1, subFontSize: "", subFontWeight: "", vImgTxtSize: 0, vMgnY: A_Index}*)
+	}
+	Case 4:
+	%SplashRef%(Splashy, {subText: "Testing FontQuality and FontItalic", subFontQuality: mod(A_Index, 5), subFontItalic: 1, subFontColour: "", vMgnY: A_Index}*)
+	Case 5:
+	%SplashRef%(Splashy, {subText: "Testing FontStrike and FontUnderline", subFontQuality: "", subFontItalic: 0, subFontStrike: 1, subFontUnderline: 1, vMgnY: A_Index}*)
+	}
+	sleep 100
+	}
+AIndex++
+} Until (AIndex == 6)
+msgbox
+%SplashRef%(Splashy, {vHide: 1, subText: "", vMgnY: 0, vImgTxtSize: 1, vImgH: 0, subFontStrike: 0, subFontUnderline: 0}*)
+
+
+
+
+
+
+
+%SplashRef%(Splashy, {vHide: 1, subText: "Testing Margins and Colours"}*)
+
+;Begin Test Margins
+Loop % 2 * s
+{
+	if (!(mod(A_Index, 3)))
+	spr := "red"
+	else
+	{
+		if (!(mod(A_Index, 2)))
+		spr := "blue"
+		else
+		spr := "yellow"
+	}
+
+%SplashRef%(Splashy, {vHide: 0, bkgdColour: spr, vMgnX : A_Index, vMgnY: A_Index}*)
+sleep 100
 }
 
+Loop % 2 * s
+{
 
+AIndex := 2 * s - A_Index + 1
 
+if (!(mod(AIndex, 3)))
+spr := "red"
+else
+{
+	if (!(mod(AIndex, 2)))
+	spr := "blue"
+	else
+	spr := "yellow"
+}
+%SplashRef%(Splashy, {bkgdColour: spr, vMgnX : AIndex, vMgnY: AIndex}*)
+sleep 100
+}
+
+%SplashRef%(Splashy, {vHide: 1, subText: "", bkgdColour: "", vImgW: 0, vMgnX : 0, vMgnY: 0}*)
+
+msgbox
 
 
 
@@ -206,7 +295,6 @@ msgbox
 
 
 
-
 ; begin size
 spr := 0
 
@@ -240,11 +328,9 @@ spr1 := ahkHt + s * A_Index
 sleep 5
 } Until (spr > scrWd || spr1 > scrHt)
 
-msgbox
 %SplashRef%(Splashy, {vHide: 1, vImgW: 0, vImgH: 0}*)
-%SplashRef%(Splashy, {vHide: 0}*)
 
-
+msgbox
 
 
 
@@ -285,7 +371,7 @@ Loop
 {
 spr := startPointHt + A_Index * ahkHtAdjust + (A_Index * ahkHtMod)
 AIndex := A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: 0, vPosY: spr}*)
+%SplashRef%(Splashy, {vHide: 0, mainText: "", subText: "", instance: A_Index, vPosX: 0, vPosY: spr}*)
 } Until (spr > (20 * scrHt/21) - 2 * ahkHt)
 
 Loop

@@ -212,10 +212,11 @@
 				if (lParam == Splashy.mainTextHWnd[Splashy.instance])
 				This.SetColour(wParam, Splashy.mainBkgdColour, Splashy.mainFontColour)
 			}
+
 		return DllCall("Gdi32.dll\GetStockObject", "UInt", DC_BRUSH, "UPtr")
 		}
 
-		SetColour(textDC, bkgdColour, fontColour)
+		SetColour(textDC, bkgdColour, fontColour) 
 		{
 			static NULL_BRUSH := 0x5, TRANSPARENT := 0X1, OPAQUE := 0X2, CLR_INVALID := 0xFFFFFFFF
 
@@ -719,33 +720,27 @@
 				}
 				Case "mainFontName":
 				{
-					if (value)
-					{
-						if (This.updateFlag > 0)
-						This.mainFontName := This.ValidateText(value)
-						else
-						mainFontNameOut := value
-					}
+					if (This.updateFlag > 0)
+					This.mainFontName := (value)?This.ValidateText(value):"Verdana"
+					else
+					mainFontNameOut := value
 				}
+
 				Case "mainFontSize":
 				{
-					if (200 >= value >= 0) ; arbitrary limit
-					{
-						if (This.updateFlag > 0)
-						This.mainFontSize := Floor(value)
-						else
-						mainFontSizeOut := value
-					}
+				value := abs(value)  ; 200 arbitrary limit
+					if (This.updateFlag > 0)
+					This.mainFontSize := (0 < value <= 200)?Floor(value):10
+					else
+					mainFontSizeOut := value
 				}
 				Case "mainFontWeight":
 				{
-					if (1000 >= value >= 0)
-					{
-						if (This.updateFlag > 0)
-						This.mainFontWeight := Floor(value)
-						else
-						mainFontWeightOut := value
-					}
+				value := abs(value)
+					if (This.updateFlag > 0)
+					This.mainFontWeight := (0 < value <= 1000)?Floor(value):400
+					else
+					mainFontWeightOut := value
 				}
 				Case "mainFontColour":
 				{
@@ -759,13 +754,11 @@
 				}
 				Case "mainFontQuality":
 				{
-					if (value >= 0 && value <= 5) ; 0 :=  DEFAULT_QUALITY
-					{
-						if (This.updateFlag > 0)
-						This.mainFontQuality := Floor(value)
-						else
-						mainFontQualityOut := value
-					}
+				value := abs(value) ; 0 :=  DEFAULT_QUALITY
+					if (This.updateFlag > 0)
+					This.mainFontQuality := (0 <= value <= 5)?Floor(value):1
+					else
+					mainFontQualityOut := value
 				}
 				Case "mainFontItalic":
 				{
@@ -809,33 +802,26 @@
 
 				Case "subFontName":
 				{
-					if (value)
-					{
-						if (This.updateFlag > 0)
-						This.subFontName := This.ValidateText(value)
-						else
-						subFontNameOut := value
-					}
+					if (This.updateFlag > 0)
+					This.subFontName := (value)?This.ValidateText(value):"Verdana"
+					else
+					subFontNameOut := value
 				}
 				Case "subFontSize":
 				{
-					if (200 >= value >= 0) ; arbitrary limit
-					{
-						if (This.updateFlag > 0)
-						This.subFontSize := Floor(value)
-						else
-						subFontSizeOut := value
-					}
+				value := abs(value)  ; 200 arbitrary limit
+					if (This.updateFlag > 0)
+					This.subFontSize := (0 < value <= 200)?Floor(value):10
+					else
+					subFontSizeOut := value
 				}
 				Case "subFontWeight":
 				{
-					if (1000 >= value >= 0)
-					{
-						if (This.updateFlag > 0)
-						This.subFontWeight := Floor(value)
-						else
-						subFontWeightOut := value
-					}
+				value := abs(value)
+					if (This.updateFlag > 0)
+					This.subFontWeight := (0 < value <= 1000)?Floor(value):400
+					else
+					subFontWeightOut := value
 				}
 				Case "subFontColour":
 				{
@@ -849,13 +835,11 @@
 				}
 				Case "subFontQuality":
 				{
-					if (value >= 0 && value <= 5)
-					{
-						if (This.updateFlag > 0)
-						This.subFontQuality := Floor(value)
-						else
-						subFontQualityOut := value
-					}
+				value := abs(value)
+					if (This.updateFlag > 0)
+					This.subFontQuality := (0 <= value <= 5)?Floor(value):1
+					else
+					subFontQualityOut := value
 				}
 				Case "subFontItalic":
 				{
@@ -1009,29 +993,14 @@
 			else
 			This.mainBkgdColour := This.ValidateColour(mainBkgdColourIn, 1)
 
-			if (StrLen(mainFontNameIn))
+			if (mainFontNameIn == "")
+			This.mainFontName := "Verdana"
+			else
 			This.mainFontName := This.ValidateText(mainFontNameIn)
-			else
-			{
-				if (!This.mainFontName)
-				This.mainFontName := "Verdana"
-			}
 
-			if (mainFontSizeIn)
-			This.mainFontSize := Floor(mainFontSizeIn)
-			else
-			{
-				if (!This.mainFontSize)
-				This.mainFontSize := 12
-			}
+		This.mainFontSize := (0 < mainFontSizeIn < 200)?Floor(mainFontSizeIn):12
+		This.mainFontWeight := (0 < mainFontWeightIn < 1000)?Floor(mainFontWeightIn):600
 
-			if (mainFontWeightIn)
-			This.mainFontWeight := Floor(mainFontWeightIn)
-			else
-			{
-				if (!This.mainFontWeight)
-				This.mainFontWeight := 600
-			}
 
 			if (mainFontColourIn == -1)
 			{
@@ -1041,15 +1010,12 @@
 			else
 			This.mainFontColour := This.ValidateColour(mainFontColourIn, 1)
 
-			if (mainFontQualityIn >= 0)
-			This.mainFontQuality := Floor(mainFontQualityIn)
+			if (mainFontQualityIn == "")
+			This.mainFontQuality := 1
 			else
-			{
-				; NONANTIALIASED_QUALITY for better performance
-				; https://stackoverflow.com/questions/8283631/graphics-drawstring-vs-textrenderer-drawtextwhich-can-deliver-better-quality/23230570#23230570
-				if (!This.mainFontQuality)
-				This.mainFontQuality := 1
-			}
+			; NONANTIALIASED_QUALITY for better performance
+			; https://stackoverflow.com/questions/8283631/graphics-drawstring-vs-textrenderer-drawtextwhich-can-deliver-better-quality/23230570#23230570
+			This.mainFontQuality := (0 <= mainFontQualityIn <= 5)?Floor(mainFontQualityIn):1
 
 		This.mainFontItalic := (mainFontItalicIn)? " Italic": ""
 
@@ -1070,29 +1036,13 @@
 			This.subBkgdColour := This.ValidateColour(subBkgdColourIn, 1)
 
 
-			if (StrLen(subFontNameIn))
+			if (subFontNameIn == "")
+			This.subFontName := "Verdana"
+			else
 			This.subFontName := This.ValidateText(subFontNameIn)
-			else
-			{
-				if (!This.subFontName)
-				This.subFontName := "Verdana"
-			}
 
-			if (subFontSizeIn)
-			This.subFontSize := Floor(subFontSizeIn)
-			else
-			{
-				if (!This.subFontSize)
-				This.subFontSize := 10
-			}
-
-			if (subFontWeightIn)
-			This.subFontWeight := Floor(subFontWeightIn)
-			else
-			{
-				if (!This.subFontWeight)
-				This.subFontWeight := 400
-			}
+		This.subFontSize := (0 < subFontSizeIn < 200)?Floor(subFontSizeIn):10
+		This.subFontWeight := (0 < subFontWeightIn < 1000)?Floor(subFontWeightIn):400
 
 			if (subFontColourIn == -1)
 			{
@@ -1102,14 +1052,10 @@
 			else
 			This.subFontColour := This.ValidateColour(subFontColourIn, 1)
 
-			if (subFontQualityIn >= 0)
-			This.subFontQuality := Floor(subFontQualityIn)
+			if (subFontQualityIn == "")
+			This.subFontQuality := 1
 			else
-			{
-				if (!This.subFontQuality)
-				This.subFontQuality := 1
-			}
-
+			This.subFontQuality := (0 <= subFontQualityIn <= 5)?Floor(subFontQualityIn):1
 
 		This.subFontItalic := (subFontItalicIn)? " Italic": ""
 
@@ -2341,6 +2287,7 @@
 	DoText(splashyInst, hWnd, text, ByRef currVPos, parentW, parentH, ByRef currSplashyInstW, currSplashyInstH, init, sub := 0)
 	{
 	static SS_Center := 0X1, SWP_SHOWWINDOW := 0x0040, mainTextSize := [], subTextSize := []
+	static oldSubBkgdColour := 0, oldMainBkgdColour := 0
 	init := 0
 		if (text != "")
 		{
@@ -2397,6 +2344,33 @@
 				}
 			}
 
+			if (This.transCol)
+			{
+				if (sub)
+				{
+				oldSubBkgdColour := This.subBkgdColour
+				This.subBkgdColour := This.bkgdColour
+				}
+				else
+				{
+				oldMainBkgdColour := This.MainBkgdColour
+				This.MainBkgdColour := This.bkgdColour
+				}
+			}
+			else
+			{
+				if (oldSubBkgdColour)
+				{
+				This.subBkgdColour := oldSubBkgdColour
+				oldSubBkgdColour := 0
+				}
+				if (oldMainBkgdColour)
+				{
+				This.MainBkgdColour := oldMainBkgdColour
+				oldMainBkgdColour := 0
+				}
+			}
+
 			if (This.Parent)
 			{
 			; vMgnx, vMgnY not applicable here
@@ -2423,7 +2397,7 @@
 			}
 			else
 			{
-			; Remove and set the style first- Done so the margins can be centred.
+			; Remove and set the style first- done so the text can be centred within the margins.
 			WinSet, Style, -%SS_Center%, ahk_id %hWnd%
 			DllCall("SetWindowPos", "Ptr", hWnd, "Ptr", 0, "Int", 0, "Int", 0,"Int", 0,"Int", 0,"UInt", SWP_SHOWWINDOW)
 
@@ -2436,7 +2410,7 @@
 					spr := (spr > 0)?((This.vImgTxtSize)? 0: spr)/2: 0
 					}
 					else	; colours won't cover all the region after the move
-					spr := 0
+					spr := This.vMgnX
 
 				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . currSplashyInstH . " W" . This.vImgW . " H" . subTextSize[2]
 				}
@@ -2465,8 +2439,6 @@
 			; This sends more paint messages to parent
 			;ControlMove, , % This.vMgnX, % This.vMgnY, This.vImgW , Text_Dims(mainText, hWnd), % "ahk_id" . hWnd
 
-			if (This.transCol)
-			(sub)? This.subBkgdColour := This.ValidateColour(This.bkgdColour, 1): This.mainBkgdColour := This.ValidateColour(This.bkgdColour, 1)
 
 		This.SubClassTextCtl(hWnd)
 		return % (sub)?subTextSize[2]:mainTextSize[2]
