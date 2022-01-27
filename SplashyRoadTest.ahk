@@ -165,10 +165,16 @@ Loop
 	%SplashRef%(Splashy, {subFontName: "Courier New", vMgnY: A_Index, vHide: 0, subBkgdColour: spr}*)
 	Case 2:
 	{
-	if (A_Index > s/2)
-	%SplashRef%(Splashy, {subFontName: "", subFontSize: 20, subFontWeight: 700, vMgnY: A_Index}*)
-	else
-	%SplashRef%(Splashy, {subText: "Testing FontSize and FontWeight", subFontName:  "Courier New", subFontSize: 15, subFontWeight: 500, vMgnY: A_Index, subBkgdColour: ""}*)
+		if (A_Index > s/2)
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subFontName: "", subFontSize: 20, subFontWeight: 700, vMgnY: A_Index}*)
+		}
+		else
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subText: "Testing FontSize and FontWeight", subFontName: "Courier New", subFontSize: 15, subFontWeight: 500, vMgnY: A_Index, subBkgdColour: ""}*)
+		}
 	}
 	Case 3:
 	{
@@ -181,18 +187,40 @@ Loop
 			else
 			spr1 := "khakigrau"
 		}
-	%SplashRef%(Splashy, {subText: "Testing text colours", subFontColour: spr1, subFontSize: "", subFontWeight: "", vImgTxtSize: 0, vMgnY: A_Index}*)
+	%SplashRef%(Splashy, {subText: "Testing text colours", subFontName: "", subFontColour: spr1, subFontSize: "", subFontWeight: "", vImgTxtSize: 0, vMgnY: A_Index}*)
 	}
 	Case 4:
-	%SplashRef%(Splashy, {subText: "Testing FontQuality and FontItalic", subFontQuality: mod(A_Index, 5), subFontItalic: 1, subFontColour: "", vMgnY: A_Index}*)
+	{
+		if (A_Index > s/2)
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subFontQuality: 5, vMgnY: A_Index}*)
+		}
+		else
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subText: "Testing FontQuality and FontItalic", subFontQuality: mod(A_Index, 5), subFontItalic: 1, subFontColour: "", vMgnY: A_Index}*)
+		}
+	}
 	Case 5:
-	%SplashRef%(Splashy, {subText: "Testing FontStrike and FontUnderline", subFontQuality: "", subFontItalic: 0, subFontStrike: 1, subFontUnderline: 1, vMgnY: A_Index}*)
+	{
+		if (A_Index > s/2)
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subFontUnderline: 1, vMgnY: A_Index}*)
+		}
+		else
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subText: "Testing FontStrike and FontUnderline", subFontQuality: "", subFontItalic: 0, subFontStrike: 1, vMgnY: A_Index}*)
+		}
+	}
 	}
 	sleep 100
 	}
 AIndex++
 } Until (AIndex == 6)
-msgbox
+
 %SplashRef%(Splashy, {vHide: 1, subText: "", vMgnY: 0, vImgTxtSize: 1, vImgH: 0, subFontStrike: 0, subFontUnderline: 0}*)
 
 
@@ -240,8 +268,6 @@ sleep 100
 
 %SplashRef%(Splashy, {vHide: 1, subText: "", bkgdColour: "", vImgW: 0, vMgnX : 0, vMgnY: 0}*)
 
-msgbox
-
 
 
 
@@ -263,29 +289,6 @@ spr := "Text to " . ASpace . "fit "
 sleep 10
 }
 
-ASpace := ""
-
-
-%SplashRef%(Splashy, {vHide: 1, mainText: "", vImgTxtSize: 0}*)
-
-
-
-Loop % 3 * s
-{
-ASpace .= A_Space
-spr := "Text to " . ASpace . "fit "
-%SplashRef%(Splashy, {vHide: 0, subText: spr, vImgTxtSize: 1}*)
-sleep 10
-}
-Loop % 3 * s
-{
-ASpace := subStr(ASpace, 2)
-spr := "Text to " . ASpace . "fit "
-%SplashRef%(Splashy, {subText: spr, vImgTxtSize: 1}*)
-sleep 10
-}
-
-msgbox
 ; end vImgTxtSize
 
 
@@ -330,7 +333,7 @@ sleep 5
 
 %SplashRef%(Splashy, {vHide: 1, vImgW: 0, vImgH: 0}*)
 
-msgbox
+
 
 
 
@@ -342,6 +345,7 @@ msgbox
 
 
 ;Begin Square
+msgbox Begin Square
 
 
 ;Dry run to check endpoints
@@ -397,16 +401,13 @@ spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
 AIndex1 := AIndex + A_Index
 %SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: scrWd - spr, vPosY: 0}*)
 } Until (spr > 20 * scrWd/21)
-msgbox
+
 
 Loop %AIndex1%
 {
 sleep, 50
 %SplashRef%(Splashy, {instance: -A_Index}*)
 }
-
-msgbox
-
 
 
 
@@ -447,7 +448,6 @@ AIndex1 := AIndex + A_Index
 %SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: 0, vPosY: scrHt - spr}*)
 } Until (spr > (20 * scrHt/21) - ahkHt)
 
-msgbox
 Loop %AIndex1%
 {
 sleep, 50
@@ -486,7 +486,7 @@ spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
 AIndex1 := AIndex + A_Index
 %SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: scrWd - spr, vPosY: 0}*)
 } Until (spr > 20 * scrWd/21)
-msgbox
+
 
 Loop %AIndex1%
 {
@@ -505,6 +505,7 @@ sleep, 50
 
 
 
+msgbox Begin Triangle
 ;Begin Triangle
 ;ahkWdMod := scrWd/scrHt/2 * (ahkHt) + floor((mod(scrWd/2, ahkHt)/(s/2)))
 spr := floor(scrHt/ahkHt)
@@ -532,7 +533,6 @@ spr1 := (AIndex - A_Index - 1) * ahkHtMod
 ;msgbox % "spr " spr " spr1 " spr1 " triVertLength " triVertLength
 %SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex + A_Index, vPosX: spr, vPosY: 2 * rHt - spr1}*)		
 } Until (spr1 <= 0)
-msgbox
 
 
 Loop %AIndex1%
@@ -560,7 +560,6 @@ spr1 := (AIndex - A_Index - 1) * ahkHtMod
 %SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex + A_Index, vPosX: spr, vPosY: spr1}*)		
 } Until (spr1 <= 0)
 
-msgbox
 
 Loop %AIndex1%
 {
@@ -575,11 +574,8 @@ sleep, 50
 
 
 
-Ellipse:
 
-
-
-
+msgbox Begin Ellipse
 ;Begin Ellipse
 
 	Loop, %s%
@@ -596,7 +592,6 @@ Ellipse:
 		}
 	}
 
-msgbox % "twoBots " twoBots " ellVertInterval[A_Index] " ellVertInterval[minIndexBot] " ellVertInterval[A_Index - 1] " ellVertInterval[minIndexBot - 1]
 
 
 	Loop, %s%
@@ -622,7 +617,6 @@ msgbox % "twoBots " twoBots " ellVertInterval[A_Index] " ellVertInterval[minInde
 		}
 	}
 
-msgbox elipse reverse
 
 ; Ellipse reverse
 AIndex := s
@@ -651,7 +645,7 @@ AIndex := s
 ;msgbox % "minIndexBot " minIndexBot " minIndexTop " minIndexTop "`nAIndex " AIndex "`nrWd + rWd * ellXArg[AIndex] " rWd + rWd * ellXArg[AIndex]
 	--AIndex
 	}
-msgbox
+
 AIndex := s
 
 	While AIndex > 0
@@ -673,10 +667,12 @@ AIndex := s
 	--AIndex
 	}
 
-msgbox
+Sleep 300
+gosub Quit
 
 
 return
+Quit:
 Esc::
 %SplashRef%(Splashy, {release: 1}*)
 ExitApp
