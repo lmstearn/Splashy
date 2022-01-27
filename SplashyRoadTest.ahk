@@ -141,7 +141,7 @@ spr := 1
 	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
 */
 
-
+;gosub Ellipse
 ;
 ; begin subBkgdColour, effects
 %SplashRef%(Splashy, {subText: "Testing text colours and FontName", vHide: 1, vImgTxtSize: 1, vImgH: 2}*)
@@ -574,7 +574,8 @@ sleep, 50
 
 
 
-
+Ellipse:
+%SplashRef%(Splashy, {vHide: 0}*)
 msgbox Begin Ellipse
 ;Begin Ellipse
 
@@ -653,16 +654,40 @@ AIndex := s
 	sleep 100
 
 		if (AIndex == minIndexTop || (twoTops && AIndex == minIndexTop - 1))
-		%SplashRef%(Splashy, {subText: "top", mainText: "", instance: AIndex}*)	
+		{
+		minIndexTop := AIndex
+		%SplashRef%(Splashy, {subText: "top", mainText: "", instance: AIndex}*)
+		}
 		else
 		{
 			if (AIndex == minIndexBot || (twoBots && AIndex == minIndexBot - 1))
+			{
 			%SplashRef%(Splashy, {mainText: "bot", subText: "", instance: AIndex, vPosX: (rWd + rWd * ellXArg[AIndex]), vPosY: (rHt + rHt * ellYArg[AIndex])}*)
+			minIndexBot := AIndex
+			}
 			else
 			{
 			if Mod(AIndex, 2) is digit
 			%SplashRef%(Splashy, {instance: -AIndex}*)		
 			}
+		}
+	--AIndex
+	}
+
+
+AIndex := s
+	While AIndex > 0
+	{
+	sleep 100
+
+		if (AIndex == minIndexTop)
+		%SplashRef%(Splashy, {subText: "top", mainText: "", instance: AIndex}*)	
+		else
+		{
+			if (AIndex == minIndexBot)
+			%SplashRef%(Splashy, {mainText: "bot", subText: "", instance: AIndex, vPosX: (rWd + rWd * ellXArg[AIndex]), vPosY: (rHt + rHt * ellYArg[AIndex])}*)
+			else
+			%SplashRef%(Splashy, {instance: -AIndex}*)		
 		}
 	--AIndex
 	}
