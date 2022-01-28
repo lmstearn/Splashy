@@ -232,7 +232,7 @@ AIndex++
 %SplashRef%(Splashy, {vHide: 1, subText: "Testing Margins and Colours"}*)
 
 ;Begin Test Margins
-Loop % 2 * s
+Loop %s%
 {
 	if (!(mod(A_Index, 3)))
 	spr := "red"
@@ -248,10 +248,10 @@ Loop % 2 * s
 sleep 100
 }
 
-Loop % 2 * s
+Loop %s%
 {
 
-AIndex := 2 * s - A_Index + 1
+AIndex := s - A_Index + 1
 
 if (!(mod(AIndex, 3)))
 spr := "red"
@@ -501,10 +501,6 @@ sleep, 50
 
 
 
-
-
-
-
 msgbox Begin Triangle
 ;Begin Triangle
 ;ahkWdMod := scrWd/scrHt/2 * (ahkHt) + floor((mod(scrWd/2, ahkHt)/(s/2)))
@@ -574,8 +570,8 @@ sleep, 50
 
 
 
-Ellipse:
-%SplashRef%(Splashy, {vHide: 0}*)
+;Ellipse:
+;%SplashRef%(Splashy, {vHide: 0}*)
 msgbox Begin Ellipse
 ;Begin Ellipse
 

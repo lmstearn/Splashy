@@ -99,6 +99,7 @@
 	Static WM_ERASEBKGND := 0x0014
 	Static WM_CTLCOLORSTATIC := 0x0138
 	Static WM_ENTERSIZEMOVE := 0x0231
+	Static WM_EXITSIZEMOVE := 0x0232
 
 		__New(instance)
 		{
@@ -163,14 +164,14 @@
 				}
 				case % This.WM_ENTERSIZEMOVE:
 				{
-					; For WM_Move: revert the parent for the window move
-					if (Splashy.parent)
-					{
-						if (Splashy.mainText != "")
-						Splashy.SetParent(0, 0)
-						if (Splashy.subText != "")
-						Splashy.SetParent(0, , 0)
-					}
+				; For WM_Move: revert the parent for the window move
+				Splashy.CheckParentStat()
+				return 0
+				}
+				case % This.WM_EXITSIZEMOVE:
+				{
+				; Revert to Splashy
+				Splashy.CheckParentStat(1)
 				return 0
 				}
 				case % This.WM_NCHITTEST:
@@ -2359,15 +2360,18 @@
 			}
 			else
 			{
-				if (oldSubBkgdColour)
+				if (sub && oldSubBkgdColour)
 				{
 				This.subBkgdColour := oldSubBkgdColour
 				oldSubBkgdColour := 0
 				}
-				if (oldMainBkgdColour)
+				else
 				{
-				This.MainBkgdColour := oldMainBkgdColour
-				oldMainBkgdColour := 0
+					if (!sub && oldMainBkgdColour)
+					{
+					This.MainBkgdColour := oldMainBkgdColour
+					oldMainBkgdColour := 0
+					}
 				}
 			}
 
@@ -2424,7 +2428,7 @@
 					spr := (spr > 0)?((This.vImgTxtSize)? 0: spr/2): 0
 					}
 					else
-					spr := 0
+					spr := This.vMgnX
 
 				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
 				}
@@ -2458,6 +2462,43 @@
 		return 0
 		}
 	}
+
+
+	CheckParentStat(exiting := 0)
+	{
+	Static parentChangedSub := 0, parentChangedMain := 0, SWP_SHOWWINDOW := 0x0040, SWP_ASYNCWINDOWPOS := 0x4000
+
+		if (This.parent)
+		{
+			if (This.mainText != "")
+			{
+				if (parentChangedMain <= 0)
+				{
+
+				This.SetParent(exiting, 0)
+				spr := This.mainTextHWnd[This.Instance]
+				WinSet, Style, % (exiting)?"+":"-" . SS_Center, "ahk_id" . %spr%
+				DllCall("SetWindowPos", "Ptr", spr, "Ptr", 0, "Int", 0, "Int", 0,"Int", 0,"Int", 0,"UInt", SWP_SHOWWINDOW & SWP_ASYNCWINDOWPOS)
+				WinShow, ahk_id . %spr%
+					if (exiting)
+					parentChangedMain := 1
+					else
+					parentChangedMain := -1
+				}
+			}
+			if (This.subText != "")
+			{
+			This.SetParent(0, , 0)
+			}
+
+		}
+		else
+		{
+		parentChangedSub := 0
+		parentChangedMain := 0
+		}
+	}
+
 
 	SetParent(parentSetStatus, mainHWndIn := "", subHWndIn := "")
 	{
