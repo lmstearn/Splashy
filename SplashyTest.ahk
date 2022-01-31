@@ -172,6 +172,7 @@
 				{
 				; Revert to Splashy
 				Splashy.CheckParentStat(1)
+				This.PaintProc()
 				return 0
 				}
 				case % This.WM_NCHITTEST:
@@ -363,7 +364,7 @@
 	parentOut := ""
 	imagePathOut := ""
 	imageUrlOut := ""
-	4Out := ""
+	bkgdColourOut := ""
 	transColOut := ""
 	vHideOut := 0
 	noHWndActivateOut := ""
@@ -537,7 +538,11 @@
 				value := Trim(Value)
 
 					if (This.updateFlag > 0)
+					{
 					This.imageUrl := This.ValidateText(value)
+						if (This.imagePath == A_AhkPath)
+						This.imagePath := ""
+					}
 					else
 					imageUrlOut := value
 				}
@@ -920,21 +925,21 @@
 
 		This.parent := parentIn
 
-			if (StrLen(imagePathIn))
-			This.imagePath := imagePathIn
-			else
+			if (imagePathIn == "")
 			{
-				if (!This.imagePath && !StrLen(imageUrlIn))
+				if (!This.imagePath && imageUrlIn == "")
 				This.imagePath := A_AhkPath ; default icon. Ist of 5
 			}
-
-			if (StrLen(imageUrlIn))
-			This.imageUrl := imageUrlIn
 			else
+			This.imagePath := imagePathIn
+
+			if (imageUrlIn == "")
 			{
 				if (!This.imageUrl)
 				This.imageUrl := "https://www.autohotkey.com/assets/images/features-why.png"
 			}
+			else
+			This.imageUrl := imageUrlIn
 
 			if (bkgdColourIn == "")
 			This.bkgdColour := This.GetDefaultGUIColour()
@@ -984,10 +989,10 @@
 
 
 
-			if (StrLen(mainTextIn))
-			This.mainText := This.ValidateText(mainTextIn)
-			else
+			if (mainTextIn == "")
 			This.mainText := ""
+			else
+			This.mainText := This.ValidateText(mainTextIn)
 
 			if (mainBkgdColourIn == "")
 			This.mainBkgdColour := This.GetDefaultGUIColour()
@@ -1026,10 +1031,10 @@
 
 
 
-			if (StrLen(subTextIn))
-			This.subText :=  This.ValidateText(subTextIn)
-			else
+			if (subTextIn =="")
 			This.subText := ""
+			else
+			This.subText :=  This.ValidateText(subTextIn)
 
 			if (subBkgdColourIn == "")
 			This.subBkgdColour := This.GetDefaultGUIColour()
@@ -1266,16 +1271,12 @@
 
 	ValidateText(string)
 	{
-		if (StrLen(string))
+		if (string != "")
 		{
 			if (StrLen(string) > 20000) ;length?
 			string := SubStr(string, 1, 20000)
 		}
-		else ; "0", or some irregularity in string.
-		{
-		string =
-		}
-		return string
+	return string
 	}
 
 	ValidateColour(keyOrVal, toBGR := 0)
@@ -1509,11 +1510,10 @@
 			}
 		SplitPath % This.imagePath,,, spr
 
-			if (StrLen(spr))
-			This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
-			else
+			if (spr == "")
 			This.vImgType := 0 ; assume image
-
+			else
+			This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
 
 
 			if (InStr(This.imagePath, "*"))
@@ -1709,11 +1709,10 @@
 
 	SplitPath % This.imagePath,,, spr
 
-		if (StrLen(spr))
-		This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
-		else
+		if (spr == "")
 		This.vImgType := 0 ; assume image
-
+		else
+		This.vImgType := ((spr == "cur")? 2: (spr == "exe" || spr == "ico")? 1: 0)
 
 
 		if (InStr(This.imagePath, "*"))
@@ -1773,10 +1772,8 @@
 	else
 	This.DeleteHandles()
 
-
 	if (!(This.hBitmap || This.hIcon))
 	{
-
 		if (This.ImageName)
 		{
 		SplitPath % This.imagePath, spr
@@ -2392,7 +2389,7 @@
 ;			;Margins not required!
 			WinSet, Style, +%SS_Center%, ahk_id %hWnd%
 
-			WinMove ahk_id %hWnd%, , % currVPos.x, % currVPos.y + (sub?This.vImgH:0), % This.vImgW, % sub?subTextSize[2]:mainTextSize[2]
+			WinMove ahk_id %hWnd%, , % currVPos.x + This.vMgnX, % currVPos.y + (sub?This.vImgH:0), % This.vImgW, % sub?subTextSize[2]:mainTextSize[2]
 			;DllCall("SetWindowPos", "UInt", hWnd, "UInt", 0, "Int", This.currVPos.x, "Int", This.currVPos.y, "Int", This.vImgW, "Int", mainTextSize[2], "UInt", 0x0004)
 
 			WinSet, AlwaysOnTop, 1, ahk_id %hWnd%
@@ -2430,7 +2427,7 @@
 					else
 					spr := This.vMgnX
 
-				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y" . This.vMgnY . " W" . This.vImgW . " H" . mainTextSize[2]
+				GuiControl, %splashyInst%: Move, %hWnd%, % "X" . spr . " Y0" . " W" . This.vImgW . " H" . mainTextSize[2]
 				}
 			GuiControl, %splashyInst%: Show, %hWnd% ; in case of previously hidden
 			}
@@ -2477,13 +2474,22 @@
 
 				This.SetParent(exiting, 0)
 				spr := This.mainTextHWnd[This.Instance]
-				WinSet, Style, % (exiting)?"+":"-" . SS_Center, "ahk_id" . %spr%
-				DllCall("SetWindowPos", "Ptr", spr, "Ptr", 0, "Int", 0, "Int", 0,"Int", 0,"Int", 0,"UInt", SWP_SHOWWINDOW & SWP_ASYNCWINDOWPOS)
-				WinShow, ahk_id . %spr%
+				; All positional changes and paints to the window are not processed during the modal loop
+				; Only hope is for a timer.
+
+				; DllCall("SetWindowPos", "Ptr", spr, "Ptr", 2 * This.vMgnX, "Int", 0, "Int", This.vImgw + 2 * This.vMgnX, "Int", 40, "Int", 0, "UInt", SWP_SHOWWINDOW & SWP_ASYNCWINDOWPOS)
+				; WinShow, ahk_id . %spr%
 					if (exiting)
+					{
+					WinSet, Style, -%SS_Center%, "ahk_id" . %spr%
 					parentChangedMain := 1
+					;WinSet, Redraw ,, ahk_id %spr%
+					}
 					else
+					{
+					WinSet, Style, +%SS_Center%, "ahk_id" %spr%
 					parentChangedMain := -1
+					}
 				}
 			}
 			if (This.subText != "")
@@ -2721,12 +2727,7 @@
 
 	This.SaveRestoreUserParms(1)
 
-	if (not This.vImgType)  ; IMAGE_BITMAP (0) or the ImageType parameter was omitted.
-	DllCall("DeleteObject", "Ptr", This.hBitmap)
-	else if (This.vImgType == 1)  ; IMAGE_ICON
-	DllCall("DestroyIcon", "Ptr", This.hIcon)
-	else if (This.vImgType == 2)  ; IMAGE_CURSOR
-	DllCall("DestroyCursor", "Ptr", This.hIcon)
+	This.DeleteHandles()
 
 	This.SetCapacity(downloadedPathNames, 0)
 	This.SetCapacity(downloadedUrlNames, 0)
@@ -2757,15 +2758,33 @@
 	{
 		if (This.hBitmap)
 		{
-		DllCall("DeleteObject", "Ptr", This.hBitmap)
-		This.hBitmap := 0
+		; This.vImgType == 0 or IMAGE_BITMAP (0)
+			if (DllCall("DeleteObject", "Ptr", This.hBitmap))
+			This.hBitmap := 0
+			else
+			msgbox, 8208, DeleteObject, DeleteObject for hBitmap failed!
 		}
 		else
 		{
 			if (This.hIcon)
 			{
-			DllCall("DestroyIcon", "Ptr", This.hIcon)
-			This.hIcon := 0
+				if (This.vImgType == 1)  ; IMAGE_ICON
+				{
+				if (DllCall("DestroyIcon", "Ptr", This.hIcon))
+				This.hIcon := 0
+				else
+				msgbox, 8208, DestroyIcon, DestroyIcon for hIcon failed with error %A_LastError%
+				}
+				else
+				{
+					if (This.vImgType == 2)  ; IMAGE_CURSOR
+					{
+						if (DllCall("DestroyCursor", "Ptr", This.hIcon))
+						This.hIcon := 0
+						else
+						msgbox, 8208, DestroyCursor, DestroyCursor for hIcon failed with error %A_LastError%
+					}
+				}
 			}
 		}
 	}
@@ -2957,7 +2976,7 @@ launchStr := {}
 				GuiControl, Test:, %spr%, % txt[1]
 				GuiControl, Test: +cgray, %spr%
 				}
-				case 4:
+				case 2:
 				{
 				spr := "1_4"
 				GuiControl, Test:, %spr%, % GetData("BTOFF")
