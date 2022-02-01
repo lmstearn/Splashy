@@ -2633,18 +2633,20 @@
 		}
 	}
 
-	B64Decode(B64, nBytes := "", W := "", H := "")
+	B64Decode(B64, nBytes := "", W := 0, H := 0)
 	{
-	Bin = {}, BLen := 0, hICON := 0  
+	Static CRYPT_STRING_BASE64 := 0x00000001
+	Bin = {}, BLen := 0, hICON := 0
 
 		if !nBytes
-		nBytes := ceil(StrLen(StrReplace( B64, "=", "=", e))/4*3) - e
+		nBytes := floor(strlen(RTrim(B64, "=")) * 3/4)
 
 	VarSetCapacity( Bin, nBytes, 0 ), BLen := StrLen(B64)
-		If DllCall( "Crypt32.dll\CryptStringToBinary", "Ptr", &B64, "UInt", BLen, "UInt", 0x1
+		if DllCall( "Crypt32.dll\CryptStringToBinary", "Ptr", &B64, "UInt", BLen, "UInt", CRYPT_STRING_BASE64
 		, "Ptr", &Bin, "UInt*", nBytes, "Int", 0, "Int", 0)
+
 		hICON := DllCall( "CreateIconFromResourceEx", "Ptr", &Bin, "UInt", nBytes, "Int", True
-		, "UInt", "0x30000", "Int", W, "Int", H, "UInt", 0, "UPtr")
+		, "UInt", 0x30000, "Int", W, "Int", H, "UInt", 0, "UPtr")
 		; 0X30000: version number of the icon or cursor format for the resource bits pointed to by the pbIconBits 
 	Return hICON
 	}
