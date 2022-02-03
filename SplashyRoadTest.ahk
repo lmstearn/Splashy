@@ -141,10 +141,10 @@ spr := 1
 	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
 */
 
-;gosub Ellipse
+gosub Ellipse
 ;
 ; begin subBkgdColour, effects
-%SplashRef%(Splashy, {subText: "Testing text colours and FontName", vHide: 1, vImgTxtSize: 1, vImgH: 2}*)
+%SplashRef%(Splashy, {subText: "Testing text colours", vHide: 1, vImgTxtSize: 1, vImgH: 2}*)
 AIndex := 1
 Loop
 {
@@ -162,21 +162,34 @@ Loop
 	Switch (AIndex)
 	{
 	Case 1:
-	%SplashRef%(Splashy, {subFontName: "Courier New", vMgnY: A_Index, vHide: 0, subBkgdColour: spr}*)
+	%SplashRef%(Splashy, {subText: "Testing text colours", subFontName: "Courier New", vMgnY: A_Index, vHide: 0, subBkgdColour: spr}*)
 	Case 2:
 	{
 		if (A_Index > s/2)
 		{
 			if (!mod(A_Index, 3))
-			%SplashRef%(Splashy, {subFontName: "", subFontSize: 20, subFontWeight: 700, vMgnY: A_Index}*)
+			%SplashRef%(Splashy, {subText: "Testing FontName: Default", subFontName: "", vMgnY: A_Index}*)
 		}
 		else
 		{
 			if (!mod(A_Index, 3))
-			%SplashRef%(Splashy, {subText: "Testing FontSize and FontWeight", subFontName: "Courier New", subFontSize: 15, subFontWeight: 500, vMgnY: A_Index, subBkgdColour: ""}*)
+			%SplashRef%(Splashy, {subText: "Testing FontName: Courier New", subFontName: "Courier New", vMgnY: A_Index, subBkgdColour: ""}*)
 		}
 	}
 	Case 3:
+	{
+		if (A_Index > s/2)
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subFontSize: 20, subFontWeight: 700, vMgnY: A_Index}*)
+		}
+		else
+		{
+			if (!mod(A_Index, 3))
+			%SplashRef%(Splashy, {subText: "Testing FontSize and FontWeight", subFontSize: 15, subFontWeight: 500, vMgnY: A_Index}*)
+		}
+	}
+	Case 4:
 	{
 		if (!(mod(A_Index, 3)))
 		spr1 := "gold"
@@ -189,7 +202,7 @@ Loop
 		}
 	%SplashRef%(Splashy, {subText: "Testing text colours", subFontName: "", subFontColour: spr1, subFontSize: "", subFontWeight: "", vImgTxtSize: 0, vMgnY: A_Index}*)
 	}
-	Case 4:
+	Case 5:
 	{
 		if (A_Index > s/2)
 		{
@@ -202,7 +215,7 @@ Loop
 			%SplashRef%(Splashy, {subText: "Testing FontQuality and FontItalic", subFontQuality: mod(A_Index, 5), subFontItalic: 1, subFontColour: "", vMgnY: A_Index}*)
 		}
 	}
-	Case 5:
+	Case 6:
 	{
 		if (A_Index > s/2)
 		{
@@ -219,7 +232,7 @@ Loop
 	sleep 100
 	}
 AIndex++
-} Until (AIndex == 6)
+} Until (AIndex == 7)
 
 %SplashRef%(Splashy, {vHide: 1, subText: "", vMgnY: 0, vImgTxtSize: 1, vImgH: 0, subFontStrike: 0, subFontUnderline: 0}*)
 
@@ -570,8 +583,8 @@ sleep, 50
 
 
 
-;Ellipse:
-;%SplashRef%(Splashy, {vHide: 0}*)
+Ellipse:
+%SplashRef%(Splashy, {vHide: 0}*)
 msgbox Begin Ellipse
 ;Begin Ellipse
 
@@ -692,10 +705,11 @@ Sleep 200
 rWd := (scrWd - ahkWd)/2 ; allow for img width
 rHt := (scrHt - ahkHt)/2 ; and img Height
 
-if (AIndex == minIndexTop)
-%SplashRef%(Splashy, {subText: "A", mainText: "A", vPosX: rWd + ahkWd, vPosY: rHt + ahkHt, instance: AIndex}*)	
 
+%SplashRef%(Splashy, {subText: "A", mainText: "A", vPosX: rWd - ahkWd, vPosY: rHt, instance: minIndexTop}*)
+%SplashRef%(Splashy, {subText: "K", mainText: "K", vPosX: rWd + ahkWd, vPosY: rHt, instance: minIndexBot}*)
 
+msgbox
 gosub Quit
 
 

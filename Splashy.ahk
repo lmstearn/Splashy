@@ -1171,6 +1171,9 @@
 				if (This.parentClip)
 				Winset, Style, % -This.parentClip , % "ahk_id" This.parentHWnd
 			point := ""
+
+			vWinW := This.vImgW
+			vWinH := This.vImgH
 			}
 			else
 			{
@@ -1188,32 +1191,38 @@
 		parentH := A_ScreenHeight
 		}
 
+
+		if (!This.parent)
+		{
+
+			if (This.vMgnX == "d")
+			{
+			SM_CXEDGE := 45
+			sysget, spr, %SM_CXEDGE%
+			This.vMgnX := spr
+			}
+
+			if (This.vMgnX == "d")
+			{
+			SM_CYEDGE := 46
+			sysget, spr, %SM_CYEDGE%
+			This.vMgnY := spr
+			}
+
+		This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
+		vWinW := This.vImgW + 2 * This.vMgnX
+		vWinH := This.vImgH + This.vMgnY
+		}
+
 	Gui, %splashyInst%: Color, % This.bkgdColour
 
-		if (This.vMgnX == "d")
-		{
-		SM_CXEDGE := 45
-		sysget, spr, %SM_CXEDGE%
-		This.vMgnX := spr
-		}
-
-		if (This.vMgnX == "d")
-		{
-		SM_CYEDGE := 46
-		sysget, spr, %SM_CYEDGE%
-		This.vMgnY := spr
-		}
-
-
-	This.vImgX := This.vMgnX, This.vImgY := This.vMgnY
-	vWinW := This.vImgW + 2 * This.vMgnX
-	vWinH := This.vImgH + This.vMgnY
 
 
 		This.vImgY := This.DoText(splashyInst, This.mainTextHWnd[This.instance], This.mainText, currVPos, parentW, parentH, vWinW, vWinH, init)
+		vWinH += This.vImgY
 
 		if (spr := This.DoText(splashyInst, This.subTextHWnd[This.instance], This.subText, currVPos, parentW, parentH, vWinW, vWinH, init, 1))
-		vWinH += spr + This.vMgnY
+		vWinH += spr + (This.parent?0:This.vMgnY)
 
 
 	Gui, %splashyInst%: Font
@@ -2389,7 +2398,7 @@
 ;			;Margins not required!
 			WinSet, Style, +%SS_Center%, ahk_id %hWnd%
 
-			WinMove ahk_id %hWnd%, , % currVPos.x + This.vMgnX, % currVPos.y + (sub?This.vImgH:0), % This.vImgW, % sub?subTextSize[2]:mainTextSize[2]
+			WinMove ahk_id %hWnd%, , % currVPos.x + This.vMgnX, % currVPos.y + (sub?currSplashyInstH:0), % This.vImgW, % sub?subTextSize[2]:mainTextSize[2]
 			;DllCall("SetWindowPos", "UInt", hWnd, "UInt", 0, "Int", This.currVPos.x, "Int", This.currVPos.y, "Int", This.vImgW, "Int", mainTextSize[2], "UInt", 0x0004)
 
 			WinSet, AlwaysOnTop, 1, ahk_id %hWnd%
@@ -2494,7 +2503,25 @@
 			}
 			if (This.subText != "")
 			{
-			This.SetParent(0, , 0)
+				if (parentChangedSub <= 0)
+				{
+
+				This.SetParent(exiting, , 0)
+				spr := This.subTextHWnd[This.Instance]
+
+					if (exiting)
+					{
+					WinSet, Style, -%SS_Center%, "ahk_id" . %spr%
+					parentChangedSub := 1
+					;WinSet, Redraw ,, ahk_id %spr%
+					}
+					else
+					{
+					WinSet, Style, +%SS_Center%, "ahk_id" %spr%
+					parentChangedSub := -1
+					}
+				}
+
 			}
 
 		}
