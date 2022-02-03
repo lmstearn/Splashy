@@ -2,7 +2,7 @@
 #MaxMem 256
 #Include %A_ScriptDir%
 ;EnvSet, AutGUI, Some text to put in the variable.
-#include C:\Users\New\Desktop\Splashy.ahk
+#include Splashy.ahk
 SetBatchLines, 50ms
 ; Splashy requires Last Found
 Gui +LastFound
@@ -688,7 +688,14 @@ AIndex := s
 	--AIndex
 	}
 
-Sleep 300
+Sleep 200
+rWd := (scrWd - ahkWd)/2 ; allow for img width
+rHt := (scrHt - ahkHt)/2 ; and img Height
+
+if (AIndex == minIndexTop)
+%SplashRef%(Splashy, {subText: "A", mainText: "A", vPosX: rWd + ahkWd, vPosY: rHt + ahkHt, instance: AIndex}*)	
+
+
 gosub Quit
 
 

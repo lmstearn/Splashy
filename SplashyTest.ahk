@@ -3153,7 +3153,8 @@ out := A_Guicontrol
 ; Splashy does not use the clipboard,
 ; "HICON:*" followed by a signed 10 dec digit sequence
 ; from the return of B64Decode sometimes gets into the
-; clipboard when Splashy toggles are clicked fast.
+; clipboard when Splashy toggle buttons are clicked _fast_.
+; Sleep and other basic preventative measures don't work.
 ; Something internal is off- a timer might be a better workaround
 
 if (Instr(clipboard, "HICON:*"))
@@ -3326,8 +3327,8 @@ ProcFonts(thisHWnd)
 {
 	;https://autohotkey.com/board/topic/72109-ahk-fonts/
 	; gui variables in function must be global
-	Global GuiFontDlg_fontType, fontSizeUD, inputText, outputText
-	static thisFont, recFontList, fontList, recFontCount, fontCount, acceptDlg := 0, recFontTog := 0
+	Global GuiFontDlg_fontType, fontSizeUD, inputText, outputText, GuiFontDlgRecommended
+	static thisFont, recFontList, fontList, recFontCount, fontCount, vRecommended := 0, acceptDlg := 0
 	recFontList =
 	(
 	Aharoni|Andalus|Angsana New|AngsanaUPC|Arial|Arial Black|Batang|Comic Sans MS|Cordia New|CordiaUPC|Courier|Courier New|David|DFKai-SB|DilleniaUPC|Estrangelo Edessa|EucrosiaUPC|Fixedsys|Franklin Gothic Medium|FrankRuehl|FreesiaUPC|Gautami|Georgia|Gulim|Impact|IrisUPC|JasmineUPC|KaiTi|Kartika|KodchiangUPC|Latha|Levenim MT|LilyUPC|Lucida Console|Lucida Sans|Lucida Sans Unicode|Mangal|Microsoft Sans Serif|Miriam|Miriam Fixed|Modern|MS Gothic|MS Mincho|MS Sans Serif|MS Serif|Mv Boli|Narkisim|Palatino Linotype|PMingLiU|Raavi|Rod|Roman|Script|Shruti|SimHei|Simplified Arabic|Simplified Arabic Fixed|SimSun|Small Fonts|Sylfaen|System|Tahoma|Terminal|Times New Roman|Traditional Arabic|Trebuchet MS|Tunga|Verdana|Vrinda
@@ -3346,7 +3347,7 @@ ProcFonts(thisHWnd)
 
 	gui, FontDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox
 	gui, FontDlg: add, ddl, % "section gGuiFontDlgSelectFont vGuiFontDlg_fontType w" . xSep*5, % fontList
-	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended, AHK_Recommended
+	gui, FontDlg: add, Checkbox, ys gGuiFontDlgRecommended vGuiFontDlgRecommended, AHK_Recommended
 	; illegal character when evaluating "AHK`nRecommended" or "AHK Recommended"
 	gui, FontDlg: add, edit, ys w%xSep%
 	gui, FontDlg: add, updown, gGuiFontDlgFontSizeUD vfontSizeUD, 15
@@ -3356,12 +3357,11 @@ ProcFonts(thisHWnd)
 	gui, FontDlg: add, text, % "0x1000 center voutputText w" . xSep*10 . "h" . ySep, The quick brown fox jumps over the lazy dog.
 
 	WinSet, Disable, , ahk_id %thisHWnd%
+
 	gui, FontDlg: show,, AHK Fonts
-		if (thisFont)
-		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, %thisFont%
-		else
-		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
-	gosub GuiFontDlgSelectFont
+
+	guicontrol, FontDlg: , GuiFontDlgRecommended, %vRecommended%
+	gosub GuiFontDlgRecommended
 
 	WinWaitActive, ahk_id %thisHWnd%
 	WinSet, Enable, , ahk_id %thisHWnd%
@@ -3372,7 +3372,6 @@ ProcFonts(thisHWnd)
 
 	FontDlgGuiClose:
 	FontDlgGuiEscape:
-	%recFontTog% := 0
 	acceptDlg := 0
 	gui, FontDlg: Destroy
 	WinActivate ahk_id %thisHWnd%
@@ -3380,7 +3379,6 @@ ProcFonts(thisHWnd)
 	return ""
 
 	GuiFontDlgAccept:
-	%recFontTog% := 0
 	acceptDlg := 1
 	GuiControlGet thisFont, FontDlg:, GuiFontDlg_fontType
 	gui, FontDlg: Destroy
@@ -3410,40 +3408,45 @@ ProcFonts(thisHWnd)
 
 	GuiFontDlgSelectFont:
 	gui, FontDlg: submit, nohide
-	thisFont :=
-		loop, parse, % (%recFontTog%?recFontList:fontList), |
+	spr := ""
+
+		loop, parse, % (vRecommended?recFontList:fontList), |
 		{
-		if (a_loopfield != GuiFontDlg_fontType)
-		continue
-		thisFont := a_loopfield
-		gui, FontDlg: font, s%fontSizeUD%, %thisFont%
+			if (a_loopfield != GuiFontDlg_fontType)
+			continue
+
+		spr := a_loopfield
+		gui, FontDlg: font, s%fontSizeUD%, %spr%
 		guicontrol, FontDlg: font, OutputText
 		guicontrol, FontDlg: movedraw, OutputText
 		break
 		}
 
-		if (!thisFont)
-		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
+	;;if (vRecommended)
+	(spr == "")? thisFont := "Verdana": thisFont := spr
+	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, %thisFont%
 	return
 
 	GuiFontDlgRecommended:
 	gui, FontDlg: submit, nohide
 	Sleep -1
-	recFontTog := A_GuiControl
-	%recFontTog% := !%recFontTog% ? 1 : 0
+
 	gui, FontDlg: font, s15
 	guicontrol, FontDlg:, fontSizeUD,  15
-		if (%recFontTog%)
+		if (GuiFontDlgRecommended)
 		{
+		vRecommended := 1
 		guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" recFontList
-		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, Verdana
 		}
 		else
 		{
+		vRecommended := 0
 		guicontrol, FontDlg:, GuiFontDlg_fontType, % "|" fontList
-		guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, %thisFont%
 		}
+
+	guicontrol, FontDlg: chooseString, GuiFontDlg_fontType, %thisFont%
 	gosub GuiFontDlgSelectFont
+
 	return
 }
 ImageSourceProc(thisHWnd)
@@ -3451,7 +3454,7 @@ ImageSourceProc(thisHWnd)
 	;https://autohotkey.com/board/topic/72109-ahk-fonts/
 	; gui variables in function must be global
 	Global GuiImageSourceDlgInternalImage, GuiImageSourceDlgImageRet, outputText
-	static imgRet, acceptDlg := 0, recFontTog := 0
+	static imgRet, acceptDlg := 0
 
 	gui, ImageSourceDlg: +owner%thisHWnd% +resize -MaximizeBox -MinimizeBox
 	gui, ImageSourceDlg: add, button, section gGuiImageSourceDlgInternalImage vGuiImageSourceDlgInternalImage, Embedded Image
