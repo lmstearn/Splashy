@@ -120,7 +120,7 @@ spr := 1
 
 
 ; Init image
-%SplashRef%(Splashy, {vBorder: "wscd", vHide: 1, imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/AutoHotkey_logo.png/220px-AutoHotkey_logo.png"}*)
+%SplashRef%(Splashy, {vHide: 1, imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/AutoHotkey_logo.png/220px-AutoHotkey_logo.png"}*)
 
 
 
@@ -141,7 +141,10 @@ spr := 1
 	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
 */
 
-gosub Ellipse
+msgbox, 8196 , Splashy AHK Road Test, Ready for the Road Test?
+	IfMsgBox, No
+	gosub Quit
+
 ;
 ; begin subBkgdColour, effects
 %SplashRef%(Splashy, {subText: "Testing text colours", vHide: 1, vImgTxtSize: 1, vImgH: 2}*)
@@ -235,8 +238,6 @@ AIndex++
 } Until (AIndex == 7)
 
 %SplashRef%(Splashy, {vHide: 1, subText: "", vMgnY: 0, vImgTxtSize: 1, vImgH: 0, subFontStrike: 0, subFontUnderline: 0}*)
-
-
 
 
 
@@ -584,7 +585,7 @@ sleep, 50
 
 
 Ellipse:
-%SplashRef%(Splashy, {vHide: 0}*)
+
 msgbox Begin Ellipse
 ;Begin Ellipse
 
@@ -705,11 +706,33 @@ Sleep 200
 rWd := (scrWd - ahkWd)/2 ; allow for img width
 rHt := (scrHt - ahkHt)/2 ; and img Height
 
+Sleep 200
+%SplashRef%(Splashy, {subText: "A", mainText: "A", vPosX: rWd - ahkWd, vPosY: ahkHt, instance: minIndexTop}*)
+%SplashRef%(Splashy, {subText: "K", mainText: "K", vPosX: rWd + ahkWd, vPosY: rHt - ahkHt, instance: minIndexBot}*)
 
-%SplashRef%(Splashy, {subText: "A", mainText: "A", vPosX: rWd - ahkWd, vPosY: rHt, instance: minIndexTop}*)
-%SplashRef%(Splashy, {subText: "K", mainText: "K", vPosX: rWd + ahkWd, vPosY: rHt, instance: minIndexBot}*)
+Sleep 200
+%SplashRef%(Splashy, {subText: "A", mainText: "A", vPosX: rWd - ahkWd, vPosY: 2 * ahkHt, instance: minIndexTop}*)
+%SplashRef%(Splashy, {subText: "K", mainText: "K", vPosX: rWd + ahkWd, vPosY: rHt - 2 * ahkHt, instance: minIndexBot}*)
 
-msgbox
+%SplashRef%(Splashy, {subText: "H", mainText: "H", vPosX: rWd, vPosY: rHt, instance: 1}*)
+
+Sleep 200
+
+loop %s%
+{
+spr := (A_Index <= s/2)?"b":"wscd"
+spr1 := (A_Index <= s/2)?"Thin Border":"Borders Combo"
+
+%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "A", vPosX: rWd - ahkWd, vPosY: rHt, instance: minIndexTop}*)
+%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "H", vPosX: rWd, vPosY: rHt, instance: 1}*)
+%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "K", vPosX: rWd + ahkWd, vPosY: rHt, instance: minIndexBot}*)
+Sleep 100
+}
+
+Sleep 200
+
+msgbox Road Test complete!
+
 gosub Quit
 
 
