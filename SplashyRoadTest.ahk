@@ -125,7 +125,7 @@ spr := 1
 
 
 
-%SplashRef%(Splashy, {vHide: 1, mainText: "", subText: "", noHWndActivate: 1, vOnTop: 1, vImgW: 0, vImgH: 0}*)
+%SplashRef%(Splashy, {mainText: "", subText: "", noHWndActivate: 1, vOnTop: 1, vImgW: 0, vImgH: 0}*)
 
 
 /*
@@ -145,9 +145,9 @@ msgbox, 8196 , Splashy AHK Road Test, Ready for the Road Test?
 	IfMsgBox, No
 	gosub Quit
 
-;
+
 ; begin subBkgdColour, effects
-%SplashRef%(Splashy, {subText: "Testing text colours", vHide: 1, vImgTxtSize: 1, vImgH: 2}*)
+%SplashRef%(Splashy, {subText: "Testing text colours", vImgTxtSize: 1, vImgH: 2}*)
 AIndex := 1
 Loop
 {
@@ -267,15 +267,15 @@ Loop %s%
 
 AIndex := s - A_Index + 1
 
-if (!(mod(AIndex, 3)))
-spr := "red"
-else
-{
-	if (!(mod(AIndex, 2)))
-	spr := "blue"
+	if (!(mod(AIndex, 3)))
+	spr := "red"
 	else
-	spr := "yellow"
-}
+	{
+		if (!(mod(AIndex, 2)))
+		spr := "blue"
+		else
+		spr := "yellow"
+	}
 %SplashRef%(Splashy, {bkgdColour: spr, vMgnX : AIndex, vMgnY: AIndex}*)
 sleep 100
 }
@@ -288,20 +288,21 @@ sleep 100
 ; Begin vImgTxtSize
 
 ASpace := ""
-Loop % 3 * s
-{
-ASpace .= A_Space
-spr := "Text to " . ASpace . "fit "
-%SplashRef%(Splashy, {vHide: 0, mainText: spr, vImgTxtSize: 1}*)
-sleep 10
-}
-Loop % 3 * s
-{
-ASpace := subStr(ASpace, 2)
-spr := "Text to " . ASpace . "fit "
-%SplashRef%(Splashy, {mainText: spr, vImgTxtSize: 1}*)
-sleep 10
-}
+	Loop % 3 * s
+	{
+	ASpace .= A_Space
+	spr := "Text to " . ASpace . "fit "
+	%SplashRef%(Splashy, {vHide: 0, mainText: spr, vImgTxtSize: 1}*)
+	sleep 10
+	}
+
+	Loop % 3 * s
+	{
+	ASpace := subStr(ASpace, 2)
+	spr := "Text to " . ASpace . "fit "
+	%SplashRef%(Splashy, {mainText: spr, vImgTxtSize: 1}*)
+	sleep 10
+	}
 
 ; end vImgTxtSize
 
@@ -316,34 +317,34 @@ sleep 10
 spr := 0
 
 
-Loop %s%
-{
-spr := (A_Index - 1)/s
-%SplashRef%(Splashy, {vHide: 0, vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
-sleep 5
-}
+	Loop %s%
+	{
+	spr := (A_Index - 1)/s
+	%SplashRef%(Splashy, {vHide: 0, vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
+	sleep 5
+	}
 
-Loop %s%
-{
-spr := (s - A_Index)/s
-%SplashRef%(Splashy, {vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
-sleep 5
-}
+	Loop %s%
+	{
+	spr := (s - A_Index)/s
+	%SplashRef%(Splashy, {vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
+	sleep 5
+	}
 
-Loop %s%
-{
-spr := (A_Index - 1)/s
-%SplashRef%(Splashy, {vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
-sleep 5
-}
+	Loop %s%
+	{
+	spr := (A_Index - 1)/s
+	%SplashRef%(Splashy, {vImgW: s + spr * ahkWd, vImgH: s + spr * ahkHt}*)
+	sleep 5
+	}
 
-Loop
-{
-spr := ahkWd + s * A_Index
-spr1 := ahkHt + s * A_Index
-%SplashRef%(Splashy, {vImgW: spr, vImgH: spr1}*)
-sleep 5
-} Until (spr > scrWd || spr1 > scrHt)
+	Loop
+	{
+	spr := ahkWd + s * A_Index
+	spr1 := ahkHt + s * A_Index
+	%SplashRef%(Splashy, {vImgW: spr, vImgH: spr1}*)
+	sleep 5
+	} Until (spr > scrWd || spr1 > scrHt)
 
 %SplashRef%(Splashy, {vHide: 1, vImgW: 0, vImgH: 0}*)
 
@@ -385,43 +386,43 @@ spr := 0
 
 
 spr := 0
-Loop
-{
-spr := startPointHt + A_Index * ahkHtAdjust + (A_Index * ahkHtMod)
-AIndex := A_Index
-%SplashRef%(Splashy, {vHide: 0, mainText: "", subText: "", instance: A_Index, vPosX: 0, vPosY: spr}*)
-} Until (spr > (20 * scrHt/21) - 2 * ahkHt)
+	Loop
+	{
+	spr := startPointHt + A_Index * ahkHtAdjust + (A_Index * ahkHtMod)
+	AIndex := A_Index
+	%SplashRef%(Splashy, {vHide: 0, mainText: "", subText: "", instance: A_Index, vPosX: 0, vPosY: spr}*)
+	} Until (spr > (20 * scrHt/21) - 2 * ahkHt)
 
-Loop
-{
-spr := startPointWd + A_Index * ahkWdAdjust + ((A_Index - 1) * ahkWdMod)
-AIndex1 := AIndex + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: spr, vPosY: scrHt - ahkHt}*)
-} Until (spr > 20 * scrWd/21)
+	Loop
+	{
+	spr := startPointWd + A_Index * ahkWdAdjust + ((A_Index - 1) * ahkWdMod)
+	AIndex1 := AIndex + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: spr, vPosY: scrHt - ahkHt}*)
+	} Until (spr > 20 * scrWd/21)
 
 
 spr1 := scrWd - ahkWdMod
-Loop
-{
-spr := startPointHt + A_Index * ahkHtAdjust + ((A_Index + 1) * ahkHtMod)
-AIndex := AIndex1 + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex, vPosX: spr1, vPosY: scrHt - spr}*)
-} Until (spr > (20 * scrHt/21) - ahkHt)
+	Loop
+	{
+	spr := startPointHt + A_Index * ahkHtAdjust + ((A_Index + 1) * ahkHtMod)
+	AIndex := AIndex1 + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex, vPosX: spr1, vPosY: scrHt - spr}*)
+	} Until (spr > (20 * scrHt/21) - ahkHt)
 
-Loop
-{
-spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
+	Loop
+	{
+	spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
 
-AIndex1 := AIndex + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: scrWd - spr, vPosY: 0}*)
-} Until (spr > 20 * scrWd/21)
+	AIndex1 := AIndex + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: scrWd - spr, vPosY: 0}*)
+	} Until (spr > 20 * scrWd/21)
 
 
-Loop %AIndex1%
-{
-sleep, 50
-%SplashRef%(Splashy, {instance: -A_Index}*)
-}
+	Loop %AIndex1%
+	{
+	sleep, 50
+	%SplashRef%(Splashy, {instance: -A_Index}*)
+	}
 
 
 
@@ -432,81 +433,82 @@ sleep, 50
 
 
 spr := 0
-Loop
-{
-spr := startPointWd + A_Index * ahkWdAdjust + ((A_Index - 1) * ahkWdMod)
+	Loop
+	{
+	spr := startPointWd + A_Index * ahkWdAdjust + ((A_Index - 1) * ahkWdMod)
 
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: spr, vPosY: 0}*)
-AIndex := A_Index
-} Until (spr > 20 * scrWd/21)
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: spr, vPosY: 0}*)
+	AIndex := A_Index
+	} Until (spr > 20 * scrWd/21)
 
 spr1 := scrWd - ahkWdMod
-Loop
-{
-spr := startPointHt + A_Index * ahkHtAdjust + (A_Index * ahkHtMod)
-AIndex1 := AIndex + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: spr1, vPosY: spr}*)
-} Until (spr > (20 * scrHt/21) - 2 * ahkHt)
+	Loop
+	{
+	spr := startPointHt + A_Index * ahkHtAdjust + (A_Index * ahkHtMod)
+	AIndex1 := AIndex + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: spr1, vPosY: spr}*)
+	} Until (spr > (20 * scrHt/21) - 2 * ahkHt)
 
-Loop
-{
-spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
-AIndex := AIndex1 + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex, vPosX: scrWd - spr, vPosY: scrHt - ahkHt}*)
-} Until (spr > 20 * scrWd/21)
+	Loop
+	{
+	spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
+	AIndex := AIndex1 + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex, vPosX: scrWd - spr, vPosY: scrHt - ahkHt}*)
+	} Until (spr > 20 * scrWd/21)
 
-Loop
-{
-spr := startPointHt + A_Index * ahkHtAdjust + ((A_Index + 1) * ahkHtMod)
-AIndex1 := AIndex + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: 0, vPosY: scrHt - spr}*)
-} Until (spr > (20 * scrHt/21) - ahkHt)
+	Loop
+	{
+	spr := startPointHt + A_Index * ahkHtAdjust + ((A_Index + 1) * ahkHtMod)
+	AIndex1 := AIndex + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: 0, vPosY: scrHt - spr}*)
+	} Until (spr > (20 * scrHt/21) - ahkHt)
 
-Loop %AIndex1%
-{
-sleep, 50
-%SplashRef%(Splashy, {instance: -A_Index}*)
-}
+	Loop %AIndex1%
+	{
+	sleep, 50
+	%SplashRef%(Splashy, {instance: -A_Index}*)
+	}
 
 
 spr := 0
 
 
-Loop
-{
-spr := startPointHt + A_Index * ahkHtAdjust + (A_Index * ahkHtMod)
-AIndex := A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: 0, vPosY: spr}*)
-} Until (spr > (20 * scrHt/21) - 2 * ahkHt)
+	Loop
+	{
+	spr := startPointHt + A_Index * ahkHtAdjust + (A_Index * ahkHtMod)
+	AIndex := A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: 0, vPosY: spr}*)
+	} Until (spr > (20 * scrHt/21) - 2 * ahkHt)
 
-Loop
-{
-spr := startPointWd + A_Index * ahkWdAdjust + ((A_Index - 1) * ahkWdMod)
-AIndex1 := AIndex + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: spr, vPosY: scrHt - ahkHt}*)
-} Until (spr > 20 * scrWd/21)
+	Loop
+	{
+	spr := startPointWd + A_Index * ahkWdAdjust + ((A_Index - 1) * ahkWdMod)
+	AIndex1 := AIndex + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: spr, vPosY: scrHt - ahkHt}*)
+	} Until (spr > 20 * scrWd/21)
 
 spr1 := scrWd - ahkWdMod
-Loop
-{
-spr := startPointHt + A_Index * ahkHtAdjust + ((A_Index + 1) * ahkHtMod)
-AIndex := AIndex1 + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex, vPosX: spr1, vPosY: scrHt - spr}*)
-} Until (spr > (20 * scrHt/21) - ahkHt)
-Loop
-{
-spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
+	Loop
+	{
+	spr := startPointHt + A_Index * ahkHtAdjust + ((A_Index + 1) * ahkHtMod)
+	AIndex := AIndex1 + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex, vPosX: spr1, vPosY: scrHt - spr}*)
+	} Until (spr > (20 * scrHt/21) - ahkHt)
 
-AIndex1 := AIndex + A_Index
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: scrWd - spr, vPosY: 0}*)
-} Until (spr > 20 * scrWd/21)
+	Loop
+	{
+	spr := startPointWd + A_Index * ahkWdAdjust + (A_Index * ahkWdMod)
+
+	AIndex1 := AIndex + A_Index
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex1, vPosX: scrWd - spr, vPosY: 0}*)
+	} Until (spr > 20 * scrWd/21)
 
 
-Loop %AIndex1%
-{
-sleep, 50
-%SplashRef%(Splashy, {instance: -A_Index}*)
-}
+	Loop %AIndex1%
+	{
+	sleep, 50
+	%SplashRef%(Splashy, {instance: -A_Index}*)
+	}
 
 
 
@@ -525,57 +527,57 @@ ahkHtMod := ahkHt + floor(mod(scrHt, ahkHt)/spr)
 	else
 	ahkWdMod := rWd/s + floor((mod(rWd, s/2)/(s/2)))
 
-Loop
-{
-spr := (A_Index - 1) * ahkWdMod
-spr1 := (A_Index - 1) * ahkHtMod
-;scaleHt := scrWd/scrHt * 
+	Loop
+	{
+	spr := (A_Index - 1) * ahkWdMod
+	spr1 := (A_Index - 1) * ahkHtMod
+	;scaleHt := scrWd/scrHt * 
 
-AIndex := A_Index
-;msgbox % "rWd " rWd "s " s " spr " spr " triVertLength " triVertLength "`nscrHt - ahkHt " scrHt - ahkHt " spr1 " spr1
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: spr, vPosY: 2 * rHt - spr1}*)
-} Until (spr1 > scrHt - 5*ahkHt/4)  ;(spr * spr + spr1 * spr1 > triVertLength * triVertLength)
+	AIndex := A_Index
 
-Loop
-{
-spr := (AIndex + A_Index - 1) * ahkWdMod
-spr1 := (AIndex - A_Index - 1) * ahkHtMod
-;msgbox % "spr " spr " spr1 " spr1 " triVertLength " triVertLength
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex + A_Index, vPosX: spr, vPosY: 2 * rHt - spr1}*)		
-} Until (spr1 <= 0)
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: spr, vPosY: 2 * rHt - spr1}*)
+	} Until (spr1 > scrHt - 5*ahkHt/4)  ;(spr * spr + spr1 * spr1 > triVertLength * triVertLength)
 
+	Loop
+	{
+	spr := (AIndex + A_Index - 1) * ahkWdMod
+	spr1 := (AIndex - A_Index - 1) * ahkHtMod
 
-Loop %AIndex1%
-{
-sleep, 50
-%SplashRef%(Splashy, {instance: -A_Index}*)
-}
-
-Loop
-{
-spr := (A_Index - 1) * ahkWdMod
-spr1 := (A_Index - 1) * ahkHtMod
-;scaleHt := scrWd/scrHt * 
-
-AIndex := A_Index
-;msgbox % "rWd " rWd "s " s " spr " spr " spr1 " spr1 " triVertLength " triVertLength
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: spr, vPosY: spr1}*)
-} Until (spr1 > scrHt - 5*ahkHt/4)
-
-Loop
-{
-spr := (AIndex + A_Index - 1) * ahkWdMod
-spr1 := (AIndex - A_Index - 1) * ahkHtMod
-;msgbox % "spr " spr " spr1 " spr1 " triVertLength " triVertLength
-%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex + A_Index, vPosX: spr, vPosY: spr1}*)		
-} Until (spr1 <= 0)
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex + A_Index, vPosX: spr, vPosY: 2 * rHt - spr1}*)		
+	} Until (spr1 <= 0)
 
 
-Loop %AIndex1%
-{
-sleep, 50
-%SplashRef%(Splashy, {instance: -A_Index}*)
-}
+	Loop %AIndex1%
+	{
+	sleep, 50
+	%SplashRef%(Splashy, {instance: -A_Index}*)
+	}
+
+	Loop
+	{
+	spr := (A_Index - 1) * ahkWdMod
+	spr1 := (A_Index - 1) * ahkHtMod
+	;scaleHt := scrWd/scrHt * 
+
+	AIndex := A_Index
+	;msgbox % "rWd " rWd "s " s " spr " spr " spr1 " spr1 " triVertLength " triVertLength
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: A_Index, vPosX: spr, vPosY: spr1}*)
+	} Until (spr1 > scrHt - 5*ahkHt/4)
+
+	Loop
+	{
+	spr := (AIndex + A_Index - 1) * ahkWdMod
+	spr1 := (AIndex - A_Index - 1) * ahkHtMod
+	;msgbox % "spr " spr " spr1 " spr1 " triVertLength " triVertLength
+	%SplashRef%(Splashy, {mainText: "", subText: "", instance: AIndex + A_Index, vPosX: spr, vPosY: spr1}*)		
+	} Until (spr1 <= 0)
+
+
+	Loop %AIndex1%
+	{
+	sleep, 50
+	%SplashRef%(Splashy, {instance: -A_Index}*)
+	}
 
 
 
@@ -631,12 +633,12 @@ msgbox Begin Ellipse
 
 ; Ellipse reverse
 AIndex := s
-While AIndex > 0
-{
-sleep, 50
-%SplashRef%(Splashy, {instance: -AIndex}*)
---AIndex
-}
+	While AIndex > 0
+	{
+	sleep, 50
+	%SplashRef%(Splashy, {instance: -AIndex}*)
+	--AIndex
+	}
 
 AIndex := s
 
@@ -718,16 +720,16 @@ Sleep 200
 
 Sleep 200
 
-loop %s%
-{
-spr := (A_Index <= s/2)?"b":"wscd"
-spr1 := (A_Index <= s/2)?"Thin Border":"Borders Combo"
+	loop %s%
+	{
+	spr := (A_Index <= s/2)?"b":"wscd"
+	spr1 := (A_Index <= s/2)?"Thin Border":"Borders Combo"
 
-%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "A", vPosX: rWd - ahkWd, vPosY: rHt, instance: minIndexTop}*)
-%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "H", vPosX: rWd, vPosY: rHt, instance: 1}*)
-%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "K", vPosX: rWd + ahkWd, vPosY: rHt, instance: minIndexBot}*)
-Sleep 100
-}
+	%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "A", vPosX: rWd - ahkWd, vPosY: rHt, instance: minIndexTop}*)
+	%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "H", vPosX: rWd, vPosY: rHt, instance: 1}*)
+	%SplashRef%(Splashy, {vBorder: spr, subText: spr1, mainText: "K", vPosX: rWd + ahkWd, vPosY: rHt, instance: minIndexBot}*)
+	Sleep 100
+	}
 
 Sleep 200
 
