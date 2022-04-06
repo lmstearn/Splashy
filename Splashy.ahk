@@ -278,7 +278,10 @@
 			{
 				if (!ctlHWnd)
 				return
-				if (!SubProcFunc)
+				; This only works for one window atm
+				if (SubProcFunc)
+				return
+				else
 				{
 				This.subClbk := new This.BoundFuncCallback(ObjBindMethod(This, "SubClassTextProc"), 6)
 				SubProcFunc := This.subClbk.addr
@@ -469,10 +472,8 @@
 				}
 			}
 			else
-			{
-			This.SaveRestoreUserParms(1)
-			return
-			}
+			This.instance := 1
+
 		}
 
 		if (This.hWndSaved[This.instance])
@@ -492,11 +493,13 @@
 		; init the parent hWnd
 			if (!This.parentHWnd)
 			{
-				This.parentHWnd := This.SetParentFlag()
-				if (This.parentHWnd == "Error")
+				if (This.parentHWnd := This.SetParentFlag())
 				{
-				msgbox, 8192, Parent Script, Warning: Parent script is not AHK, or the window handle cannot be obtained!
-				This.parentHWnd := 0
+					if (This.parentHWnd == "Error")
+					{
+					;msgbox, 8192, Parent Script, Warning: Parent script is not AHK, or the window handle cannot be obtained!
+					This.parentHWnd := 0
+					}
 				}
 			}
 		}
@@ -916,14 +919,13 @@
 	; Determines redraw of Splashy window (placeholder)
 	diffPicOrDiffDims := 0
 
-
 	This.procEnd := 0
 
 		if (This.updateFlag <= 0)
 		{
 		;Set defaults
-
-		This.parent := parentIn
+			if (parentIn != "")
+			This.parent := parentIn
 
 			if (imagePathIn == "")
 			{
@@ -1428,9 +1430,7 @@
 			try
 			{
 ;https://webapps.stackexchange.com/questions/162310/url-image-filtering-url-suffixes-and-wikimedia
-			;SplitPath,d,name
-			;UrlDownloadToFile,%d%,%name%
-				UrlDownloadToFile, %URL%, %fName%
+			UrlDownloadToFile, %URL%, %fName%
 			}
 			catch spr
 			{
@@ -1986,6 +1986,7 @@
 	;draw bitmap/icon onto GUI & call GetDC every paint
 
 	This.hDCWin := DllCall("user32\GetDC", "Ptr", This.hWndSaved[This.instance], "Ptr")
+
 		Switch This.vImgType
 		{
 			case 0:
@@ -2297,7 +2298,22 @@
 	static SS_Center := 0X1, SWP_SHOWWINDOW := 0x0040, mainTextSize := [], subTextSize := []
 	static oldSubBkgdColour := 0, oldMainBkgdColour := 0
 	init := 0
-		if (text != "")
+
+		if (text == "")
+		{
+			if (hWnd)
+			{
+			GuiControl, %splashyInst%: Hide, %hWnd%
+
+				if (sub)
+				subTextSize := ""
+				else
+				mainTextSize := ""
+			}
+
+		return 0
+		}
+		else
 		{
 		; Note default font styles for main & sub differ
 			if (sub)
@@ -2418,7 +2434,7 @@
 					if (This.subBkgdColour == This.bkgdColour)
 					{
 					spr := This.vImgW - subTextSize[1] + 2 * This.vMgnX
-					spr := (spr > 0)?((This.vImgTxtSize)? 0: spr)/2: 0
+					spr := (spr > 0)?((This.vImgTxtSize)? 0: spr/2): 0
 					}
 					else	; colours won't cover all the region after the move
 					spr := This.vMgnX
@@ -2454,20 +2470,7 @@
 		This.SubClassTextCtl(hWnd)
 		return % (sub)?subTextSize[2]:mainTextSize[2]
 		}
-		else
-		{
-			if (hWnd)
-			{
-			GuiControl, %splashyInst%: Hide, %hWnd%
 
-				if (sub)
-				subTextSize := ""
-				else
-				mainTextSize := ""
-			}
-
-		return 0
-		}
 	}
 
 
