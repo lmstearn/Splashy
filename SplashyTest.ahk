@@ -415,65 +415,68 @@
 
 		if (argList.HasKey("instance"))
 		{
-			key := argList["instance"]
-			if ((key := Floor(key))) ; 0 is invalid
+			if (key := argList["instance"])
 			{
-				if (This.hWndSaved[key])
-				{
-				This.instance := key
+				if key is not number
+				key := 1
+			}
+			else ; 0 defaults to 1
+			key := 1
+			
+		key := Floor(key)
 
-					if (This.instance != This.oldInstance)
+			if (This.hWndSaved[key])
+			{
+			This.instance := key
+
+				if (This.instance != This.oldInstance)
+				{
+				; Ensures current postion is not reset
+					This.vPosX := ""
+					This.vPosY := ""
+				}
+			}
+			else
+			{
+				if (key < 0)
+				{
+				key := -key
+					if (This.hWndSaved[key])
 					{
-					; Ensures current postion is not reset
-						This.vPosX := ""
-						This.vPosY := ""
+					;WinClose, % "ahk_id " This.hWndSaved[This.instance]
+					This.hWndSaved[key] := 0
+					This.mainTextHWnd[key] := 0
+					This.subTextHWnd[key] := 0
+					spr := "Splashy" . key
+					Gui, %spr%: Destroy
+					Splashy.NewWndProc.clbk[key] := ""
+
+					;Now reset This.instance for next call
+						if (This.hWndSaved.Length() == 1)
+						This.instance := 1
+						else
+						{
+							if (This.hWndSaved.Length() == key)
+							This.instance -= 1
+							else
+							This.instance := This.hWndSaved.MaxIndex()
+						}
+					This.oldInstance := This.instance
 					}
+				This.SaveRestoreUserParms(1)
+				return
 				}
 				else
 				{
-					if (key < 0)
+					if (key > This.MaxGuis)
 					{
-					key := -key
-						if (This.hWndSaved[key])
-						{
-						;WinClose, % "ahk_id " This.hWndSaved[This.instance]
-						This.hWndSaved[key] := 0
-						This.mainTextHWnd[key] := 0
-						This.subTextHWnd[key] := 0
-						spr := "Splashy" . key
-						Gui, %spr%: Destroy
-						Splashy.NewWndProc.clbk[key] := ""
-
-						;Now reset This.instance for next call
-							if (This.hWndSaved.Length() == 1)
-							This.instance := 1
-							else
-							{
-								if (This.hWndSaved.Length() == key)
-								This.instance -= 1
-								else
-								This.instance := This.hWndSaved.MaxIndex()
-							}
-						This.oldInstance := This.instance
-						}
 					This.SaveRestoreUserParms(1)
 					return
 					}
 					else
-					{
-						if (key > This.MaxGuis)
-						{
-						This.SaveRestoreUserParms(1)
-						return
-						}
-						else
-						This.instance := key
-					}
+					This.instance := key
 				}
 			}
-			else
-			This.instance := 1
-
 		}
 
 		if (This.hWndSaved[This.instance])
@@ -2824,7 +2827,6 @@
 	; ##################################################################################
 }
 ;=====================================================================================
-
 
 
  
