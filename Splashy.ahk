@@ -1,4 +1,4 @@
-﻿Class Splashy
+Class Splashy
 {
 
 	spr := 0
@@ -420,10 +420,10 @@
 				if key is not number
 				key := 1
 			}
-			else ; 0 defaults to 1
+			else
 			key := 1
 			
-		key := Floor(key)
+		key := Floor(key) ; 0 defaults to 1
 
 			if (This.hWndSaved[key])
 			{
@@ -1101,12 +1101,14 @@
 			{
 				if (This.hGDIPLUS := DllCall("LoadLibrary", "Str", "GdiPlus.dll", "Ptr"))
 				{
+				spr := 0
 				VarSetCapacity(SI, (A_PtrSize = 8 ? 24 : 16), 0), Numput(1, SI, 0, "Int")
 				DllCall("GdiPlus.dll\GdiplusStartup", "UPtr*", spr, "Ptr", &SI, "Ptr", 0)
 				; for return value see status enumeration in  gdiplustypes.h 
 				This.pToken := spr
 				}
-				else
+
+				if (!This.pToken)
 				msgbox, 8208, LoadLibrary, Critical GDIPLUS error!
 			}
 
@@ -1391,6 +1393,7 @@
 
 	ToBase(n, b)
 	{
+	m := ""
 	; Hex numbers n must be in quoted "0Xn" format
 		Loop
 		{
@@ -1447,10 +1450,6 @@
 			}
 			sleep 50
 			return 1
-
-
-			return fName
-
 	}
 
 
@@ -1641,7 +1640,7 @@
 
 	GetPicWH()
 	{
-	Static oldParent := This.Parent, vToggle := 1
+	Static vToggle := 1, oldParent := Splashy.Parent
 
 	vToggle := !vToggle
 	/*
@@ -1891,7 +1890,7 @@
 			if (InStr(This.imagePath, "*"))
 			{
 			; Just get header info
-			bm := subStr(This.PicInScript, 1, 100)
+			DecLen := 0, bm := subStr(This.PicInScript, 1, 100)
 			;https://www.autohotkey.com/boards/viewtopic.php?f=6&t=36455&p=168124#p168124
 
 			; CRYPT_STRING_BASE64 := 0x00000001
@@ -2049,7 +2048,7 @@
 
 	ProcImgWHVal(value, height := 0)
 	{
-	retval := 0
+	retval := 0, oldDim := 0
 		if (height)
 		{
 		dim := This.vImgH
@@ -2765,8 +2764,8 @@
 
 	This.DeleteHandles()
 
-	This.SetCapacity(downloadedPathNames, 0)
-	This.SetCapacity(downloadedUrlNames, 0)
+	This.SetCapacity(This.downloadedPathNames, 0)
+	This.SetCapacity(This.downloadedUrlNames, 0)
 		for key in This.hWndSaved
 		{
 		value := "Splashy" . key
