@@ -128,19 +128,6 @@ spr := 1
 %SplashRef%(Splashy, {mainText: "", subText: "", noHWndActivate: 1, vOnTop: 1, vImgW: 0, vImgH: 0}*)
 
 
-/*
-	SplashImgInit(parent, imagePath, imageUrl
-	, bkgdColour, transCol, vHide, noHWndActivate
-	, vOnTop, vMovable, vBorder, vImgTxtSize
-	, vPosX, vPosY, vMgnX, vMgnY, vImgW, vImgH
-	, mainText, mainBkgdColour
-	, mainFontName, mainFontSize, mainFontWeight, mainFontColour
-	, mainFontQuality, mainFontItalic, mainFontStrike, mainFontUnderline
-	, subText, subBkgdColour
-	, subFontName, subFontSize, subFontWeight, subFontColour
-	, subFontQuality, subFontItalic, subFontStrike, subFontUnderline)
-*/
-
 msgbox, 8196 , Splashy AHK Road Test, Ready for the Road Test?
 	IfMsgBox, No
 	gosub Quit
