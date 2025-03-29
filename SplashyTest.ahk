@@ -3096,7 +3096,6 @@ LaunchSplashy:
 vRepaintSplashy := 0
 launchStr := {}
 
-
 	if (ctlTogs[4] && fnParms[txt[4]])
 	{
 	GuiControl, Test: Disable, repaintSplashy
@@ -3146,7 +3145,7 @@ launchStr := {}
 				}
 				case 2:
 				{
-				spr := "1_2"
+				spr := "2_1"
 				GuiControl, Test:, %spr%, % GetData("BTOFF")
 				GuiControl, Test: movedraw, %spr%, 0
 				spr := "t_" . spr
